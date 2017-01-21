@@ -1,7 +1,16 @@
 @import '../mixins';
 
+$HEADER_HEIGHT: 75px;
+
+.ovc-website-container {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
 .ovc-website-header {
-  height: 75px;
+  height: $HEADER_HEIGHT;
   left: 0;
   top: 0;
   position: fixed;
@@ -57,5 +66,28 @@
   .ovc-header-item.button {
     cursor: pointer;
     @include hvr-fade(#fff, #363636);
+
+    a {
+      // Remove link formatting (underline and color)
+      text-decoration: none;
+      color: inherit;
+    }
   }
+}
+
+.ovc-website-body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.ovc-website-body.home {
+  background-image: url("https://static.pexels.com/photos/2324/skyline-buildings-new-york-skyscrapers.jpg");
+}
+
+.ovc-website-body.about {
+  background-image: url('https://static.pexels.com/photos/7070/space-desk-workspace-coworking.jpg');
 }

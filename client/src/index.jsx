@@ -1,14 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { Router, Route, IndexRoute, Link, hashHistory } from 'react-router'
 
 import Bootstrap from 'bootstrap/dist/css/bootstrap.css';
 
 import './index.scss';
 
-import WebsiteView from './website/website.jsx';
+import WebsiteApp from './website/website.jsx';
 
 ReactDOM.render(
-  <WebsiteView />,
+  <WebsiteApp />,
   document.getElementById('app')
 );
 

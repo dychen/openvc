@@ -23,13 +23,21 @@ Build dependencies:
 webpack
 webpack-dev-server
 
-# Webpack Loaders
+# Webpack Loaders and Plugins
 babel-loader
-file-loader # For index.html
+file-loader  # For index.html
+style-loader # For CSS
+css-loader   # For CSS
+extract-text-webpack-plugin # For CSS bundling
+sass-loader  # For SASS/SCSS
+url-loader   # For fonts
 
 # Babel
 babel-cli
 babel-core
 babel-preset-es2015
 babel-preset-react
+
+# Other
+node-sass
 ```

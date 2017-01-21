@@ -1,12 +1,13 @@
 'use strict';
 
-var webpack = require('webpack');
-var path = require('path');
+const webpack = require('webpack');
+const path = require('path');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
-var SRC_DIR = path.resolve(__dirname, 'client/src');
-var OUT_DIR = path.resolve(__dirname, 'client/dist');
+const SRC_DIR = path.resolve(__dirname, 'client/src');
+const OUT_DIR = path.resolve(__dirname, 'client/dist');
 
-var config = {
+const config = {
   entry: {
     javascript: SRC_DIR + '/index.jsx',
     html: SRC_DIR + '/index.html'
@@ -15,6 +16,9 @@ var config = {
     path: OUT_DIR,
     filename: 'app.js'
   },
+  plugins: [
+    new ExtractTextPlugin('app.css')
+  ],
   module: {
     loaders: [
       {
@@ -27,7 +31,32 @@ var config = {
       },
       {
         test: /\.html$/,
-        loader: "file?name=[name].[ext]"
+        loader: 'file?name=[name].[ext]'
+      },
+      {
+        test: /\.css$/,
+        loader: ExtractTextPlugin.extract('style-loader', 'css-loader')
+      },
+      {
+        test: /\.scss$/,
+        loader: ExtractTextPlugin.extract('style-loader', 'css-loader!sass-loader')
+      },
+      // Fonts
+      {
+        test: /\.(woff|woff2)(\?v=\d+\.\d+\.\d+)?$/,
+        loader: 'url?limit=10000&mimetype=application/font-woff'
+      },
+      {
+        test: /\.ttf(\?v=\d+\.\d+\.\d+)?$/,
+        loader: 'url?limit=10000&mimetype=application/octet-stream'
+      },
+      {
+        test: /\.eot(\?v=\d+\.\d+\.\d+)?$/,
+        loader: 'file'
+      },
+      {
+        test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
+        loader: 'url?limit=10000&mimetype=image/svg+xml'
       }
     ]
   }

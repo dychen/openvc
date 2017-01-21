@@ -1,0 +1,61 @@
+@import '../mixins';
+
+.ovc-website-header {
+  height: 75px;
+  left: 0;
+  top: 0;
+  position: fixed;
+  width: 100%;
+  z-index: 20;
+  background: #fff;
+  font-size: 1.5em;
+  box-shadow: 0 3px 12px 0 rgba(0,0,0,.23);
+
+  .ovc-header-left {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    padding-left: 10px;
+    width: 50%;
+    height: 100%;
+
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .ovc-header-right {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    padding-right: 20px;
+    width: 50%;
+    height: 100%;
+
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .ovc-header-item {
+    width: 100px;
+    height: 100%;
+    padding: 10px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .ovc-header-item.logo {
+    font-weight: 900;
+  }
+
+  .ovc-header-item.text {
+    width: 200px;
+    justify-content: flex-end;
+  }
+
+  .ovc-header-item.button {
+    cursor: pointer;
+    @include hvr-fade(#fff, #363636);
+  }
+}

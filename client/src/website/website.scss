@@ -1,7 +1,6 @@
 @import '../mixins';
 @import '../colors';
-
-$HEADER_HEIGHT: 75px;
+@import './mixins';
 
 .ovc-website-container {
   height: 100%;
@@ -94,58 +93,3 @@ $HEADER_HEIGHT: 75px;
   background-image: url("https://static.pexels.com/photos/7070/space-desk-workspace-coworking.jpg");
 }
 
-.ovc-website-body.apply {
-  background-image: url("https://images.pexels.com/photos/27665/pexels-photo-27665.jpg");
-
-  .apply-container {
-    margin-top: $HEADER_HEIGHT;
-    padding-top: 40px;
-    height: 100%;
-    width: 50%;
-    left: 25%;
-    position: absolute;
-
-    .apply-form {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-
-      label {
-        width: 200px;
-        float: left;
-        color: $OVC_WHITE;
-      }
-      input {
-        width: 200px;
-        height: 50px;
-        color: $OVC_WHITE;
-
-        background: none;
-        padding: 10px;
-        margin-bottom: 10px;
-        border: 1px $OVC_WHITE solid;
-        border-radius: 5px;
-      }
-      input:focus {
-        outline: none;
-      }
-      .apply-submit {
-        width: 200px;
-        height: 50px;
-        color: $OVC_WHITE;
-
-        padding: 5px;
-        border: 1px $OVC_WHITE solid;
-        border-radius: 5px;
-
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        @include hvr-fade($OVC_DARK_GRAY, $OVC_WHITE);
-        cursor: pointer;
-      }
-    }
-  }
-}

@@ -1,4 +1,5 @@
 *.swp
+*.pyc
 venv*
 node_modules/
 client/dist

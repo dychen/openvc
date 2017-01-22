@@ -7,10 +7,13 @@ from django.db import models
 class Person(models.Model):
     first_name = models.TextField(null=True, blank=True)
     last_name  = models.TextField(null=True, blank=True)
-    email      = models.EmailField(null=True, blank=True)
+    email      = models.EmailField(unique=True)
     location   = models.TextField(null=True, blank=True)
     gender     = models.TextField(null=True, blank=True)
     race       = models.TextField(null=True, blank=True)
+    website    = models.TextField(null=True, blank=True)
+    picture_url = models.TextField(null=True, blank=True)
+    linkedin_url = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -37,7 +40,7 @@ class Startup(models.Model):
 
 class Firm(models.Model):
     company_id = models.OneToOneField(Company, unique=True,
-                                      related_name='startup')
+                                      related_name='firm')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -66,13 +69,14 @@ class PersonEmail(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-class PersonExperience(models.Model):
-    person_id  = models.ForeignKey(Person, related_name='experiences')
+class PersonOrganizations(models.Model):
+    person_id  = models.ForeignKey(Person, related_name='organizations')
     company    = models.TextField(null=True, blank=True)
     title      = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     start_date = models.DateField(null=True, blank=True)
     end_date   = models.DateField(null=True, blank=True)
+    current    = models.NullBooleanField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -92,7 +96,7 @@ class Round(models.Model):
 class Investment(models.Model):
     round      = models.ForeignKey(Round, related_name='investments')
     ownership  = models.FloatField(null=True, blank=True)
-    investor   = models.ForeignKey(Investor, related_name='investments')
+    investor   = models.ForeignKey(Firm, related_name='investments')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

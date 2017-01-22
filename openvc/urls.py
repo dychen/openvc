@@ -16,6 +16,10 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 
+import access.views
+
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+
+    url(r'^api/v1/access/person/search', access.views.find_person),
 ]

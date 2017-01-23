@@ -4,7 +4,7 @@
 
 .ovc-founder-topnav {
   // Height: $TOPNAV_HEIGHT, Width: 100%
-  flex: 1 $TOPNAV_HEIGHT;
+  flex: 0 0 $TOPNAV_HEIGHT; // Don't grow or shrink, set to $TOPNAV_HEIGHT
   width: 100%;
   position: relative;
   z-index: 20;

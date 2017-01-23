@@ -3,9 +3,39 @@
 @import './mixins.scss';
 
 .ovc-founder-main {
+  padding: 20px;
+
   // Height: 100% (remaining height), Width: 100%
-  flex: 1 100%;
+  flex: 1 1 100%;
   width: 100%;
   position: relative;
+  overflow-y: scroll;
+}
 
+.ovc-team-section {
+
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  .ovc-team-card {
+    display: inline-block;
+    height: 200px;
+    width: 150px;
+    padding: 10px;
+    margin: 5px;
+    box-shadow: 0 1px 3px 0 $OVC_GRAY;
+
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-direction: column;
+
+    img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50px;
+      margin-bottom: 5px;
+    }
+  }
 }

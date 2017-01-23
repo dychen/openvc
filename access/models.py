@@ -12,7 +12,7 @@ class Person(models.Model):
     gender     = models.TextField(null=True, blank=True)
     race       = models.TextField(null=True, blank=True)
     website    = models.TextField(null=True, blank=True)
-    picture_url = models.TextField(null=True, blank=True)
+    photo_url  = models.TextField(null=True, blank=True)
     linkedin_url = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

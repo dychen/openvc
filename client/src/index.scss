@@ -13,12 +13,10 @@ html, body {
 
 .ovc-app-container {
   height: 100%;
+  width: 100%;
   padding: 0;
   margin: 0;
+
+  display: flex;
 }
 
-.ovc-main-container {
-  height: 100%;
-  padding: 0;
-  margin: 0;
-}

@@ -1,0 +1,135 @@
+@import '../mixins';
+@import '../colors.scss';
+@import './mixins.scss';
+
+.ovc-founder-sidenav {
+  height: 100%;
+  flex: 1 $SIDENAV_WIDTH;
+  z-index: 21;
+  background: $OVC_SIDENAV_GRAY;
+  font-size: 1.2em;
+  border-right: 1px solid $OVC_LIGHT_GRAY;
+
+  .ovc-sidenav-item {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+  }
+
+  .ovc-sidenav-item.logo {
+    height: $TOPNAV_HEIGHT;
+    padding-left: 0px;
+    margin-bottom: 10px;
+
+    justify-content: center;
+    border-bottom: 1px solid $OVC_LIGHT_GRAY;
+  }
+
+  .ovc-sidenav-item.link {
+    height: $TOPNAV_HEIGHT - 5px;
+    padding-left: 30px;
+
+    justify-content: flex-start;
+    cursor: pointer;
+    @include hvr-color($OVC_GRAY);
+  }
+}
+
+.ovc-founder-topnav {
+  height: $TOPNAV_HEIGHT;
+  flex: 1 100%;
+  order: 1;
+  position: relative;
+  z-index: 20;
+  background: $OVC_WHITE;
+  font-size: 1.2em;
+  border-bottom: 1px solid $OVC_LIGHT_GRAY;
+
+  .ovc-topnav-left {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 50%;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .ovc-topnav-right {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 50%;
+    height: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  .ovc-topnav-item {
+    width: 100px;
+    height: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .ovc-topnav-item.link {
+    cursor: pointer;
+    @include hvr-color($OVC_GRAY);
+  }
+
+  .ovc-topnav-item.labeled-icon {
+    width: 150px;
+    height: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    cursor: pointer;
+    @include hvr-color($OVC_GRAY);
+
+    i {
+      font-size: 30px;
+      margin-right: 10px;
+    }
+  }
+
+  .ovc-topnav-item.circle-icon {
+    width: 50px;
+    height: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    cursor: pointer;
+    @include hvr-color($OVC_GRAY);
+
+    i {
+      font-style: normal;
+      height: 35px;
+      width: 35px;
+      border: 1px solid $OVC_DARK_GRAY;
+      border-radius: 20px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+}
+
+.ovc-founder-main {
+  //width: 100%;
+  position: relative;
+
+  //flex: 1 100%;
+  order: 2;
+}

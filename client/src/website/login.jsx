@@ -1,5 +1,5 @@
 import React from 'react';
-import {Link} from 'react-router';
+import {Link, hashHistory} from 'react-router';
 
 import './login.scss';
 
@@ -24,6 +24,7 @@ class LoginForm extends React.Component {
 
   handleSubmit(e) {
     /* TODO: Login */
+    hashHistory.push('/founder');
     return;
   }
 

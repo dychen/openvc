@@ -10,19 +10,19 @@ class WebsiteHeader extends React.Component {
         <div className="ovc-header-left">
           <span className="ovc-header-item logo">OpenVC</span>
           <Link to="/home">
-            <span className="ovc-header-item button hvr-fade">Home</span>
+            <span className="ovc-header-item button">Home</span>
           </Link>
           <Link to="/about">
-            <span className="ovc-header-item button hvr-fade">About</span>
+            <span className="ovc-header-item button">About</span>
           </Link>
         </div>
 
         <div className="ovc-header-right">
           <span className="ovc-header-item text">I am a...</span>
           <Link to="/login">
-            <span className="ovc-header-item button hvr-fade">Founder</span>
+            <span className="ovc-header-item button">Founder</span>
           </Link>
-          <span className="ovc-header-item button hvr-fade">Investor</span>
+          <span className="ovc-header-item button">Investor</span>
         </div>
       </div>
     );

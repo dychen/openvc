@@ -11,16 +11,18 @@ import {WebsiteHeader, WebsiteHome, WebsiteAbout, WebsiteLogin, WebsiteFooter,
 import {LoginForm, SignupForm, StartupForm,
         ContactForm} from './website/login.jsx';
 
-import FounderApp from './founder/home.jsx';
+import {FounderSidenav, FounderTopnav,
+        FounderCompanyPage} from './founder/home.jsx';
 
 class AppContainer extends React.Component {
   render() {
-    const {main, topnav} = this.props;
+    const {main, topnav, sidenav} = this.props;
 
     return (
       <div className="ovc-app-container">
-        <div className="ovc-topnav-container">{topnav}</div>
-        <div className="ovc-main-container">{main}</div>
+        {sidenav}
+        {topnav}
+        {main}
       </div>
     );
   }
@@ -45,7 +47,9 @@ class App extends React.Component {
             <Route path="contact" components={ContactForm} />
           </Route>
 
-          <Route path="founder" components={{main: FounderApp}} />
+          <Route path="founder" components={{main: FounderCompanyPage,
+                                             topnav: FounderTopnav,
+                                             sidenav: FounderSidenav}} />
         </Route>
       </Router>
     );

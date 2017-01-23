@@ -1,7 +1,5 @@
 import React from 'react';
-import { Router, Route, IndexRoute, Link, hashHistory } from 'react-router';
-
-import { LoginForm, SignupForm, StartupForm, ContactForm, WebsiteLogin } from './login.jsx';
+import {Link} from 'react-router';
 
 import './website.scss';
 
@@ -49,6 +47,18 @@ class WebsiteAbout extends React.Component {
   }
 }
 
+class WebsiteLogin extends React.Component {
+  render() {
+    return (
+      <div className="ovc-website-body login">
+        <div className="login-container">
+          {this.props.children}
+        </div>
+      </div>
+    );
+  }
+}
+
 class WebsiteFooter extends React.Component {
   render() {
     return (
@@ -57,7 +67,7 @@ class WebsiteFooter extends React.Component {
   }
 }
 
-class WebsiteView extends React.Component {
+class WebsiteApp extends React.Component {
   render() {
     return (
       <div className="ovc-website-container">
@@ -69,24 +79,5 @@ class WebsiteView extends React.Component {
   }
 }
 
-class WebsiteApp extends React.Component {
-  render() {
-    return (
-      <Router history={hashHistory}>
-        <Route path="/" component={WebsiteView}>
-          <IndexRoute component={WebsiteHome} />
-          <Route path="home" component={WebsiteHome} />
-          <Route path="about" component={WebsiteAbout} />
-          <Route path="login" component={WebsiteLogin}>
-            <IndexRoute component={LoginForm} />
-            <Route path="signup" component={SignupForm} />
-            <Route path="startup" component={StartupForm} />
-            <Route path="contact" component={ContactForm} />
-          </Route>
-        </Route>
-      </Router>
-    );
-  }
-}
-
-export default WebsiteApp;
+export {WebsiteHeader, WebsiteHome, WebsiteAbout, WebsiteLogin, WebsiteFooter,
+        WebsiteApp};

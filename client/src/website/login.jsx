@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router';
+import {Link} from 'react-router';
 
 import './login.scss';
 
@@ -103,7 +103,7 @@ class StartupForm extends React.Component {
     super(props);
 
     this.state = {
-      'name': '',
+      'company': '',
       'location': '',
       'website': ''
     };
@@ -119,7 +119,7 @@ class StartupForm extends React.Component {
     return (
       <div className="basic-form" onSubmit={this.handleSubmit}>
         <label>Tell us about your company</label>
-        <label>Company: {this.state.firstName}</label>
+        <label>Company: {this.state.company}</label>
         <input type="text" name="company" value={this.state.company}
                onChange={this.handleChange} />
         <label>Address: {this.state.location}</label>
@@ -190,16 +190,4 @@ class ContactForm extends React.Component {
   }
 }
 
-class WebsiteLogin extends React.Component {
-  render() {
-    return (
-      <div className="ovc-website-body login">
-        <div className="login-container">
-          {this.props.children}
-        </div>
-      </div>
-    );
-  }
-}
-
-export { LoginForm, SignupForm, StartupForm, ContactForm, WebsiteLogin };
+export {LoginForm, SignupForm, StartupForm, ContactForm};

@@ -20,3 +20,12 @@ html, body {
   display: flex;
 }
 
+// Side-by-side with sidenav - holds topnav/header and main viewport
+.ovc-right-container {
+  height: 100%;
+  flex: 1 100%;
+
+  display: flex;
+  flex-direction: column;
+}
+

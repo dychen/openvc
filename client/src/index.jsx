@@ -11,8 +11,10 @@ import {WebsiteHeader, WebsiteHome, WebsiteAbout, WebsiteLogin, WebsiteFooter,
 import {LoginForm, SignupForm, StartupForm,
         ContactForm} from './website/login.jsx';
 
-import {FounderSidenav, FounderTopnav,
-        FounderCompanyPage} from './founder/home.jsx';
+import FounderSidenav from './founder/sidenav.jsx';
+import FounderTopnav from './founder/topnav.jsx';
+import FounderCompanyPage from './founder/home.jsx';
+
 
 class AppContainer extends React.Component {
   render() {
@@ -21,8 +23,10 @@ class AppContainer extends React.Component {
     return (
       <div className="ovc-app-container">
         {sidenav}
-        {topnav}
-        {main}
+        <div className="ovc-right-container">
+          {topnav}
+          {main}
+        </div>
       </div>
     );
   }

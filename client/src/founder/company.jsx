@@ -355,9 +355,9 @@ class InvestorSection extends React.Component {
         "name": "Andreessen Horowitz",
         "round": "Series A",
         "amount": "$6.0M",
-        "photoUrl": "https://thetechportal.com/wp-content/uploads/2016/06/Andreessen-horowitz-logo.png"
+        "photoUrl": "https://pbs.twimg.com/profile_images/487366765106565120/jGvHRW6p.png"
       }, {
-        "name": "Sequoia",
+        "name": "Sequoia Capital",
         "round": "Series A",
         "amount": "$4.0M",
         "photoUrl": "https://media.licdn.com/mpr/mpr/shrink_200_200/AAEAAQAAAAAAAAazAAAAJDZlZmE0MzIzLTYzNmItNDg4Ny1hYjVmLTgyMGUwYzM0Nzc1Zg.png"
@@ -365,9 +365,9 @@ class InvestorSection extends React.Component {
         "name": "Andreessen Horowitz",
         "round": "Series B",
         "amount": "$30.0M",
-        "photoUrl": "https://thetechportal.com/wp-content/uploads/2016/06/Andreessen-horowitz-logo.png"
+        "photoUrl": "https://pbs.twimg.com/profile_images/487366765106565120/jGvHRW6p.png"
       }, {
-        "name": "Sequoia",
+        "name": "Sequoia Capital",
         "round": "Series B",
         "amount": "$20.0M",
         "photoUrl": "https://media.licdn.com/mpr/mpr/shrink_200_200/AAEAAQAAAAAAAAazAAAAJDZlZmE0MzIzLTYzNmItNDg4Ny1hYjVmLTgyMGUwYzM0Nzc1Zg.png"
@@ -491,7 +491,7 @@ class InvestorSection extends React.Component {
 class FounderCompanyPage extends React.Component {
   render() {
     return (
-      <div className="ovc-founder-main">
+      <div>
         <h3>Team</h3>
         <TeamSection />
         <h3>Board</h3>

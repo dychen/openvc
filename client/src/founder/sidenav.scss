@@ -10,6 +10,12 @@
   font-size: 1.2em;
   border-right: 1px solid $OVC_LIGHT_GRAY;
 
+  a {
+    // Remove link formatting (underline and color)
+    text-decoration: none;
+    color: inherit;
+  }
+
   .ovc-sidenav-item {
     width: 100%;
 

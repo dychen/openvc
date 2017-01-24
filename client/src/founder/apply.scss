@@ -1,3 +1,67 @@
 @import '../mixins';
 @import '../colors.scss';
 @import './mixins.scss';
+
+$INVESTOR_PANEL_HEIGHT: 70px;
+
+.ovc-apply-investor-list {
+  .ovc-investor-panel {
+    height: $INVESTOR_PANEL_HEIGHT;
+    width: 100%;
+    box-shadow: 0 1px 3px 0 $OVC_GRAY;
+
+    margin-bottom: 5px;
+
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    @include hvr-outline($OVC_DARK_GRAY);
+    cursor: pointer;
+
+    img.investor-logo {
+      height: $INVESTOR_PANEL_HEIGHT;
+      flex: 0 0 $INVESTOR_PANEL_HEIGHT;
+    }
+
+    .ovc-investor-text {
+      width: 100%;
+      margin-left: 10px;
+      position: relative;
+
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-direction: column;
+
+      .investor-name {
+        font-weight: 900;
+      }
+      .investor-tags {
+        color: $OVC_GRAY;
+      }
+      span {
+        margin-right: 20px;
+        width: 150px;
+        display: inline-block;
+      }
+    }
+
+    .has-applied {
+      height: $INVESTOR_PANEL_HEIGHT;
+      flex: 0 0 $INVESTOR_PANEL_HEIGHT;
+      border-left: 1px solid $OVC_GRAY;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    i {
+      font-size: $INVESTOR_PANEL_HEIGHT - 10px;
+      color: $OVC_GRAY;
+
+      @include hvr-color($OVC_DARK_GRAY);
+      cursor: pointer;
+    }
+  }
+}

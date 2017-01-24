@@ -1,4 +1,5 @@
 import React from 'react';
+import {Link} from 'react-router';
 
 import './sidenav.scss';
 
@@ -8,12 +9,16 @@ class FounderSidenav extends React.Component {
       <div className="ovc-founder-sidenav">
         <div className="ovc-sidenav-top">
           <div className="ovc-sidenav-item logo">OpenVC</div>
-          <div className="ovc-sidenav-item link">
-            <i className="ion-speedometer"></i>Company
-          </div>
-          <div className="ovc-sidenav-item link">
-            <i className="ion-android-checkmark-circle"></i>Apply
-          </div>
+          <Link to="/founder/company">
+            <div className="ovc-sidenav-item link">
+              <i className="ion-speedometer"></i>Company
+            </div>
+          </Link>
+          <Link to="/founder/apply">
+            <div className="ovc-sidenav-item link">
+              <i className="ion-android-checkmark-circle"></i>Apply
+            </div>
+          </Link>
           <div className="ovc-sidenav-item link">
             <i className="ion-ios-briefcase-outline"></i>Deal Pipeline
           </div>

@@ -37,15 +37,15 @@
   }
 
   .ovc-topnav-item {
-    width: 100px;
-    height: 100%;
-
     display: flex;
     justify-content: center;
     align-items: center;
   }
 
   .ovc-topnav-item.link {
+    padding-left: 20px;
+    height: 100%;
+
     cursor: pointer;
     @include hvr-color($OVC_GRAY);
   }

@@ -8,6 +8,7 @@ class FounderTopnav extends React.Component {
       <div className="ovc-founder-topnav">
         <div className="ovc-topnav-left">
           <div className="ovc-topnav-item link">Tasks</div>
+          <div className="ovc-topnav-item link">History</div>
           <div className="ovc-topnav-item link">Notifications</div>
           <div className="ovc-topnav-item link">News Feed</div>
         </div>

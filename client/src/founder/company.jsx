@@ -97,7 +97,7 @@ class TeamSection extends React.Component {
           return teamMember.update('editing', value => false);
         })
       );
-    const appendedState = newState.updateIn(['team'], teamMembers =>
+    const appendedState = newState.update('team', teamMembers =>
       teamMembers.push({
         "firstName": "",
         "lastName": "",
@@ -261,7 +261,7 @@ class BoardSection extends React.Component {
           return boardMember.update('editing', value => false);
         })
       );
-    const appendedState = newState.updateIn(['board'], boardMembers =>
+    const appendedState = newState.update('board', boardMembers =>
       boardMembers.push({
         "firstName": "",
         "lastName": "",
@@ -419,7 +419,7 @@ class InvestorSection extends React.Component {
           return investor.update('editing', value => false);
         })
       );
-    const appendedState = newState.updateIn(['investors'], investors =>
+    const appendedState = newState.update('investors', investors =>
       investors.push({
         "name": "",
         "round": "",

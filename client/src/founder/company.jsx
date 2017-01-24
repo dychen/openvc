@@ -491,7 +491,7 @@ class InvestorSection extends React.Component {
 class FounderCompanyPage extends React.Component {
   render() {
     return (
-      <div>
+      <div className="ovc-founder-company-container">
         <h3>Team</h3>
         <TeamSection />
         <h3>Board</h3>

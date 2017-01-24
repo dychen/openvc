@@ -2,9 +2,51 @@
 @import '../colors.scss';
 @import './mixins.scss';
 
+$INVESTOR_SEARCH_WIDTH: 200px;
 $INVESTOR_PANEL_HEIGHT: 70px;
 
+.ovc-founder-apply-container {
+  width: 100%;
+  height: 100%;
+  margin: 0px;
+  padding: 0px;
+
+  display: flex;
+}
+
+.ovc-apply-search-menu {
+  flex: 0 0 $INVESTOR_SEARCH_WIDTH;
+  height: 100%;
+  padding-left: 10px;
+  padding-top: 10px;
+  background-color: $OVC_SUBNAV_GRAY;
+  border-right: 1px solid $OVC_LIGHT_GRAY;
+
+  label {
+    width: 100%;
+    float: left;
+    color: $OVC_DARK_GRAY;
+  }
+  input {
+    width: $INVESTOR_SEARCH_WIDTH - 20px;
+    height: 30px;
+    color: $OVC_DARK_GRAY;
+
+    background: none;
+    padding: 10px;
+    margin-bottom: 5px;
+    border: 1px $OVC_GRAY solid;
+    border-radius: 5px;
+  }
+  input:focus {
+    outline: none;
+  }
+}
+
 .ovc-apply-investor-list {
+  width: 100%;
+  margin: 25px;
+
   .ovc-investor-panel {
     height: $INVESTOR_PANEL_HEIGHT;
     width: 100%;

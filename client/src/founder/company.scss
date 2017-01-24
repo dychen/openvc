@@ -2,8 +2,11 @@
 @import '../colors.scss';
 @import './mixins.scss';
 
-.ovc-team-section {
+.ovc-founder-company-container {
+  padding-left: 20px;
+}
 
+.ovc-team-section {
   display: flex;
   justify-content: flex-start;
   align-items: center;

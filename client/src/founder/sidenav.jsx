@@ -23,6 +23,9 @@ class FounderSidenav extends React.Component {
           <div className="ovc-sidenav-item link">
             <i className="ion-chatbubbles"></i>Founder Groups
           </div>
+          <div className="ovc-sidenav-item link">
+            <i className="ion-key"></i>User Access
+          </div>
         </div>
 
         <div className="ovc-sidenav-bottom">

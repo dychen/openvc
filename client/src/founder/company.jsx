@@ -1,7 +1,7 @@
 import React from 'react';
 import Immutable from 'immutable';
 
-import './home.scss';
+import './company.scss';
 
 class TeamSection extends React.Component {
   constructor(props) {

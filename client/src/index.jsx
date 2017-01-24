@@ -11,9 +11,11 @@ import {WebsiteHeader, WebsiteHome, WebsiteAbout, WebsiteLogin, WebsiteFooter,
 import {LoginForm, SignupForm, StartupForm,
         ContactForm} from './website/login.jsx';
 
+import FounderAppContainer from './founder/founder.jsx';
 import FounderSidenav from './founder/sidenav.jsx';
 import FounderTopnav from './founder/topnav.jsx';
-import FounderCompanyPage from './founder/home.jsx';
+import FounderCompanyPage from './founder/company.jsx';
+import FounderApplyPage from './founder/apply.jsx';
 
 
 class AppContainer extends React.Component {
@@ -51,9 +53,13 @@ class App extends React.Component {
             <Route path="contact" components={ContactForm} />
           </Route>
 
-          <Route path="founder" components={{main: FounderCompanyPage,
+          <Route path="founder" components={{main: FounderAppContainer,
                                              topnav: FounderTopnav,
-                                             sidenav: FounderSidenav}} />
+                                             sidenav: FounderSidenav}}>
+            <IndexRoute component={FounderCompanyPage} />
+            <Route path="company" component={FounderCompanyPage} />
+            <Route path="apply" component={FounderApplyPage} />
+          </Route>
         </Route>
       </Router>
     );

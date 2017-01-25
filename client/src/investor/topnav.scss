@@ -2,7 +2,7 @@
 @import '../colors.scss';
 @import './mixins.scss';
 
-.ovc-founder-topnav {
+.ovc-investor-topnav {
   // Height: $TOPNAV_HEIGHT, Width: 100%
   flex: 0 0 $TOPNAV_HEIGHT; // Don't grow or shrink, set to $TOPNAV_HEIGHT
   width: 100%;
@@ -92,4 +92,5 @@
     }
   }
 }
+
 

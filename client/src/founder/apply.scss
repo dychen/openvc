@@ -17,8 +17,9 @@ $INVESTOR_PANEL_HEIGHT: 70px;
 .ovc-apply-search-menu {
   flex: 0 0 $INVESTOR_SEARCH_WIDTH;
   height: 100%;
-  padding-left: 10px;
-  padding-top: 10px;
+  overflow-y: hidden; // No scroll (parent div has this set)
+  padding-left: 20px;
+  padding-top: 20px;
   background-color: $OVC_SUBNAV_GRAY;
   border-right: 1px solid $OVC_LIGHT_GRAY;
 
@@ -28,7 +29,7 @@ $INVESTOR_PANEL_HEIGHT: 70px;
     color: $OVC_DARK_GRAY;
   }
   input {
-    width: $INVESTOR_SEARCH_WIDTH - 20px;
+    width: $INVESTOR_SEARCH_WIDTH - 40px;
     height: 30px;
     color: $OVC_DARK_GRAY;
 
@@ -68,7 +69,7 @@ $INVESTOR_PANEL_HEIGHT: 70px;
       align-items: center;
 
       i {
-        font-size: 30px;
+        font-size: 20px;
       }
     }
   }
@@ -77,6 +78,9 @@ $INVESTOR_PANEL_HEIGHT: 70px;
 .ovc-apply-investor-list {
   width: 100%;
   margin: 25px;
+
+  padding: 5px;
+  overflow-y: scroll; // Search sidebar is fixed, this should overflow
 
   .ovc-investor-panel {
     height: $INVESTOR_PANEL_HEIGHT;
@@ -92,15 +96,17 @@ $INVESTOR_PANEL_HEIGHT: 70px;
     @include hvr-outline($OVC_DARK_GRAY);
     cursor: pointer;
 
+    // Left icon
     img.investor-logo {
       height: $INVESTOR_PANEL_HEIGHT;
       flex: 0 0 $INVESTOR_PANEL_HEIGHT;
+      border-right: 1px solid $OVC_LIGHT_GRAY;
     }
 
+    // Middle info
     .ovc-investor-text {
       width: 100%;
       margin-left: 10px;
-      position: relative;
 
       display: flex;
       justify-content: center;
@@ -115,26 +121,28 @@ $INVESTOR_PANEL_HEIGHT: 70px;
       }
       span {
         margin-right: 20px;
-        width: 150px;
+        width: 180px;
         display: inline-block;
       }
     }
 
+    // Right icon
     .has-applied {
       height: $INVESTOR_PANEL_HEIGHT;
       flex: 0 0 $INVESTOR_PANEL_HEIGHT;
-      border-left: 1px solid $OVC_GRAY;
+      border-left: 1px solid $OVC_LIGHT_GRAY;
 
       display: flex;
       justify-content: center;
       align-items: center;
-    }
-    i {
-      font-size: $INVESTOR_PANEL_HEIGHT - 10px;
-      color: $OVC_GRAY;
 
-      @include hvr-color($OVC_DARK_GRAY);
-      cursor: pointer;
+      i {
+        font-size: $INVESTOR_PANEL_HEIGHT - 10px;
+        color: $OVC_GRAY;
+
+        @include hvr-color($OVC_DARK_GRAY);
+        cursor: pointer;
+      }
     }
   }
 }

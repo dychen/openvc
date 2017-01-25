@@ -1,0 +1,67 @@
+@import '../mixins';
+@import '../colors.scss';
+@import './mixins.scss';
+
+$DEAL_PANEL_HEIGHT: 100px;
+
+.ovc-investor-deal-container {
+  width: 100%;
+
+  padding-left: 25px;
+  padding-right: 25px;
+  padding-bottom: 25px;
+
+  .ovc-investor-deal-panel {
+    height: $DEAL_PANEL_HEIGHT;
+    width: 100%;
+    box-shadow: 0 1px 3px 0 $OVC_GRAY;
+
+    margin-bottom: 5px;
+
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    @include hvr-outline($OVC_DARK_GRAY);
+    cursor: pointer;
+
+    // Left icon
+    img.company-logo {
+      height: $DEAL_PANEL_HEIGHT;
+      flex: 0 0 $DEAL_PANEL_HEIGHT;
+      border-right: 1px solid $OVC_LIGHT_GRAY;
+    }
+
+    // Middle info
+    .ovc-deal-text {
+      width: 100%;
+      margin-left: 10px;
+
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-direction: column;
+
+    }
+
+    // Right icons
+    .move-deal {
+      height: $DEAL_PANEL_HEIGHT;
+      flex: 0 0 $DEAL_PANEL_HEIGHT;
+      border-left: 1px solid $OVC_LIGHT_GRAY;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+
+      i {
+        font-size: $DEAL_PANEL_HEIGHT/2 - 10px;
+        color: $OVC_GRAY;
+
+        @include hvr-color($OVC_DARK_GRAY);
+        cursor: pointer;
+      }
+    }
+  }
+}

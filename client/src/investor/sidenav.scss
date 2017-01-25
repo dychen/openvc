@@ -2,7 +2,7 @@
 @import '../colors.scss';
 @import './mixins.scss';
 
-.ovc-founder-sidenav {
+.ovc-investor-sidenav {
   height: 100%;
   flex: 0 0 $SIDENAV_WIDTH; // Don't grow or shrink, set to $SIDENAV_WIDTH
   z-index: 21;
@@ -45,6 +45,22 @@
       font-size: 20px;
       margin-right: 10px;
       width: 20px;
+    }
+    i.ovc-circle-alert {
+      height: 20px;
+      border-radius: 10px;
+      margin-left: 10px;
+      padding-top: 2px; // Not vertically centering well for some reason
+      font-style: normal;
+      font-size: 0.9em;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    i.ovc-circle-alert.red {
+      background-color: red;
+      color: $OVC_WHITE;
     }
   }
 }

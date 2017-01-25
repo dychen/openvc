@@ -1,5 +1,6 @@
 import React from 'react';
 import Immutable from 'immutable';
+import 'whatwg-fetch';
 
 import './apply.scss';
 
@@ -108,76 +109,7 @@ class FounderApplyPage extends React.Component {
         'location': '',
         'tags': []
       },
-      'investors': [{
-        'id': 1,
-        'name': 'Andreessen Horowitz',
-        'photoUrl': 'https://pbs.twimg.com/profile_images/487366765106565120/jGvHRW6p.png',
-        'location': 'Menlo Park, CA',
-        'checkMin': '$1M',
-        'checkMax': '$100M',
-        'partners': ['Marc Andreessen', 'Ben Horowitz', 'Jeff Jordan',
-                     'Peter Levine'],
-        'tags': ['Seed', 'Venture', 'Growth', 'California', 'Palo Alto',
-                 'Software', 'Mobile', 'Payments', 'Drones', 'Virtual Reality',
-                 'Bitcoin'],
-        'applied': true
-      }, {
-        'id': 2,
-        'name': 'Sequoia Capital',
-        'photoUrl': 'https://media.licdn.com/mpr/mpr/shrink_200_200/AAEAAQAAAAAAAAazAAAAJDZlZmE0MzIzLTYzNmItNDg4Ny1hYjVmLTgyMGUwYzM0Nzc1Zg.png',
-        'location': 'Menlo Park, CA',
-        'checkMin': '$5M',
-        'checkMax': '$100M',
-        'partners': ['Michael Moritz', 'Doug Leone', 'Don Valentine',
-                     'Jim Goetz', 'Alfred Lin'],
-        'tags': ['Seed', 'Venture', 'Growth', 'California', 'Palo Alto',
-                 'Software', 'Mobile', 'Data', 'Analytics', 'Machine Learning',
-                 'Hardware'],
-        'applied': false
-      }, {
-        'id': 3,
-        'name': 'Y-Combinator',
-        'photoUrl': 'https://www.ycombinator.com/images/ycombinator-logo-fb889e2e.png',
-        'location': 'Mountain View, CA',
-        'checkMin': '$50K',
-        'checkMax': '$500K',
-        'partners': ['Sam Altman', 'Paul Graham'],
-        'tags': ['Seed', 'California', 'Software', 'Mobile', 'Data', 'Hardware'],
-        'applied': false
-      }, {
-        'id': 4,
-        'name': 'Greylock Partners',
-        'photoUrl': 'https://pbs.twimg.com/profile_images/488805819744391168/WtmSJ00E_400x400.png',
-        'location': 'San Francisco, CA',
-        'checkMin': '$5M',
-        'checkMax': '$50M',
-        'partners': ['David Sze', 'Bill Helman', 'Reid Hoffman', 'John Lilly'],
-        'tags': ['Venture', 'Growth', 'California', 'Software', 'Social',
-                 'Mobile', 'Data', 'Hardware', 'Infrastructure'],
-        'applied': false
-      }, {
-        'id': 5,
-        'name': 'Accel Partners',
-        'photoUrl': 'https://pbs.twimg.com/profile_images/793210822759583744/HygDDToa.jpg',
-        'location': 'Palo Alto, CA',
-        'checkMin': '$50K',
-        'checkMax': '$500K',
-        'partners': ['Rich Wong', 'Miles Clements', 'Sameer Gandhi', 'Kevin Efrusy'],
-        'tags': ['Venture', 'Growth', 'California', 'Social', 'Mobile', 'Data',
-                 'Software'],
-        'applied': false
-      }, {
-        'id': 6,
-        'name': 'Social+Capital',
-        'photoUrl': 'https://pbs.twimg.com/profile_images/651210970136637440/0-XZfKUN.png',
-        'location': 'Palo Alto, CA',
-        'checkMin': '$50K',
-        'checkMax': '$50M',
-        'partners': ['Chamath Palihapitiya', 'Mamoon Hamid', 'Ted Maidenberg'],
-        'tags': ['Seed', 'Venture', 'Growth', 'California', 'Software',
-                 'Social', 'Mobile', 'Data', 'Analytics'],
-        'applied': false
-      }]
+      'investors': []
     };
 
     this.updateFilter = this.updateFilter.bind(this);
@@ -185,6 +117,12 @@ class FounderApplyPage extends React.Component {
     this.removeFilterTag = this.removeFilterTag.bind(this);
     this.filterInvestors = this.filterInvestors.bind(this);
     this.toggleApply = this.toggleApply.bind(this);
+
+    fetch('/data/founder/apply/investors.json').then(function(response) {
+      return response.json();
+    }).then(json => {
+      this.setState({ 'investors': json });
+    }); // TODO: Handle errors
   }
 
   updateFilter(e) {

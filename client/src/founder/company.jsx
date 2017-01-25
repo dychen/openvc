@@ -1,5 +1,6 @@
 import React from 'react';
 import Immutable from 'immutable';
+import 'whatwg-fetch';
 
 import './company.scss';
 
@@ -9,47 +10,7 @@ class TeamSection extends React.Component {
 
     // TODO: Load this from the server
     this.state = {
-      "team": [{
-        "firstName": "Suhail",
-        "lastName": "Doshi",
-        "title": "CEO, Co-founder",
-        "email": "suhail@mixpanel.com",
-        "photoUrl": "https://media.licdn.com/mpr/mpr/shrinknp_400_400/p/5/000/236/372/2769b5d.jpg",
-        "linkedinUrl": "https://www.linkedin.com/in/suhaildoshi",
-        "editing": false
-      }, {
-        "firstName": "Tim",
-        "lastName": "Trefren",
-        "title": "Cofounder",
-        "email": "tim@mixpanel.com",
-        "photoUrl": "https://media.licdn.com/mpr/mpr/shrinknp_400_400/p/5/000/1b9/3c3/2ca072b.jpg",
-        "linkedinUrl": "https://www.linkedin.com/in/timtrefren",
-        "editing": false
-      }, {
-        "firstName": "Stu",
-        "lastName": "Aaron",
-        "title": "President and COO",
-        "email": "stu@mixpanel.com",
-        "photoUrl": "https://media.licdn.com/mpr/mpr/shrinknp_400_400/AAEAAQAAAAAAAAcKAAAAJDY5OTU4MjBmLTc1NWMtNGQ1OS1iNDQzLTQzZDg5NWQyMjVhMw.jpg",
-        "linkedinUrl": "https://www.linkedin.com/in/stuaaron",
-        "editing": false
-      }, {
-        "firstName": "Shawn",
-        "lastName": "Hansen",
-        "title": "Chief Marketing Officer",
-        "email": "shawn@mixpanel.com",
-        "photoUrl": "https://media.licdn.com/mpr/mpr/shrinknp_400_400/AAEAAQAAAAAAAAinAAAAJDg0Y2U3ODY3LThlM2UtNDQ5My1hODg5LTlmNDUxNGVjNzRhZg.jpg",
-        "linkedinUrl": "https://www.linkedin.com/in/shawnha",
-        "editing": false
-      }, {
-        "firstName": "Joe",
-        "lastName": "Xavier",
-        "title": "VP Engineering",
-        "email": "joe@mixpanel.com",
-        "photoUrl": "https://media.licdn.com/mpr/mpr/shrinknp_400_400/AAEAAQAAAAAAAAiqAAAAJGE0ZWViMTM2LTFhMDktNDYyMC04Y2NkLThmMzBmZTk2MmZhZQ.jpg",
-        "linkedinUrl": "https://www.linkedin.com/in/joexavier",
-        "editing": false
-      }]
+      'team': []
     };
 
     this.editCard = this.editCard.bind(this);
@@ -57,6 +18,12 @@ class TeamSection extends React.Component {
     this.saveCard = this.saveCard.bind(this);
     this.addCard = this.addCard.bind(this);
     this.removeCard = this.removeCard.bind(this);
+
+    fetch('/data/founder/company/team.json').then(function(response) {
+      return response.json();
+    }).then(json => {
+      this.setState({ 'team': json });
+    }); // TODO: Handle errors
   }
 
   editCard(e) {
@@ -177,43 +144,7 @@ class BoardSection extends React.Component {
 
     // TODO: Load this from the server
     this.state = {
-      "board": [{
-        "firstName": "Suhail",
-        "lastName": "Doshi",
-        "title": "CEO, Co-founder",
-        "company": "Mixpanel",
-        "email": "suhail@mixpanel.com",
-        "photoUrl": "https://media.licdn.com/mpr/mpr/shrinknp_400_400/p/5/000/236/372/2769b5d.jpg",
-        "linkedinUrl": "https://www.linkedin.com/in/suhaildoshi",
-        "editing": false
-      }, {
-        "firstName": "Tim",
-        "lastName": "Trefren",
-        "title": "Cofounder",
-        "company": "Mixpanel",
-        "email": "tim@mixpanel.com",
-        "photoUrl": "https://media.licdn.com/mpr/mpr/shrinknp_400_400/p/5/000/1b9/3c3/2ca072b.jpg",
-        "linkedinUrl": "https://www.linkedin.com/in/timtrefren",
-        "editing": false
-      }, {
-        "firstName": "Peter",
-        "lastName": "Levine",
-        "title": "General Partner",
-        "company": "Andreessen Horowitz",
-        "email": "peter@a16z.com",
-        "photoUrl": "https://media.licdn.com/mpr/mpr/shrinknp_400_400/p/6/005/0a4/128/1b40694.jpg",
-        "linkedinUrl": "https://www.linkedin.com/in/peter-levine-90728433",
-        "editing": false
-      }, {
-        "firstName": "Max",
-        "lastName": "Levchin",
-        "title": "CEO",
-        "company": "Affirm",
-        "email": "max@affirm.com",
-        "photoUrl": "https://media.licdn.com/mpr/mpr/shrinknp_400_400/p/2/000/014/304/301c13d.jpg",
-        "linkedinUrl": "https://www.linkedin.com/in/maxlevchin",
-        "editing": false
-      }]
+      'board': []
     };
 
     this.editCard = this.editCard.bind(this);
@@ -221,6 +152,12 @@ class BoardSection extends React.Component {
     this.saveCard = this.saveCard.bind(this);
     this.addCard = this.addCard.bind(this);
     this.removeCard = this.removeCard.bind(this);
+
+    fetch('/data/founder/company/board.json').then(function(response) {
+      return response.json();
+    }).then(json => {
+      this.setState({ 'board': json });
+    }); // TODO: Handle errors
   }
 
   editCard(e) {
@@ -346,32 +283,7 @@ class InvestorSection extends React.Component {
 
     // TODO: Load this from the server
     this.state = {
-      "investors": [{
-        "name": "Y-Combinator",
-        "round": "Series Seed",
-        "amount": "$1.0M",
-        "photoUrl": "https://www.ycombinator.com/images/ycombinator-logo-fb889e2e.png"
-      }, {
-        "name": "Andreessen Horowitz",
-        "round": "Series A",
-        "amount": "$6.0M",
-        "photoUrl": "https://pbs.twimg.com/profile_images/487366765106565120/jGvHRW6p.png"
-      }, {
-        "name": "Sequoia Capital",
-        "round": "Series A",
-        "amount": "$4.0M",
-        "photoUrl": "https://media.licdn.com/mpr/mpr/shrink_200_200/AAEAAQAAAAAAAAazAAAAJDZlZmE0MzIzLTYzNmItNDg4Ny1hYjVmLTgyMGUwYzM0Nzc1Zg.png"
-      }, {
-        "name": "Andreessen Horowitz",
-        "round": "Series B",
-        "amount": "$30.0M",
-        "photoUrl": "https://pbs.twimg.com/profile_images/487366765106565120/jGvHRW6p.png"
-      }, {
-        "name": "Sequoia Capital",
-        "round": "Series B",
-        "amount": "$20.0M",
-        "photoUrl": "https://media.licdn.com/mpr/mpr/shrink_200_200/AAEAAQAAAAAAAAazAAAAJDZlZmE0MzIzLTYzNmItNDg4Ny1hYjVmLTgyMGUwYzM0Nzc1Zg.png"
-      }]
+      'investors': []
     };
 
     this.editCard = this.editCard.bind(this);
@@ -379,6 +291,12 @@ class InvestorSection extends React.Component {
     this.saveCard = this.saveCard.bind(this);
     this.addCard = this.addCard.bind(this);
     this.removeCard = this.removeCard.bind(this);
+
+    fetch('/data/founder/company/investors.json').then(function(response) {
+      return response.json();
+    }).then(json => {
+      this.setState({ 'investors': json });
+    }); // TODO: Handle errors
   }
 
   editCard(e) {

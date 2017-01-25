@@ -19,10 +19,12 @@ class WebsiteHeader extends React.Component {
 
         <div className="ovc-header-right">
           <span className="ovc-header-item text">I am a...</span>
-          <Link to="/login">
+          <Link to="/founder">
             <span className="ovc-header-item button">Founder</span>
           </Link>
-          <span className="ovc-header-item button">Investor</span>
+          <Link to="/investor">
+            <span className="ovc-header-item button">Investor</span>
+          </Link>
         </div>
       </div>
     );

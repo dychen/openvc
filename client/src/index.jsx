@@ -17,6 +17,11 @@ import FounderTopnav from './founder/topnav.jsx';
 import FounderCompanyPage from './founder/company.jsx';
 import FounderApplyPage from './founder/apply.jsx';
 
+import InvestorAppContainer from './investor/investor.jsx';
+import InvestorSidenav from './investor/sidenav.jsx';
+import InvestorTopnav from './investor/topnav.jsx';
+import InvestorDealPage from './investor/deals.jsx';
+
 
 class AppContainer extends React.Component {
   render() {
@@ -59,6 +64,13 @@ class App extends React.Component {
             <IndexRoute component={FounderCompanyPage} />
             <Route path="company" component={FounderCompanyPage} />
             <Route path="apply" component={FounderApplyPage} />
+          </Route>
+
+          <Route path="investor" components={{main: InvestorAppContainer,
+                                              topnav: InvestorTopnav,
+                                              sidenav: InvestorSidenav}}>
+            <IndexRoute component={InvestorDealPage} />
+            <Route path="deals" component={InvestorDealPage} />
           </Route>
         </Route>
       </Router>

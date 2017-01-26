@@ -22,6 +22,7 @@ import InvestorSidenav from './investor/sidenav.jsx';
 import InvestorTopnav from './investor/topnav.jsx';
 import InvestorDealPage from './investor/deals.jsx';
 import InvestorLandscapePage from './investor/landscape.jsx';
+import InvestorComparePage from './investor/compare.jsx';
 
 
 class AppContainer extends React.Component {
@@ -73,6 +74,7 @@ class App extends React.Component {
             <IndexRoute component={InvestorDealPage} />
             <Route path="deals" component={InvestorDealPage} />
             <Route path="landscape" component={InvestorLandscapePage} />
+            <Route path="compare" component={InvestorComparePage} />
           </Route>
         </Route>
       </Router>

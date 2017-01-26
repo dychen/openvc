@@ -20,9 +20,11 @@ class InvestorSidenav extends React.Component {
               <i className="ion-earth"></i>Startup Landscape
             </div>
           </Link>
-          <div className="ovc-sidenav-item link">
-            <i className="ion-podium"></i>Compare Startups
-          </div>
+          <Link to="/investor/compare">
+            <div className="ovc-sidenav-item link">
+              <i className="ion-podium"></i>Compare Startups
+            </div>
+          </Link>
           <div className="ovc-sidenav-item link">
             <i className="ion-map"></i>Market Map
           </div>

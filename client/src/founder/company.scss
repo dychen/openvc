@@ -3,7 +3,12 @@
 @import './mixins.scss';
 
 .ovc-founder-company-container {
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
   padding-left: 20px;
+  padding-right: 20px;
+  padding-bottom: 20px;
 }
 
 .ovc-team-section {

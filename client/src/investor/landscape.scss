@@ -9,11 +9,11 @@ $STARTUP_PANEL_HEIGHT: 160px;
   width: 100%;
   height: 100%;
   display: flex;
+  overflow-x: hidden;
 
   .ovc-landscape-search-menu {
     flex: 0 0 $LANDSCAPE_SEARCH_WIDTH;
     height: 100%;
-    overflow-y: hidden; // No scroll (parent div has this set)
     padding-left: 20px;
     padding-top: 20px;
     background-color: $OVC_SUBNAV_GRAY;
@@ -23,7 +23,7 @@ $STARTUP_PANEL_HEIGHT: 160px;
   .ovc-landscape-startups-container {
     width: 100%;
     height: 100%;
-    overflow-y: scroll; // Search sidebar is fixed, this should overflow
+    overflow-y: scroll;
 
     padding-left: 25px;
     padding-right: 25px;
@@ -68,20 +68,9 @@ $STARTUP_PANEL_HEIGHT: 160px;
     float: left;
     color: $OVC_DARK_GRAY;
   }
-  input {
-    width: $LANDSCAPE_SEARCH_WIDTH - 40px;
-    height: 30px;
-    color: $OVC_DARK_GRAY;
 
-    background: none;
-    padding: 10px;
-    margin-bottom: 5px;
-    border: 1px $OVC_GRAY solid;
-    border-radius: 5px;
-  }
-  input:focus {
-    outline: none;
-  }
+  @include ovc-nav-input($LANDSCAPE_SEARCH_WIDTH - 40px, 30px,
+                         $OVC_GRAY, $OVC_DARK_GRAY);
 }
 
 .ovc-landscape-startups-section {

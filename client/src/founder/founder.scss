@@ -3,6 +3,9 @@
   flex: 1 1 100%;
   width: 100%;
   position: relative;
-  overflow-y: scroll;
+  overflow-y: hidden; // Let child components control scroll
+                      // NOTE: Every component along the chain needs to have
+                      //       height: 100% for the child component to allow
+                      //       overflow-y: scroll
 }
 

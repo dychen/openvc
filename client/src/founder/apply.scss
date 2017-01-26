@@ -17,7 +17,6 @@ $INVESTOR_PANEL_HEIGHT: 70px;
 .ovc-apply-search-menu {
   flex: 0 0 $INVESTOR_SEARCH_WIDTH;
   height: 100%;
-  overflow-y: hidden; // No scroll (parent div has this set)
   padding: 20px;
   background-color: $OVC_SUBNAV_GRAY;
   border-right: 1px solid $OVC_LIGHT_GRAY;
@@ -27,20 +26,9 @@ $INVESTOR_PANEL_HEIGHT: 70px;
     float: left;
     color: $OVC_DARK_GRAY;
   }
-  input {
-    width: $INVESTOR_SEARCH_WIDTH - 40px;
-    height: 30px;
-    color: $OVC_DARK_GRAY;
 
-    background: none;
-    padding: 10px;
-    margin-bottom: 5px;
-    border: 1px $OVC_GRAY solid;
-    border-radius: 5px;
-  }
-  input:focus {
-    outline: none;
-  }
+  @include ovc-nav-input($INVESTOR_SEARCH_WIDTH - 40px, 30px,
+                         $OVC_GRAY, $OVC_DARK_GRAY);
 
   .filter-tag {
     width: auto;
@@ -76,10 +64,9 @@ $INVESTOR_PANEL_HEIGHT: 70px;
 
 .ovc-apply-investor-list {
   width: 100%;
-  margin: 25px;
-
-  padding: 5px;
-  overflow-y: scroll; // Search sidebar is fixed, this should overflow
+  margin: 20px;
+  padding: 10px;
+  overflow-y: scroll;
 
   .ovc-investor-panel {
     height: $INVESTOR_PANEL_HEIGHT;

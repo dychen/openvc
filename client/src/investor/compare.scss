@@ -1,0 +1,99 @@
+@import '../mixins';
+@import '../colors.scss';
+@import './mixins.scss';
+
+$COMPARE_HEADER_HEIGHT: 60px;
+
+.ovc-investor-compare-container {
+  height: 100%;
+  width: 100%;
+
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column;
+
+  @include ovc-nav-input(200px, 30px,
+                         $OVC_GRAY, $OVC_DARK_GRAY);
+
+  .ovc-compare-search-row {
+    flex: 0 0 $COMPARE_HEADER_HEIGHT;
+    width: 100%;
+
+    background-color: $OVC_SUBNAV_GRAY;
+    border-bottom: 1px solid $OVC_LIGHT_GRAY;
+
+    display: flex;
+    align-items: center;
+
+    .search-row-left {
+      flex: 0 0 200px;
+      padding-left: 10px;
+    }
+    .search-row-mid {
+      width: 100%;
+      font-size: 1.2em;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      span {
+        padding: 10px;
+      }
+    }
+    .search-row-right {
+      flex: 0 0;
+      padding-right: 10px;
+      border-left: 1px solid $OVC_LIGHT_GRAY;
+
+      display: flex;
+      flex-direction: row;
+
+      img, i {
+        width: $COMPARE_HEADER_HEIGHT;
+        height: $COMPARE_HEADER_HEIGHT;
+        border-right: 1px solid $OVC_LIGHT_GRAY;
+      }
+      img {
+        @include hvr-grow(1.2);
+        cursor: pointer;
+      }
+      i {
+        font-size: $COMPARE_HEADER_HEIGHT;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+    }
+  }
+
+  .ovc-compare-quick-row {
+    flex: 0 0 $COMPARE_HEADER_HEIGHT;
+    width: 100%;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: $OVC_SUBNAV_GRAY;
+    border-left: 1px solid $OVC_LIGHT_GRAY;
+    border-bottom: 1px solid $OVC_LIGHT_GRAY;
+
+    overflow-x: scroll;
+    display: flex;
+    flex-wrap: nowrap;
+
+    img {
+      width: $COMPARE_HEADER_HEIGHT;
+      height: $COMPARE_HEADER_HEIGHT;
+      border-right: 1px solid $OVC_LIGHT_GRAY;
+
+      @include hvr-grow(1.2);
+      cursor: pointer;
+    }
+
+  }
+
+  .ovc-compare-company-section {
+    height: 100%;
+    width: 100%;
+    overflow-y: scroll;
+  }
+}

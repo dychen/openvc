@@ -1,0 +1,160 @@
+@import '../mixins';
+@import '../colors.scss';
+@import './mixins.scss';
+
+$LANDSCAPE_SEARCH_WIDTH: 200px;
+$STARTUP_PANEL_HEIGHT: 160px;
+
+.ovc-investor-landscape-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+
+  .ovc-landscape-search-menu {
+    flex: 0 0 $LANDSCAPE_SEARCH_WIDTH;
+    height: 100%;
+    overflow-y: hidden; // No scroll (parent div has this set)
+    padding-left: 20px;
+    padding-top: 20px;
+    background-color: $OVC_SUBNAV_GRAY;
+    border-right: 1px solid $OVC_LIGHT_GRAY;
+  }
+
+  .ovc-landscape-startups-container {
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll; // Search sidebar is fixed, this should overflow
+
+    padding-left: 25px;
+    padding-right: 25px;
+    padding-bottom: 25px;
+  }
+
+  .filter-tag {
+    width: auto;
+    height: 30px;
+    border: 1px solid $OVC_LIGHT_GRAY;
+    border-radius: 5px;
+    padding-right: 10px;
+    margin: 1px;
+
+    display: inline-flex; // inline to make width size to element
+    justify-content: center;
+    align-items: center;
+
+    @include hvr-color($OVC_GRAY);
+    cursor: pointer;
+
+    .filter-close {
+      width: 30px;
+      height: 30px;
+      margin-right: 10px;
+      border-right: 1px solid $OVC_LIGHT_GRAY;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      i {
+        font-size: 20px;
+      }
+    }
+  }
+}
+
+.ovc-landscape-search-menu {
+  label {
+    width: 100%;
+    float: left;
+    color: $OVC_DARK_GRAY;
+  }
+  input {
+    width: $LANDSCAPE_SEARCH_WIDTH - 40px;
+    height: 30px;
+    color: $OVC_DARK_GRAY;
+
+    background: none;
+    padding: 10px;
+    margin-bottom: 5px;
+    border: 1px $OVC_GRAY solid;
+    border-radius: 5px;
+  }
+  input:focus {
+    outline: none;
+  }
+}
+
+.ovc-landscape-startups-section {
+  padding: 5px;
+
+  .ovc-investor-landscape-panel {
+    height: $STARTUP_PANEL_HEIGHT;
+    width: 100%;
+    box-shadow: 0 1px 3px 0 $OVC_GRAY;
+
+    margin-bottom: 5px;
+
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    cursor: default;
+
+    // Left icon
+    .logo-container {
+      height: $STARTUP_PANEL_HEIGHT;
+      width: $STARTUP_PANEL_HEIGHT;
+      flex: 0 0 $STARTUP_PANEL_HEIGHT;
+      border-right: 1px solid $OVC_LIGHT_GRAY;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      img.company-logo {
+        height: $STARTUP_PANEL_HEIGHT;
+        width: $STARTUP_PANEL_HEIGHT;
+      }
+    }
+    .logo-container.save-startup {
+      cursor: pointer;
+
+      i.save-button {
+        display: none;
+        font-size: $STARTUP_PANEL_HEIGHT - 10px;
+        color: $OVC_GRAY;
+      }
+      img.company-logo {
+        display: inline;
+      }
+    }
+    .logo-container.save-startup i {
+      display: none;
+    }
+    // Left icon on hover
+    .logo-container.save-startup:hover {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      i.save-button {
+        display: inline;
+      }
+      img.company-logo {
+        display: none;
+      }
+    }
+
+    // Middle info
+    .startup-text {
+      width: 100%;
+      margin-left: 10px;
+      margin-right: 5px;
+
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+}

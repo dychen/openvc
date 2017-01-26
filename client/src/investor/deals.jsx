@@ -16,7 +16,7 @@ class DealSection extends React.Component {
       return (
         <div className="ovc-investor-deal-panel" key={deal.id}>
           <img className="company-logo" src={deal.photoUrl} />
-          <div className="ovc-deal-text">
+          <div className="deal-text">
             <div>
               <span>{deal.company}</span> {deal.initialDate}
             </div>
@@ -98,6 +98,7 @@ class InvestorDealPage extends React.Component {
   }
 
   render() {
+    /* TODO: Rejections */
     return (
       <div className="ovc-investor-deal-container">
         <DealSection deals={this.filterDeals(this.state.deals, 0)}

@@ -20,7 +20,7 @@ class FounderSidenav extends React.Component {
             </div>
           </Link>
           <div className="ovc-sidenav-item link">
-            <i className="ion-ios-briefcase-outline"></i>Deal Pipeline
+            <i className="ion-ios-briefcase-outline"></i>Fundraising Status
           </div>
           <div className="ovc-sidenav-item link">
             <i className="ion-android-people"></i>Investors

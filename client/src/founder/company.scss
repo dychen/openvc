@@ -10,6 +10,7 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
+  flex-wrap: wrap;
 
   .ovc-team-card {
     display: inline-block;
@@ -92,6 +93,7 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
+  flex-wrap: wrap;
 
   .ovc-board-card {
     display: inline-block;
@@ -175,6 +177,7 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
+  flex-wrap: wrap;
 
   .ovc-investor-card {
     display: inline-block;

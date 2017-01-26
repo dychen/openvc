@@ -33,15 +33,15 @@ $DEAL_PANEL_HEIGHT: 100px;
     }
 
     // Middle info
-    .ovc-deal-text {
+    .deal-text {
       width: 100%;
       margin-left: 10px;
+      margin-right: 5px;
 
       display: flex;
       justify-content: center;
       align-items: flex-start;
       flex-direction: column;
-
     }
 
     // Right icons

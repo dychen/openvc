@@ -15,8 +15,13 @@ class InvestorSidenav extends React.Component {
               <i className="ovc-circle-alert red">4</i>
             </div>
           </Link>
+          <Link to="/investor/landscape">
+            <div className="ovc-sidenav-item link">
+              <i className="ion-earth"></i>Startup Landscape
+            </div>
+          </Link>
           <div className="ovc-sidenav-item link">
-            <i className="ion-earth"></i>Sourcing
+            <i className="ion-podium"></i>Compare Startups
           </div>
           <div className="ovc-sidenav-item link">
             <i className="ion-map"></i>Market Map

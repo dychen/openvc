@@ -18,8 +18,7 @@ $INVESTOR_PANEL_HEIGHT: 70px;
   flex: 0 0 $INVESTOR_SEARCH_WIDTH;
   height: 100%;
   overflow-y: hidden; // No scroll (parent div has this set)
-  padding-left: 20px;
-  padding-top: 20px;
+  padding: 20px;
   background-color: $OVC_SUBNAV_GRAY;
   border-right: 1px solid $OVC_LIGHT_GRAY;
 
@@ -107,6 +106,7 @@ $INVESTOR_PANEL_HEIGHT: 70px;
     .ovc-investor-text {
       width: 100%;
       margin-left: 10px;
+      margin-right: 5px;
 
       display: flex;
       justify-content: center;

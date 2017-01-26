@@ -4,6 +4,12 @@ import 'whatwg-fetch';
 
 import './compare.scss';
 
+/*
+ * Headers:
+ *   SearchRow
+ *   QuickCompareRow
+ */
+
 class SearchRow extends React.Component {
   constructor(props) {
     super(props);
@@ -103,34 +109,109 @@ class QuickCompareRow extends React.Component {
   }
 }
 
-class CompareSection extends React.Component {
+/*
+ * Compare Sections:
+ *   TeamSection
+ *   BoardSection
+ *   InvestorSection
+ *   CompareSection (main)
+ */
+
+class TeamSection extends React.Component {
   render() {
+    const teamList = this.props.team.map(teamMember => {
+      return (
+        <a href={teamMember.linkedinUrl} target="_blank">
+          <div className="compare-column-panel team" key={teamMember.id}>
+            <img src={teamMember.photoUrl} />
+            <div className="panel-text">
+              <div>{teamMember.firstName} {teamMember.lastName}</div>
+              <div>{teamMember.title}</div>
+            </div>
+          </div>
+        </a>
+      );
+    });
+
     return (
-      <div className="ovc-compare-company-section">
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
-        <h3>Compare</h3>
+      <div className="startup-column-section">
+        {teamList}
       </div>
     );
   }
 }
+
+class BoardSection extends React.Component {
+  render() {
+    const boardList = this.props.board.map(boardMember => {
+      return (
+        <a href={boardMember.linkedinUrl} target="_blank">
+          <div className="compare-column-panel board" key={boardMember.id}>
+            <img src={boardMember.photoUrl} />
+            <div className="panel-text">
+              <div>{boardMember.firstName} {boardMember.lastName}</div>
+              <div>{boardMember.title}</div>
+              <div>{boardMember.company}</div>
+            </div>
+          </div>
+        </a>
+      );
+    });
+
+    return (
+      <div className="startup-column-section">
+        {boardList}
+      </div>
+    );
+  }
+}
+
+class InvestorSection extends React.Component {
+  render() {
+    const investorList = this.props.investors.map(investor => {
+      return (
+        <div className="compare-column-panel investors" key={investor.id}>
+          <img src={investor.photoUrl} />
+          <div className="panel-text">
+            <div>{investor.name}</div>
+            <div>{investor.round}</div>
+            <div>{investor.amount}</div>
+          </div>
+        </div>
+      );
+    });
+
+    return (
+      <div className="startup-column-section">
+        {investorList}
+      </div>
+    );
+  }
+}
+
+class CompareSection extends React.Component {
+  render() {
+    const selectedColumns = this.props.selected.map(startup => {
+      return (
+        <div className="ovc-compare-startup-column" key={startup.id}>
+          <TeamSection team={startup.team} />
+          <BoardSection board={startup.board} />
+          <InvestorSection investors={startup.investors} />
+        </div>
+      );
+    })
+
+    return (
+      <div className="ovc-compare-startup-section">
+        {selectedColumns}
+      </div>
+    );
+  }
+}
+
+/*
+ * Main container
+ */
 
 class InvestorComparePage extends React.Component {
   constructor(props) {
@@ -138,9 +219,6 @@ class InvestorComparePage extends React.Component {
 
     this.COMPARING_MAX_LENGTH = 4;
 
-    /*
-     * selected: [{ id: [startup id], photoUrl: [startup image URL] }, ...]
-     */
     this.state = {
       'selected': [],
       'startups': []
@@ -151,7 +229,7 @@ class InvestorComparePage extends React.Component {
     this.addToCompareByName = this.addToCompareByName.bind(this);
     this.removeFromCompare = this.removeFromCompare.bind(this);
 
-    fetch('/data/investor/landscape/startups.json').then(function(response) {
+    fetch('/data/investor/compare/startups.json').then(function(response) {
       return response.json();
     }).then(json => {
       this.setState({ 'startups': json });
@@ -173,10 +251,7 @@ class InvestorComparePage extends React.Component {
     if (this.state.selected.length < this.COMPARING_MAX_LENGTH
         && !startupInSelected) {
       const newState = Immutable.fromJS(this.state)
-        .update('selected', selected => selected.push({
-          id: startup.id,
-          photoUrl: startup.photoUrl
-        }));
+        .update('selected', selected => selected.push(startup));
       this.setState(newState.toJS());
     }
   }
@@ -202,15 +277,18 @@ class InvestorComparePage extends React.Component {
   }
 
   render() {
+    const selectedStartupMinimal = this.state.selected.map(startup => {
+      return { id: startup.id, photoUrl: startup.photoUrl };
+    });
     return (
       <div className="ovc-investor-compare-container">
-        <SearchRow selectedStartups={this.state.selected}
+        <SearchRow selectedStartups={selectedStartupMinimal}
                    addToCompareByName={this.addToCompareByName}
                    removeFromCompare={this.removeFromCompare}
                    COMPARING_MAX_LENGTH={this.COMPARING_MAX_LENGTH} />
         <QuickCompareRow startups={this.filterQuickCompare(this.state.startups)}
                          addToCompare={this.addToCompare} />
-        <CompareSection />
+        <CompareSection selected={this.state.selected} />
       </div>
     );
   }

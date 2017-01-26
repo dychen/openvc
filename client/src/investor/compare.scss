@@ -3,6 +3,7 @@
 @import './mixins.scss';
 
 $COMPARE_HEADER_HEIGHT: 60px;
+$STARTUP_PANEL_HEIGHT: 80px;
 
 .ovc-investor-compare-container {
   height: 100%;
@@ -18,82 +19,138 @@ $COMPARE_HEADER_HEIGHT: 60px;
   .ovc-compare-search-row {
     flex: 0 0 $COMPARE_HEADER_HEIGHT;
     width: 100%;
-
-    background-color: $OVC_SUBNAV_GRAY;
-    border-bottom: 1px solid $OVC_LIGHT_GRAY;
-
-    display: flex;
-    align-items: center;
-
-    .search-row-left {
-      flex: 0 0 200px;
-      padding-left: 10px;
-    }
-    .search-row-mid {
-      width: 100%;
-      font-size: 1.2em;
-
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      span {
-        padding: 10px;
-      }
-    }
-    .search-row-right {
-      flex: 0 0;
-      padding-right: 10px;
-      border-left: 1px solid $OVC_LIGHT_GRAY;
-
-      display: flex;
-      flex-direction: row;
-
-      img, i {
-        width: $COMPARE_HEADER_HEIGHT;
-        height: $COMPARE_HEADER_HEIGHT;
-        border-right: 1px solid $OVC_LIGHT_GRAY;
-      }
-      img {
-        @include hvr-grow(1.2);
-        cursor: pointer;
-      }
-      i {
-        font-size: $COMPARE_HEADER_HEIGHT;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-    }
   }
 
   .ovc-compare-quick-row {
     flex: 0 0 $COMPARE_HEADER_HEIGHT;
     width: 100%;
-    padding-left: 10px;
-    padding-right: 10px;
-    background-color: $OVC_SUBNAV_GRAY;
-    border-left: 1px solid $OVC_LIGHT_GRAY;
-    border-bottom: 1px solid $OVC_LIGHT_GRAY;
-
-    overflow-x: scroll;
-    display: flex;
-    flex-wrap: nowrap;
-
-    img {
-      width: $COMPARE_HEADER_HEIGHT;
-      height: $COMPARE_HEADER_HEIGHT;
-      border-right: 1px solid $OVC_LIGHT_GRAY;
-
-      @include hvr-grow(1.2);
-      cursor: pointer;
-    }
-
   }
 
-  .ovc-compare-company-section {
+  .ovc-compare-startup-section {
     height: 100%;
     width: 100%;
     overflow-y: scroll;
+  }
+}
+
+.ovc-compare-search-row {
+  background-color: $OVC_SUBNAV_GRAY;
+  border-bottom: 1px solid $OVC_LIGHT_GRAY;
+
+  display: flex;
+  align-items: center;
+
+  .search-row-left {
+    flex: 0 0 200px;
+    padding-left: 10px;
+  }
+  .search-row-mid {
+    width: 100%;
+    font-size: 1.2em;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    span {
+      padding: 10px;
+    }
+  }
+  .search-row-right {
+    flex: 0 0;
+    padding-right: 10px;
+    border-left: 1px solid $OVC_LIGHT_GRAY;
+
+    display: flex;
+    flex-direction: row;
+
+    img, i {
+      width: $COMPARE_HEADER_HEIGHT;
+      height: $COMPARE_HEADER_HEIGHT;
+      border-right: 1px solid $OVC_LIGHT_GRAY;
+    }
+    img {
+      @include hvr-grow(1.2);
+      cursor: pointer;
+    }
+    i {
+      font-size: $COMPARE_HEADER_HEIGHT;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+}
+
+.ovc-compare-quick-row {
+  padding-left: 10px;
+  padding-right: 10px;
+  background-color: $OVC_SUBNAV_GRAY;
+  border-left: 1px solid $OVC_LIGHT_GRAY;
+  border-bottom: 1px solid $OVC_LIGHT_GRAY;
+
+  overflow-x: scroll;
+  display: flex;
+  flex-wrap: nowrap;
+
+  img {
+    width: $COMPARE_HEADER_HEIGHT;
+    height: $COMPARE_HEADER_HEIGHT;
+    border-right: 1px solid $OVC_LIGHT_GRAY;
+
+    @include hvr-grow(1.2);
+    cursor: pointer;
+  }
+}
+
+.ovc-compare-startup-section {
+  height: 100%;
+  width: 100%;
+  padding-left: 10px;
+  padding-right: 10px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .ovc-compare-startup-column {
+    height: 100%;
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+
+    .compare-column-panel {
+      height: $STARTUP_PANEL_HEIGHT;
+      width: 100%;
+      box-shadow: 0 1px 3px 0 $OVC_GRAY;
+
+      margin-bottom: 5px;
+
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+
+      cursor: default;
+
+      img {
+        height: $STARTUP_PANEL_HEIGHT;
+        width: $STARTUP_PANEL_HEIGHT;
+      }
+
+      .panel-text {
+        padding-left: 10px;
+        color: $OVC_DARK_GRAY;
+      }
+    }
+
+    a {
+      text-decoration: none;
+      color: $OVC_DARK_GRAY;
+
+      .compare-column-panel {
+        @include hvr-outline($OVC_DARK_GRAY);
+        cursor: pointer;
+      }
+    }
   }
 }

@@ -1,5 +1,5 @@
 @import '../mixins';
-@import '../colors.scss';
+@import '../constants.scss';
 @import './mixins.scss';
 
 $COMPARE_HEADER_HEIGHT: 60px;
@@ -13,8 +13,7 @@ $STARTUP_PANEL_HEIGHT: 80px;
   justify-content: flex-start;
   flex-direction: column;
 
-  @include ovc-nav-input(200px, 30px,
-                         $OVC_GRAY, $OVC_DARK_GRAY);
+  @include ovc-nav-input(200px, 30px, $OVC_GRAY, $OVC_DARK_GRAY);
 
   .ovc-compare-search-row {
     flex: 0 0 $COMPARE_HEADER_HEIGHT;
@@ -54,6 +53,18 @@ $STARTUP_PANEL_HEIGHT: 80px;
 
     span {
       padding: 10px;
+      margin: 5px;
+      border: 1px solid $OVC_LIGHT_GRAY;
+      border-radius: 5px;
+
+      @include hvr-fade($OVC_LIGHT_GRAY, $OVC_DARK_GRAY);
+      cursor: pointer;
+    }
+
+    span.selected {
+      color: $OVC_LIGHT_GRAY;
+      background-color: $OVC_DARK_GRAY;
+      border: 1px solid $OVC_DARK_GRAY;
     }
   }
   .search-row-right {
@@ -112,6 +123,18 @@ $STARTUP_PANEL_HEIGHT: 80px;
   display: flex;
   justify-content: center;
   align-items: center;
+
+  .ovc-compare-none-selected {
+    padding: 30px;
+    text-align: center;
+    font-size: 2.0em;
+    font-weight: 100;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
 
   .ovc-compare-startup-column {
     height: 100%;

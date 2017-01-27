@@ -59,7 +59,53 @@ class SearchSection extends React.Component {
   }
 }
 
+class EmailModal extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.preventModalClose = this.preventModalClose.bind(this);
+  }
+
+  preventModalClose(e) {
+    e.stopPropagation();
+  }
+
+  render() {
+    const modalShowClass = (
+      this.props.modalVisible
+      ? 'ovc-modal-background show'
+      : 'ovc-modal-background'
+    );
+
+    return (
+      <div className={modalShowClass} onClick={this.props.toggleModal}>
+        <div className="ovc-modal" onClick={this.preventModalClose}>
+          <div className="email-modal-header head"></div>
+          <div className="email-modal-header to"></div>
+          <div className="email-modal-header subject"></div>
+          <div className="email-modal-body"></div>
+          <div className="email-modal-footer"></div>
+        </div>
+      </div>
+    );
+  }
+}
+
 class StartupPanel extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      'modalVisible': ''
+    }
+
+    this.toggleModal = this.toggleModal.bind(this);
+  }
+
+  toggleModal(e) {
+    this.setState({ 'modalVisible': !this.state.modalVisible });
+  }
+
   render() {
     const startup = this.props.startup;
     const lastRoundStr = [
@@ -70,6 +116,7 @@ class StartupPanel extends React.Component {
     const totalRaised = (
       startup.totalRaised ? '(' + startup.totalRaised + ' raised)' : ''
     );
+    // Logo div (left)
     if (this.props.section === 'all' || this.props.section === 'saved') {
       const actionButton = (
         startup.saved
@@ -91,6 +138,14 @@ class StartupPanel extends React.Component {
         </div>
       );
     }
+    // Email icon (right)
+    if (this.props.section === 'saved') {
+      var emailIcon = (<i className="ion-ios-email invite-startup"
+                          onClick={this.toggleModal} />);
+    }
+    else {
+      var emailIcon = '';
+    }
 
     return (
       <div className="ovc-investor-landscape-panel">
@@ -106,6 +161,9 @@ class StartupPanel extends React.Component {
             Investors: {startup.investors.join(', ')}
           </div>
         </div>
+        {emailIcon}
+        <EmailModal modalVisible={this.state.modalVisible}
+                    toggleModal={this.toggleModal} />
       </div>
     );
   }

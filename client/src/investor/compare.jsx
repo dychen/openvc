@@ -21,6 +21,7 @@ class SearchRow extends React.Component {
     this.handleCompanySearchChange = this.handleCompanySearchChange.bind(this);
     this.addToCompareByName = this.addToCompareByName.bind(this);
     this.removeFromCompare = this.removeFromCompare.bind(this);
+    this.changeCompareSection = this.changeCompareSection.bind(this);
   }
 
   handleCompanySearchChange(e) {
@@ -40,6 +41,10 @@ class SearchRow extends React.Component {
     this.props.removeFromCompare(id);
   }
 
+  changeCompareSection(e) {
+    this.props.changeCompareSection(e.currentTarget.id);
+  }
+
   render() {
     const selectedIcons = this.props.selectedStartups.map(startup => {
       return (
@@ -48,9 +53,18 @@ class SearchRow extends React.Component {
       );
     });
     var emptyIcons = [];
-    for (var i = 0; i < this.props.COMPARING_MAX_LENGTH - selectedIcons.length; i++) {
+    for (var i = 0; i < this.props.COMPARING_MAX_LENGTH - selectedIcons.length;
+         i++) {
       emptyIcons.push((<i className="ion-ios-help" key={i} />));
     }
+
+    const sectionHeaders = ['Team', 'Board', 'Investors', 'Fundraising',
+      'Decks', 'KPIs', 'Customers'].map(sectionTitle =>
+      (<span id={sectionTitle.toLowerCase()} key={sectionTitle.toLowerCase()}
+             className={this.props.section === sectionTitle.toLowerCase()
+                        ? 'selected' : ''}
+             onClick={this.changeCompareSection}>{sectionTitle}</span>)
+    );
 
     return (
       <div className="ovc-compare-search-row">
@@ -60,13 +74,7 @@ class SearchRow extends React.Component {
                  onKeyPress={this.addToCompareByName} />
         </div>
         <div className="search-row-mid">
-          <span>Team</span>|
-          <span>Board</span>|
-          <span>Investors</span>|
-          <span>Fundraising</span>|
-          <span>Decks</span>|
-          <span>KPIs</span>|
-          <span>Customers</span>
+          {sectionHeaders}
         </div>
         <div className="search-row-right">
           {selectedIcons}
@@ -121,8 +129,8 @@ class TeamSection extends React.Component {
   render() {
     const teamList = this.props.team.map(teamMember => {
       return (
-        <a href={teamMember.linkedinUrl} target="_blank">
-          <div className="compare-column-panel team" key={teamMember.id}>
+        <a href={teamMember.linkedinUrl} target="_blank" key={teamMember.id}>
+          <div className="compare-column-panel team">
             <img src={teamMember.photoUrl} />
             <div className="panel-text">
               <div>{teamMember.firstName} {teamMember.lastName}</div>
@@ -145,8 +153,8 @@ class BoardSection extends React.Component {
   render() {
     const boardList = this.props.board.map(boardMember => {
       return (
-        <a href={boardMember.linkedinUrl} target="_blank">
-          <div className="compare-column-panel board" key={boardMember.id}>
+        <a href={boardMember.linkedinUrl} target="_blank" key={boardMember.id}>
+          <div className="compare-column-panel board">
             <img src={boardMember.photoUrl} />
             <div className="panel-text">
               <div>{boardMember.firstName} {boardMember.lastName}</div>
@@ -192,18 +200,41 @@ class InvestorSection extends React.Component {
 class CompareSection extends React.Component {
   render() {
     const selectedColumns = this.props.selected.map(startup => {
+      var selectedColumn;
+      switch (this.props.section) {
+        case 'team':
+          selectedColumn = (<TeamSection team={startup.team} />);
+          break;
+        case 'board':
+          selectedColumn = (<BoardSection board={startup.board} />);
+          break;
+        case 'investors':
+          selectedColumn = (<InvestorSection investors={startup.investors} />);
+          break;
+        default:
+          selectedColumn = (<TeamSection team={startup.team} />);
+      }
       return (
         <div className="ovc-compare-startup-column" key={startup.id}>
-          <TeamSection team={startup.team} />
-          <BoardSection board={startup.board} />
-          <InvestorSection investors={startup.investors} />
+          {selectedColumn}
         </div>
       );
     })
+    const emptyText = (
+      <div className="ovc-compare-none-selected">
+        <div>No companies selected.</div>
+        <div>
+          You can add via search bar or by clicking on the logo of a company
+          in your deal pipeline or saved list.
+        </div>
+      </div>
+    );
+    const selectedColumnsOrEmpty = (this.props.selected.length > 0
+                                    ? selectedColumns : emptyText);
 
     return (
       <div className="ovc-compare-startup-section">
-        {selectedColumns}
+        {selectedColumnsOrEmpty}
       </div>
     );
   }
@@ -220,6 +251,7 @@ class InvestorComparePage extends React.Component {
     this.COMPARING_MAX_LENGTH = 4;
 
     this.state = {
+      'section': 'team', // Default selection for visual reinforcement to users
       'selected': [],
       'startups': []
     };
@@ -228,6 +260,7 @@ class InvestorComparePage extends React.Component {
     this.addToCompare = this.addToCompare.bind(this);
     this.addToCompareByName = this.addToCompareByName.bind(this);
     this.removeFromCompare = this.removeFromCompare.bind(this);
+    this.changeCompareSection = this.changeCompareSection.bind(this);
 
     fetch('/data/investor/compare/startups.json').then(function(response) {
       return response.json();
@@ -276,6 +309,10 @@ class InvestorComparePage extends React.Component {
     }
   }
 
+  changeCompareSection(value) {
+    this.setState({ 'section': value });
+  }
+
   render() {
     const selectedStartupMinimal = this.state.selected.map(startup => {
       return { id: startup.id, photoUrl: startup.photoUrl };
@@ -283,12 +320,15 @@ class InvestorComparePage extends React.Component {
     return (
       <div className="ovc-investor-compare-container">
         <SearchRow selectedStartups={selectedStartupMinimal}
+                   section={this.state.section}
                    addToCompareByName={this.addToCompareByName}
                    removeFromCompare={this.removeFromCompare}
+                   changeCompareSection={this.changeCompareSection}
                    COMPARING_MAX_LENGTH={this.COMPARING_MAX_LENGTH} />
         <QuickCompareRow startups={this.filterQuickCompare(this.state.startups)}
                          addToCompare={this.addToCompare} />
-        <CompareSection selected={this.state.selected} />
+        <CompareSection selected={this.state.selected}
+                        section={this.state.section} />
       </div>
     );
   }

@@ -1,5 +1,5 @@
 @import '../mixins';
-@import '../colors.scss';
+@import '../constants.scss';
 @import './mixins.scss';
 
 $LANDSCAPE_SEARCH_WIDTH: 200px;
@@ -145,5 +145,72 @@ $STARTUP_PANEL_HEIGHT: 160px;
       align-items: flex-start;
       flex-direction: column;
     }
+
+    // Right icon
+    position: relative;
+    i.invite-startup {
+      position: absolute;
+      right: 5px;
+      top: -5px;
+      font-size: 30px;
+
+      @include hvr-color($OVC_GRAY);
+      cursor: pointer;
+    }
+  }
+}
+
+/* Email Modal */
+
+/* The Modal (background) */
+.ovc-modal-background {
+  display: none;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  z-index: 100;
+  overflow: hidden;
+  background-color: rgba(0,0,0,0.4);
+}
+
+/* Modal Content/Box */
+.ovc-modal {
+  width: 60%;
+  height: 80%;
+  margin: 5% auto;
+
+  background-color: $OVC_WHITE;
+  border: 1px solid $OVC_GRAY;
+}
+
+.ovc-modal-background.show {
+  display: block;
+}
+
+.ovc-modal {
+  display: flex;
+  flex-direction: column;
+
+  .email-modal-header {
+    flex: 0 0 40px;
+    width: 100%;
+    border-bottom: 1px solid $OVC_LIGHT_GRAY;
+  }
+
+  .email-modal-header.head {
+    background-color: $OVC_DARK_GRAY;
+    color: $OVC_WHITE;
+  }
+
+  .email-modal-body {
+    height: 100%;
+  }
+
+  .email-modal-footer {
+    flex: 0 0 40px;
+    width: 100%;
+    border-top: 1px solid $OVC_LIGHT_GRAY;
   }
 }

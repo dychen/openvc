@@ -4,45 +4,87 @@ import {Link} from 'react-router';
 import './sidenav.scss';
 
 class InvestorSidenav extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      'minimized': false
+    };
+
+    this.toggleMinimized = this.toggleMinimized.bind(this);
+  }
+
+  toggleMinimized(e) {
+    this.setState({ 'minimized': !this.state.minimized });
+  }
+
   render() {
+    const sidenavClass = (this.state.minimized
+                          ? 'ovc-sidenav minimized' : 'ovc-sidenav');
+
     return (
-      <div className="ovc-investor-sidenav">
+      <div className={sidenavClass}>
         <div className="ovc-sidenav-top">
-          <div className="ovc-sidenav-item logo">OpenVC</div>
+          <div className="ovc-sidenav-item logo"
+               onClick={this.toggleMinimized}>
+            <i className="ion-navicon nav-hamburger" />
+            <span className="minimized-sidenav-hidden">OpenVC</span>
+          </div>
           <Link to="/investor/deals">
             <div className="ovc-sidenav-item link">
-              <i className="ion-ios-pulse"></i>Deal Pipeline
-              <i className="ovc-circle-alert red">4</i>
+              <i className="ion-ios-pulse" />
+              <span className="minimized-sidenav-hidden">
+                Deal Pipeline
+                <i className="ovc-circle-alert red">4</i>
+              </span>
             </div>
           </Link>
           <Link to="/investor/landscape">
             <div className="ovc-sidenav-item link">
-              <i className="ion-earth"></i>Startup Landscape
+              <i className="ion-earth" />
+              <span className="minimized-sidenav-hidden">
+                Startup Landscape
+              </span>
             </div>
           </Link>
           <Link to="/investor/compare">
             <div className="ovc-sidenav-item link">
-              <i className="ion-podium"></i>Compare Startups
+              <i className="ion-podium" />
+              <span className="minimized-sidenav-hidden">
+                Compare Startups
+              </span>
             </div>
           </Link>
           <div className="ovc-sidenav-item link">
-            <i className="ion-map"></i>Market Map
+            <i className="ion-map" />
+            <span className="minimized-sidenav-hidden">
+              Market Map
+            </span>
           </div>
           <div className="ovc-sidenav-item link">
-            <i className="ion-arrow-graph-up-right"></i>Portfolio
+            <i className="ion-arrow-graph-up-right" />
+            <span className="minimized-sidenav-hidden">
+              Portfolio
+            </span>
           </div>
           <div className="ovc-sidenav-item link">
-            <i className="ion-ios-people"></i>Founders
+            <i className="ion-ios-people" />
+            <span className="minimized-sidenav-hidden">
+              Founders
+            </span>
           </div>
           <div className="ovc-sidenav-item link">
-            <i className="ion-key"></i>User Access
+            <i className="ion-key" />
+            <span className="minimized-sidenav-hidden">
+              User Access
+            </span>
           </div>
         </div>
 
         <div className="ovc-sidenav-bottom">
         </div>
       </div>
-    )
+    );
   }
 }
 

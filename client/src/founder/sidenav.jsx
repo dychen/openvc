@@ -46,10 +46,18 @@ class FounderSidenav extends React.Component {
               </span>
             </div>
           </Link>
+          <Link to="/founder/fundraising">
+            <div className="ovc-sidenav-item link">
+              <i className="ion-cash" />
+              <span className="minimized-sidenav-hidden">
+                Fundraising Status
+              </span>
+            </div>
+          </Link>
           <div className="ovc-sidenav-item link">
-            <i className="ion-ios-briefcase-outline" />
+            <i className="ion-stats-bars" />
             <span className="minimized-sidenav-hidden">
-              Fundraising Status
+              Benchmarking
             </span>
           </div>
           <div className="ovc-sidenav-item link">

@@ -1,18 +1,18 @@
 @import '../mixins';
 @import '../constants.scss';
 
-$DEAL_SEARCH_WIDTH: 200px;
-$DEAL_PANEL_HEIGHT: 100px;
+$INVESTOR_SEARCH_WIDTH: 200px;
+$INVESTOR_PANEL_HEIGHT: 100px;
 
-.ovc-investor-deal-container {
+.ovc-founder-fundraising-container {
   width: 100%;
   height: 100%;
   overflow-y: scroll;
 
   display: flex;
 
-  .ovc-deals-search-menu {
-    flex: 0 0 $DEAL_SEARCH_WIDTH;
+  .ovc-fundraising-search-menu {
+    flex: 0 0 $INVESTOR_SEARCH_WIDTH;
     height: 100%;
     background-color: $OVC_SUBNAV_GRAY;
     border-right: 1px solid $OVC_LIGHT_GRAY;
@@ -20,7 +20,7 @@ $DEAL_PANEL_HEIGHT: 100px;
     overflow-y: scroll;
   }
 
-  .ovc-investor-deal-list {
+  .ovc-founder-fundraising-investor-list {
     width: 100%;
     height: 100%;
     overflow-y: scroll;
@@ -31,11 +31,11 @@ $DEAL_PANEL_HEIGHT: 100px;
   }
 }
 
-.ovc-deals-search-menu {
+.ovc-fundraising-search-menu {
   display: flex;
   flex-direction: column;
 
-  .ovc-deals-search-show-buttons {
+  .ovc-fundraising-search-show-buttons {
     padding: 20px;
     padding-bottom: 10px;
     border-bottom: 1px solid $OVC_LIGHT_GRAY;
@@ -63,17 +63,17 @@ $DEAL_PANEL_HEIGHT: 100px;
     }
   }
 
-  .ovc-deals-search-inputs {
+  .ovc-fundraising-search-inputs {
     padding: 20px;
     padding-top: 10px;
     padding-bottom: 10px;
     border-bottom: 1px solid $OVC_LIGHT_GRAY;
 
-    @include ovc-nav-input($DEAL_SEARCH_WIDTH - 40px, 30px,
+    @include ovc-nav-input($INVESTOR_SEARCH_WIDTH - 40px, 30px,
                            $OVC_GRAY, $OVC_DARK_GRAY);
   }
 
-  .ovc-deals-search-stages {
+  .ovc-fundraising-search-stages {
     padding-top: 10px;
     padding-left: 20px;
 
@@ -89,7 +89,7 @@ $DEAL_PANEL_HEIGHT: 100px;
         cursor: pointer;
       }
 
-      .search-menu-stage-deals {
+      .search-menu-stage-investors {
         margin-left: 10px;
         margin-bottom: 5px;
 
@@ -100,9 +100,9 @@ $DEAL_PANEL_HEIGHT: 100px;
   }
 }
 
-.ovc-investor-deal-list {
-  .ovc-investor-deal-panel {
-    height: $DEAL_PANEL_HEIGHT;
+.ovc-founder-fundraising-investor-list {
+  .ovc-fundraising-investor-panel {
+    height: $INVESTOR_PANEL_HEIGHT;
     width: 100%;
     box-shadow: 0 1px 3px 0 $OVC_GRAY;
 
@@ -117,13 +117,13 @@ $DEAL_PANEL_HEIGHT: 100px;
 
     // Left icon
     img.company-logo {
-      height: $DEAL_PANEL_HEIGHT;
-      flex: 0 0 $DEAL_PANEL_HEIGHT;
+      height: $INVESTOR_PANEL_HEIGHT;
+      flex: 0 0 $INVESTOR_PANEL_HEIGHT;
       border-right: 1px solid $OVC_LIGHT_GRAY;
     }
 
     // Middle info
-    .deal-text {
+    .investor-text {
       width: 100%;
       margin-left: 10px;
       margin-right: 5px;
@@ -133,28 +133,8 @@ $DEAL_PANEL_HEIGHT: 100px;
       align-items: flex-start;
       flex-direction: column;
     }
-
-    // Right icons
-    .move-deal {
-      height: $DEAL_PANEL_HEIGHT;
-      flex: 0 0 $DEAL_PANEL_HEIGHT;
-      border-left: 1px solid $OVC_LIGHT_GRAY;
-
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-
-      i {
-        font-size: $DEAL_PANEL_HEIGHT/2 - 10px;
-        color: $OVC_GRAY;
-
-        @include hvr-color($OVC_DARK_GRAY);
-        cursor: pointer;
-      }
-    }
   }
-  .ovc-investor-deal-panel.rejected {
+  .ovc-fundraising-investor-panel.rejected {
     opacity: 0.4;
   }
 }

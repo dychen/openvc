@@ -16,6 +16,7 @@ import FounderSidenav from './founder/sidenav.jsx';
 import FounderTopnav from './founder/topnav.jsx';
 import FounderCompanyPage from './founder/company.jsx';
 import FounderApplyPage from './founder/apply.jsx';
+import FounderFundraisingPage from './founder/fundraising.jsx';
 
 import InvestorAppContainer from './investor/investor.jsx';
 import InvestorSidenav from './investor/sidenav.jsx';
@@ -66,6 +67,7 @@ class App extends React.Component {
             <IndexRoute component={FounderCompanyPage} />
             <Route path="company" component={FounderCompanyPage} />
             <Route path="apply" component={FounderApplyPage} />
+            <Route path="fundraising" component={FounderFundraisingPage} />
           </Route>
 
           <Route path="investor" components={{main: InvestorAppContainer,

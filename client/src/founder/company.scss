@@ -24,7 +24,7 @@
     margin: 5px;
     box-shadow: 0 1px 3px 0 $OVC_GRAY;
 
-    @include hvr-outline($OVC_DARK_GRAY);
+    @include hvr-shadow($OVC_DARK_GRAY);
     cursor: pointer;
   }
 
@@ -107,7 +107,7 @@
     margin: 5px;
     box-shadow: 0 1px 3px 0 $OVC_GRAY;
 
-    @include hvr-outline($OVC_DARK_GRAY);
+    @include hvr-shadow($OVC_DARK_GRAY);
     cursor: pointer;
   }
 
@@ -191,7 +191,7 @@
     margin: 5px;
     box-shadow: 0 1px 3px 0 $OVC_GRAY;
 
-    @include hvr-outline($OVC_DARK_GRAY);
+    @include hvr-shadow($OVC_DARK_GRAY);
     cursor: pointer;
   }
 

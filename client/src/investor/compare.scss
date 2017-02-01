@@ -170,7 +170,7 @@ $STARTUP_PANEL_HEIGHT: 80px;
       color: $OVC_DARK_GRAY;
 
       .compare-column-panel {
-        @include hvr-outline($OVC_DARK_GRAY);
+        @include hvr-shadow($OVC_DARK_GRAY);
         cursor: pointer;
       }
     }

@@ -78,7 +78,7 @@ $INVESTOR_PANEL_HEIGHT: 70px;
     justify-content: flex-start;
     align-items: center;
 
-    @include hvr-outline($OVC_DARK_GRAY);
+    @include hvr-shadow($OVC_DARK_GRAY);
     cursor: pointer;
 
     // Left icon

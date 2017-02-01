@@ -1,0 +1,64 @@
+@import '../../mixins';
+@import '../../constants.scss';
+
+.ovc-rooms-sidebar {
+  padding-left: 15px;
+  padding-bottom: 20px;
+
+  font-size: 1.05em;
+
+  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+
+  .ovc-rooms-sidebar-title {
+    position: relative;
+    margin-top: 20px;
+    margin-bottom: 5px;
+    padding-left: 3px;
+    font-weight: 900;
+
+    @include hvr-color($OVC_GRAY);
+    cursor: pointer;
+
+    i.sidebar-add-channel {
+      color: $OVC_GRAY;
+      position: absolute;
+      right: 10px;
+      font-size: 15px;
+      font-weight: 900;
+
+      @include hvr-color($OVC_DARK_GRAY);
+      cursor: pointer;
+    }
+  }
+
+  .ovc-rooms-sidebar-channel {
+    position: relative;
+    margin-bottom: 5px;
+    padding: 1px;
+    padding-left: 5px;
+    border-radius: 5px;
+
+    @include hvr-fade($OVC_GRAY, $OVC_LIGHT_GRAY);
+    cursor: pointer;
+
+    i.sidebar-leave-channel {
+      color: $OVC_GRAY;
+      position: absolute;
+      right: 10px;
+      font-size: 15px;
+      font-weight: 900;
+
+      @include hvr-color($OVC_DARK_GRAY);
+      cursor: pointer;
+    }
+  }
+
+  .ovc-rooms-sidebar-channel.selected {
+    color: $OVC_LIGHT_GRAY;
+    background-color: $OVC_DARK_GRAY;
+  }
+}
+

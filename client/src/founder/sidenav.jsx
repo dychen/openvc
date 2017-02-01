@@ -60,18 +60,14 @@ class FounderSidenav extends React.Component {
               Benchmarking
             </span>
           </div>
-          <div className="ovc-sidenav-item link">
-            <i className="ion-android-people" />
-            <span className="minimized-sidenav-hidden">
-              Investors
-            </span>
-          </div>
-          <div className="ovc-sidenav-item link">
-            <i className="ion-chatbubbles" />
-            <span className="minimized-sidenav-hidden">
-              Founder Groups
-            </span>
-          </div>
+          <Link to="/founder/rooms">
+            <div className="ovc-sidenav-item link">
+              <i className="ion-chatbubbles" />
+              <span className="minimized-sidenav-hidden">
+                Rooms
+              </span>
+            </div>
+          </Link>
           <div className="ovc-sidenav-item link">
             <i className="ion-key" />
             <span className="minimized-sidenav-hidden">

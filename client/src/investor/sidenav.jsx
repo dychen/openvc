@@ -69,12 +69,14 @@ class InvestorSidenav extends React.Component {
               </span>
             </div>
           </Link>
-          <div className="ovc-sidenav-item link">
-            <i className="ion-chatbubbles" />
-            <span className="minimized-sidenav-hidden">
-              Rooms
-            </span>
-          </div>
+          <Link to="/investor/rooms">
+            <div className="ovc-sidenav-item link">
+              <i className="ion-chatbubbles" />
+              <span className="minimized-sidenav-hidden">
+                Rooms
+              </span>
+            </div>
+          </Link>
           <div className="ovc-sidenav-item link">
             <i className="ion-key" />
             <span className="minimized-sidenav-hidden">

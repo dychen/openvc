@@ -2,8 +2,8 @@ import React from 'react';
 
 import './sidebar.scss';
 
-const SELF_NAME = 'Founder';
-const OTHER_NAME = 'Investor';
+const SELF_NAME = 'Company';
+const OTHER_NAME = 'External';
 
 class Sidebar extends React.Component {
   constructor(props) {

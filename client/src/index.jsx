@@ -17,7 +17,6 @@ import FounderTopnav from './founder/topnav.jsx';
 import FounderCompanyPage from './founder/company.jsx';
 import FounderApplyPage from './founder/apply.jsx';
 import FounderFundraisingPage from './founder/fundraising.jsx';
-import FounderRoomsApp from './founder/rooms/rooms.jsx';
 
 import InvestorAppContainer from './investor/investor.jsx';
 import InvestorSidenav from './investor/sidenav.jsx';
@@ -27,6 +26,8 @@ import InvestorLandscapePage from './investor/landscape.jsx';
 import InvestorComparePage from './investor/compare.jsx';
 
 import ContactsPage from './shared/contacts.jsx';
+
+import RoomsApp from './rooms/rooms.jsx';
 
 
 class AppContainer extends React.Component {
@@ -72,7 +73,7 @@ class App extends React.Component {
             <Route path="apply" component={FounderApplyPage} />
             <Route path="fundraising" component={FounderFundraisingPage} />
             <Route path="contacts" component={ContactsPage} />
-            <Route path="rooms" component={FounderRoomsApp} />
+            <Route path="rooms" component={RoomsApp} />
           </Route>
 
           <Route path="investor" components={{main: InvestorAppContainer,
@@ -83,6 +84,7 @@ class App extends React.Component {
             <Route path="landscape" component={InvestorLandscapePage} />
             <Route path="compare" component={InvestorComparePage} />
             <Route path="contacts" component={ContactsPage} />
+            <Route path="rooms" component={RoomsApp} />
           </Route>
         </Route>
       </Router>

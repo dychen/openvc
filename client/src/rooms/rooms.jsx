@@ -8,7 +8,7 @@ import JoinChannelSection from './join.jsx';
 
 import './rooms.scss';
 
-class FounderRoomsApp extends React.Component {
+class RoomsApp extends React.Component {
   constructor(props) {
     super(props);
 
@@ -40,19 +40,19 @@ class FounderRoomsApp extends React.Component {
     this.filterChannelById = this.filterChannelById.bind(this);
     this.filterChannelMessages = this.filterChannelMessages.bind(this);
 
-    fetch('/data/founder/rooms/contacts.json').then(function(response) {
+    fetch('/data/rooms/contacts.json').then(function(response) {
       return response.json();
     }).then(json => {
       this.setState({ contacts: json });
     }); // TODO: Handle errors
 
-    fetch('/data/founder/rooms/channels.json').then(function(response) {
+    fetch('/data/rooms/channels.json').then(function(response) {
       return response.json();
     }).then(json => {
       this.setState({ channels: json });
     }); // TODO: Handle errors
 
-    fetch('/data/founder/rooms/messages.json').then(function(response) {
+    fetch('/data/rooms/messages.json').then(function(response) {
       return response.json();
     }).then(json => {
       this.setState({ messages: json });
@@ -179,4 +179,4 @@ class FounderRoomsApp extends React.Component {
   }
 }
 
-export default FounderRoomsApp;
+export default RoomsApp;

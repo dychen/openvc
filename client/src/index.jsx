@@ -26,6 +26,8 @@ import InvestorDealPage from './investor/deals.jsx';
 import InvestorLandscapePage from './investor/landscape.jsx';
 import InvestorComparePage from './investor/compare.jsx';
 
+import ContactsPage from './shared/contacts.jsx';
+
 
 class AppContainer extends React.Component {
   render() {
@@ -69,6 +71,7 @@ class App extends React.Component {
             <Route path="company" component={FounderCompanyPage} />
             <Route path="apply" component={FounderApplyPage} />
             <Route path="fundraising" component={FounderFundraisingPage} />
+            <Route path="contacts" component={ContactsPage} />
             <Route path="rooms" component={FounderRoomsApp} />
           </Route>
 
@@ -79,6 +82,7 @@ class App extends React.Component {
             <Route path="deals" component={InvestorDealPage} />
             <Route path="landscape" component={InvestorLandscapePage} />
             <Route path="compare" component={InvestorComparePage} />
+            <Route path="contacts" component={ContactsPage} />
           </Route>
         </Route>
       </Router>

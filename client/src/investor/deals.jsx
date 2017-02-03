@@ -92,7 +92,7 @@ class SearchSection extends React.Component {
 
 class DealSection extends React.Component {
   render() {
-    const deals = this.props.deals.map((deal, index) => {
+    const deals = this.props.deals.map(deal => {
       const sourceStr = [
         deal.referrer,
         deal.source,
@@ -208,7 +208,7 @@ class InvestorDealPage extends React.Component {
   }
 
   filterDeals(deals) {
-    return deals.filter((deal, index) => {
+    return deals.filter(deal  => {
       const companyMatch = deal.company.toLowerCase()
         .indexOf(this.state.filters.company.toLowerCase()) > -1;
       const ownerMatch = deal.owner.toLowerCase()

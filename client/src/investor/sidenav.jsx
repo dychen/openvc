@@ -61,6 +61,14 @@ class InvestorSidenav extends React.Component {
               Portfolio
             </span>
           </div>
+          <Link to="/investor/contacts">
+            <div className="ovc-sidenav-item link">
+              <i className="ion-ios-people" />
+              <span className="minimized-sidenav-hidden">
+                Contacts
+              </span>
+            </div>
+          </Link>
           <div className="ovc-sidenav-item link">
             <i className="ion-chatbubbles" />
             <span className="minimized-sidenav-hidden">
@@ -71,6 +79,12 @@ class InvestorSidenav extends React.Component {
             <i className="ion-key" />
             <span className="minimized-sidenav-hidden">
               User Access
+            </span>
+          </div>
+          <div className="ovc-sidenav-item link">
+            <i className="ion-lock-combination" />
+            <span className="minimized-sidenav-hidden">
+              Data Access
             </span>
           </div>
         </div>

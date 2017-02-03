@@ -60,6 +60,14 @@ class FounderSidenav extends React.Component {
               Benchmarking
             </span>
           </div>
+          <Link to="/founder/contacts">
+            <div className="ovc-sidenav-item link">
+              <i className="ion-ios-people" />
+              <span className="minimized-sidenav-hidden">
+                Contacts
+              </span>
+            </div>
+          </Link>
           <Link to="/founder/rooms">
             <div className="ovc-sidenav-item link">
               <i className="ion-chatbubbles" />
@@ -72,6 +80,12 @@ class FounderSidenav extends React.Component {
             <i className="ion-key" />
             <span className="minimized-sidenav-hidden">
               User Access
+            </span>
+          </div>
+          <div className="ovc-sidenav-item link">
+            <i className="ion-lock-combination" />
+            <span className="minimized-sidenav-hidden">
+              Data Access
             </span>
           </div>
         </div>

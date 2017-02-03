@@ -1,0 +1,163 @@
+@import '../mixins';
+@import '../constants.scss';
+
+$CONTACTS_SEARCH_WIDTH: 200px;
+$CONTACTS_PANEL_HEIGHT: 80px;
+$CONTACTS_PANEL_WIDTH: 300px;
+
+.ovc-shared-contacts-container {
+  width: 100%;
+  height: 100%;
+  overflow-y: hidden;
+
+  display: flex;
+
+  .ovc-contacts-search-menu {
+    flex: 0 0 $CONTACTS_SEARCH_WIDTH;
+    height: 100%;
+    background-color: $OVC_SUBNAV_GRAY;
+    border-right: 1px solid $OVC_LIGHT_GRAY;
+
+    overflow-y: scroll;
+  }
+
+  .ovc-contacts-contact-list {
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+
+    padding-left: 25px;
+    padding-right: 25px;
+    padding-bottom: 25px;
+  }
+}
+
+.ovc-contacts-search-menu {
+  display: flex;
+  flex-direction: column;
+
+  .ovc-contacts-search-dropdown {
+    padding: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid $OVC_LIGHT_GRAY;
+
+    display: flex;
+    flex-direction: column;
+
+    .dropdown-button {
+      width: 100%;
+      border-color: $OVC_GRAY;
+    }
+  }
+
+  .ovc-contacts-search-inputs {
+    padding: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid $OVC_LIGHT_GRAY;
+
+    @include ovc-nav-input($CONTACTS_SEARCH_WIDTH - 40px, 30px,
+                           $OVC_GRAY, $OVC_DARK_GRAY);
+  }
+
+  .ovc-contacts-search-tags {
+    padding: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+
+    .filter-tag {
+      width: auto;
+      height: 30px;
+      border: 1px solid $OVC_LIGHT_GRAY;
+      border-radius: 5px;
+      padding-right: 10px;
+      margin: 1px;
+
+      display: inline-flex; // inline to make width size to element
+      justify-content: center;
+      align-items: center;
+
+      @include hvr-color($OVC_GRAY);
+      cursor: pointer;
+
+      .filter-close {
+        width: 30px;
+        height: 30px;
+        margin-right: 5px;
+        border-right: 1px solid $OVC_LIGHT_GRAY;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        i {
+          font-size: 20px;
+        }
+      }
+      .light {
+        color: $OVC_GRAY;
+      }
+    }
+  }
+}
+
+.ovc-contacts-contact-list {
+  margin: 20px;
+  padding: 10px;
+
+  h3 {
+    padding-top: 0px;
+    margin-top: 0px;
+  }
+
+  .ovc-contacts-contact-sublist {
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    .ovc-contacts-contact-panel {
+      height: $CONTACTS_PANEL_HEIGHT;
+      width: $CONTACTS_PANEL_WIDTH;
+      box-shadow: 0 1px 3px 0 $OVC_GRAY;
+
+      margin: 5px;
+
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+
+      @include hvr-shadow($OVC_DARK_GRAY);
+      cursor: pointer;
+
+      // Left icon
+      img.contact-photo {
+        height: $CONTACTS_PANEL_HEIGHT;
+        flex: 0 0 $CONTACTS_PANEL_HEIGHT;
+        border-right: 1px solid $OVC_LIGHT_GRAY;
+      }
+
+      // Middle info
+      .contact-text {
+        width: 100%;
+        margin-left: 10px;
+        margin-right: 5px;
+
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        flex-direction: column;
+
+        .contact-name {
+          font-weight: 900;
+        }
+        .contact-tags {
+          color: $OVC_GRAY;
+        }
+      }
+    }
+  }
+}

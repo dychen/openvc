@@ -104,6 +104,25 @@ class SearchSection extends React.Component {
 }
 
 class ContactsSection extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.toggleExpanded = this.toggleExpanded.bind(this);
+    this.addInteraction = this.addInteraction.bind(this);
+  }
+
+  toggleExpanded(e) {
+    this.props.toggleExpanded(Number(e.currentTarget.id));
+  }
+
+  addInteraction(e) {
+    this.props.addInteraction({
+      label: 'Meeting',
+      date: '2017-02-02',
+      notes: ''
+    }, Number(e.currentTarget.id));
+  }
+
   render() {
     const contactGroupLabels = Array.from(
       new Set(this.props.contacts.map(contact => contact[this.props.groupBy]))
@@ -115,24 +134,64 @@ class ContactsSection extends React.Component {
     const contactGroups = contactGroupLabels.map(label => {
       const contacts = this.props.contacts.filter(contact =>
         contact[this.props.groupBy] === label
-      ).map(contact =>
-        (
-          <div className="ovc-contacts-contact-panel" key={contact.id}>
-            <img className="contact-photo" src={contact.photoUrl} />
-            <div className="contact-text">
-              <div className="contact-name">
-                {contact.name}
-              </div>
-              <div className="contact-occupation">
-                {contact.title}, {contact.company}
-              </div>
-              <div className="contact-tags">
-                {contact.tags.join(', ')}
+      ).map(contact => {
+        contact.interactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const interactions = contact.interactions.map((interaction, index) =>
+          (
+            <tr key={index}>
+              <td>{interaction.label}</td>
+              <td>{interaction.date}</td>
+            </tr>
+          )
+        );
+        const expandedSection = (
+          contact.expanded
+          ? (
+            <table>
+              <thead>
+                <tr><td colSpan="2">Interaction History</td></tr>
+              </thead>
+              <tbody>
+                {interactions}
+                <tr>
+                  <td className="add-interaction" colSpan="2" id={contact.id}
+                      onClick={this.addInteraction}>
+                    <i className="ion-plus" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          )
+          : ''
+        );
+
+        return (
+          <div className="ovc-contacts-contact-panel-container" key={contact.id}>
+            <div className="ovc-contacts-contact-panel">
+              <img className="contact-photo" src={contact.photoUrl} />
+              <div className="contact-text">
+                <div className="contact-name">
+                  {contact.name}
+                </div>
+                <div className="contact-occupation">
+                  {contact.title}, {contact.company}
+                </div>
+                <div className="contact-tags">
+                  {contact.tags.join(', ')}
+                </div>
+                <div className="contact-icons">
+                  <i className="ion-chatbubbles start-chat" />
+                  <i className="ion-ios-list expand-contact" id={contact.id}
+                     onClick={this.toggleExpanded} />
+                </div>
               </div>
             </div>
+            <div className="ovc-contacts-contact-interactions">
+              {expandedSection}
+            </div>
           </div>
-        )
-      );
+        );
+      });
       return (
         <div key={label}>
           <h3>{label}</h3>
@@ -167,10 +226,15 @@ class ContactsPage extends React.Component {
       contacts: []
     };
 
+    // Filters
     this.selectGroupBy = this.selectGroupBy.bind(this);
     this.updateFilter = this.updateFilter.bind(this);
     this.addFilterTag = this.addFilterTag.bind(this);
     this.removeFilterTag = this.removeFilterTag.bind(this);
+
+    // Contact actions
+    this.toggleExpanded = this.toggleExpanded.bind(this);
+    this.addInteraction = this.addInteraction.bind(this);
 
     this._filterContacts = this._filterContacts.bind(this);
 
@@ -207,6 +271,26 @@ class ContactsPage extends React.Component {
     );
     const newState = Immutable.fromJS(this.state)
       .update('filterTags', value => newTags);
+    this.setState(newState.toJS());
+  }
+
+  toggleExpanded(contactId) {
+    const contactIdx = this.state.contacts.findIndex(contact =>
+      contact.id === contactId
+    );
+    const newState = Immutable.fromJS(this.state)
+      .updateIn(['contacts', contactIdx, 'expanded'], value => !value);
+    this.setState(newState.toJS());
+  }
+
+  addInteraction(interaction, contactId) {
+    const contactIdx = this.state.contacts.findIndex(contact =>
+      contact.id === contactId
+    );
+    const newState = Immutable.fromJS(this.state)
+      .updateIn(['contacts', contactIdx, 'interactions'], interactions =>
+        interactions.unshift(interaction)
+      );
     this.setState(newState.toJS());
   }
 
@@ -259,7 +343,9 @@ class ContactsPage extends React.Component {
                        addFilterTag={this.addFilterTag}
                        removeFilterTag={this.removeFilterTag} />
         <ContactsSection contacts={filteredContacts}
-                         groupBy={this.state.groupBy} />
+                         groupBy={this.state.groupBy}
+                         toggleExpanded={this.toggleExpanded}
+                         addInteraction={this.addInteraction} />
       </div>
     );
   }

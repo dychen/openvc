@@ -113,51 +113,106 @@ $CONTACTS_PANEL_WIDTH: 300px;
 
   .ovc-contacts-contact-sublist {
     width: 100%;
+    margin-bottom: 10px;
     display: flex;
     justify-content: flex-start;
     align-items: flex-start;
     flex-direction: row;
     flex-wrap: wrap;
 
-    .ovc-contacts-contact-panel {
-      height: $CONTACTS_PANEL_HEIGHT;
+    .ovc-contacts-contact-panel-container {
       width: $CONTACTS_PANEL_WIDTH;
       box-shadow: 0 1px 3px 0 $OVC_GRAY;
 
       margin: 5px;
 
-      display: flex;
-      justify-content: flex-start;
-      align-items: center;
-
       @include hvr-shadow($OVC_DARK_GRAY);
       cursor: pointer;
+    }
 
-      // Left icon
-      img.contact-photo {
-        height: $CONTACTS_PANEL_HEIGHT;
-        flex: 0 0 $CONTACTS_PANEL_HEIGHT;
-        border-right: 1px solid $OVC_LIGHT_GRAY;
+    .ovc-contacts-contact-interactions {
+      width: 100%;
+    }
+  }
+}
+
+.ovc-contacts-contact-panel-container {
+  .ovc-contacts-contact-panel {
+    height: $CONTACTS_PANEL_HEIGHT;
+
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    // Left icon
+    img.contact-photo {
+      height: $CONTACTS_PANEL_HEIGHT;
+      flex: 0 0 $CONTACTS_PANEL_HEIGHT;
+      border-right: 1px solid $OVC_LIGHT_GRAY;
+    }
+
+    // Middle info
+    .contact-text {
+      width: 100%;
+      margin-left: 10px;
+      margin-right: 5px;
+
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-direction: column;
+
+      .contact-name {
+        font-weight: 900;
       }
+      .contact-tags {
+        color: $OVC_GRAY;
+      }
+    }
 
-      // Middle info
-      .contact-text {
+    // Right icons
+    position: relative;
+    i {
+      font-size: 20px;
+
+      @include hvr-color($OVC_GRAY);
+      cursor: pointer;
+    }
+    i.start-chat {
+      position: absolute;
+      right: 25px;
+      top: 0px;
+    }
+    i.expand-contact {
+      position: absolute;
+      right: 5px;
+      top: 0px;
+    }
+  }
+}
+
+.ovc-contacts-contact-interactions {
+  table {
+    width: 100%;
+    thead {
+      background-color: $OVC_SUBNAV_GRAY;
+    }
+    tr {
+      width: 100%;
+      border: 1px solid $OVC_LIGHT_GRAY;
+      td {
+        padding: 5px;
+        text-align: center;
+      }
+      td.add-interaction {
         width: 100%;
-        margin-left: 10px;
-        margin-right: 5px;
+        font-size: 15px;
+        color: $OVC_GRAY;
 
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        flex-direction: column;
-
-        .contact-name {
-          font-weight: 900;
-        }
-        .contact-tags {
-          color: $OVC_GRAY;
-        }
+        @include hvr-fade($OVC_DARK_GRAY, $OVC_SUBNAV_GRAY);
+        cursor: pointer;
       }
     }
   }
 }
+

@@ -1,4 +1,5 @@
 import React from 'react';
+import {hashHistory} from 'react-router'
 import Immutable from 'immutable';
 import {DropdownButton, MenuItem} from 'react-bootstrap';
 import 'whatwg-fetch';
@@ -109,9 +110,11 @@ class ContactsSection extends React.Component {
 
     this.toggleExpanded = this.toggleExpanded.bind(this);
     this.addInteraction = this.addInteraction.bind(this);
+    this._goToContactPage = this._goToContactPage.bind(this);
   }
 
   toggleExpanded(e) {
+    e.stopPropagation();
     this.props.toggleExpanded(Number(e.currentTarget.id));
   }
 
@@ -121,6 +124,11 @@ class ContactsSection extends React.Component {
       date: '2017-02-02',
       notes: ''
     }, Number(e.currentTarget.id));
+  }
+
+  _goToContactPage(e) {
+    const linkUrl = '/' + this.props._USER_TYPE + '/contacts/' + e.currentTarget.id;
+    hashHistory.push(linkUrl);
   }
 
   render() {
@@ -167,7 +175,8 @@ class ContactsSection extends React.Component {
 
         return (
           <div className="ovc-contacts-contact-panel-container" key={contact.id}>
-            <div className="ovc-contacts-contact-panel">
+            <div className="ovc-contacts-contact-panel" id={contact.id}
+                 onClick={this._goToContactPage}>
               <img className="contact-photo" src={contact.photoUrl} />
               <div className="contact-text">
                 <div className="contact-name">
@@ -213,6 +222,10 @@ class ContactsSection extends React.Component {
 class ContactsPage extends React.Component {
   constructor(props) {
     super(props);
+
+    this._USER_TYPE = (
+      this.props.location.pathname.includes('investor') ? 'investor' : 'founder'
+    );
 
     this.state = {
       groupBy: 'company',
@@ -342,7 +355,8 @@ class ContactsPage extends React.Component {
                        updateFilter={this.updateFilter}
                        addFilterTag={this.addFilterTag}
                        removeFilterTag={this.removeFilterTag} />
-        <ContactsSection contacts={filteredContacts}
+        <ContactsSection _USER_TYPE={this._USER_TYPE}
+                         contacts={filteredContacts}
                          groupBy={this.state.groupBy}
                          toggleExpanded={this.toggleExpanded}
                          addInteraction={this.addInteraction} />

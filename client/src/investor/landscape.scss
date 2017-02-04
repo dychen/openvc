@@ -42,7 +42,6 @@ $STARTUP_PANEL_HEIGHT: 160px;
     align-items: center;
 
     @include hvr-color($OVC_GRAY);
-    cursor: pointer;
 
     .filter-close {
       width: 30px;
@@ -154,7 +153,6 @@ $STARTUP_PANEL_HEIGHT: 160px;
       font-size: 30px;
 
       @include hvr-color($OVC_GRAY);
-      cursor: pointer;
     }
   }
 }

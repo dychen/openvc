@@ -55,7 +55,6 @@ $INVESTOR_PANEL_HEIGHT: 100px;
       align-items: center;
 
       @include hvr-fade($OVC_LIGHT_GRAY, $OVC_DARK_GRAY);
-      cursor: pointer;
     }
     .show-button.selected {
       color: $OVC_LIGHT_GRAY;
@@ -86,7 +85,6 @@ $INVESTOR_PANEL_HEIGHT: 100px;
         font-size: 1.1em;
 
         @include hvr-color($OVC_LIGHT_GRAY);
-        cursor: pointer;
       }
 
       .search-menu-stage-investors {
@@ -113,7 +111,6 @@ $INVESTOR_PANEL_HEIGHT: 100px;
     align-items: center;
 
     @include hvr-shadow($OVC_DARK_GRAY);
-    cursor: pointer;
 
     // Left icon
     img.company-logo {

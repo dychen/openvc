@@ -20,7 +20,6 @@
     font-weight: 900;
 
     @include hvr-color($OVC_GRAY);
-    cursor: pointer;
 
     i.sidebar-add-channel {
       color: $OVC_GRAY;
@@ -30,7 +29,6 @@
       font-weight: 900;
 
       @include hvr-color($OVC_DARK_GRAY);
-      cursor: pointer;
     }
   }
 
@@ -42,7 +40,6 @@
     border-radius: 5px;
 
     @include hvr-fade($OVC_GRAY, $OVC_LIGHT_GRAY);
-    cursor: pointer;
 
     i.sidebar-leave-channel {
       color: $OVC_GRAY;
@@ -52,7 +49,6 @@
       font-weight: 900;
 
       @include hvr-color($OVC_DARK_GRAY);
-      cursor: pointer;
     }
   }
 

@@ -77,6 +77,14 @@ class InvestorSidenav extends React.Component {
               </span>
             </div>
           </Link>
+          <Link to="/investor/profile">
+            <div className="ovc-sidenav-item link">
+              <i className="ion-android-person" />
+              <span className="minimized-sidenav-hidden">
+                Profile
+              </span>
+            </div>
+          </Link>
           <div className="ovc-sidenav-item link">
             <i className="ion-key" />
             <span className="minimized-sidenav-hidden">

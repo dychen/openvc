@@ -79,7 +79,6 @@ $CONTACTS_PANEL_WIDTH: 300px;
       align-items: center;
 
       @include hvr-color($OVC_GRAY);
-      cursor: pointer;
 
       .filter-close {
         width: 30px;
@@ -127,7 +126,6 @@ $CONTACTS_PANEL_WIDTH: 300px;
       margin: 5px;
 
       @include hvr-shadow($OVC_DARK_GRAY);
-      cursor: pointer;
     }
 
     .ovc-contacts-contact-interactions {
@@ -176,7 +174,6 @@ $CONTACTS_PANEL_WIDTH: 300px;
       font-size: 20px;
 
       @include hvr-color($OVC_GRAY);
-      cursor: pointer;
     }
     i.start-chat {
       position: absolute;
@@ -210,7 +207,6 @@ $CONTACTS_PANEL_WIDTH: 300px;
         color: $OVC_GRAY;
 
         @include hvr-fade($OVC_DARK_GRAY, $OVC_SUBNAV_GRAY);
-        cursor: pointer;
       }
     }
   }

@@ -25,7 +25,6 @@
     box-shadow: 0 1px 3px 0 $OVC_GRAY;
 
     @include hvr-shadow($OVC_DARK_GRAY);
-    cursor: pointer;
   }
 
   .ovc-team-card.item {
@@ -63,7 +62,6 @@
       color: $OVC_GRAY;
 
       @include hvr-color($OVC_DARK_GRAY);
-      cursor: pointer;
     }
 
     i.cancel {
@@ -108,7 +106,6 @@
     box-shadow: 0 1px 3px 0 $OVC_GRAY;
 
     @include hvr-shadow($OVC_DARK_GRAY);
-    cursor: pointer;
   }
 
   .ovc-board-card.item {
@@ -147,7 +144,6 @@
       color: $OVC_GRAY;
 
       @include hvr-color($OVC_DARK_GRAY);
-      cursor: pointer;
     }
 
     i.cancel {
@@ -192,7 +188,6 @@
     box-shadow: 0 1px 3px 0 $OVC_GRAY;
 
     @include hvr-shadow($OVC_DARK_GRAY);
-    cursor: pointer;
   }
 
   .ovc-investor-card.item {
@@ -231,7 +226,6 @@
       color: $OVC_GRAY;
 
       @include hvr-color($OVC_DARK_GRAY);
-      cursor: pointer;
     }
 
     i.cancel {

@@ -57,7 +57,6 @@ $STARTUP_PANEL_HEIGHT: 80px;
       border-radius: 5px;
 
       @include hvr-fade($OVC_LIGHT_GRAY, $OVC_DARK_GRAY);
-      cursor: pointer;
     }
 
     span.selected {
@@ -81,7 +80,6 @@ $STARTUP_PANEL_HEIGHT: 80px;
     }
     img {
       @include hvr-grow(1.2);
-      cursor: pointer;
     }
     i {
       font-size: $COMPARE_HEADER_HEIGHT;
@@ -109,7 +107,6 @@ $STARTUP_PANEL_HEIGHT: 80px;
     border-right: 1px solid $OVC_LIGHT_GRAY;
 
     @include hvr-grow(1.2);
-    cursor: pointer;
   }
 }
 
@@ -171,7 +168,6 @@ $STARTUP_PANEL_HEIGHT: 80px;
 
       .compare-column-panel {
         @include hvr-shadow($OVC_DARK_GRAY);
-        cursor: pointer;
       }
     }
   }

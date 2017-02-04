@@ -41,7 +41,6 @@ $SIDENAV_MINI_WIDTH: 55px;
 
     // Minimize sidenav
     @include hvr-color($OVC_GRAY);
-    cursor: pointer;
 
     position: relative;
     i.nav-hamburger {
@@ -54,9 +53,8 @@ $SIDENAV_MINI_WIDTH: 55px;
   .ovc-sidenav-item.link {
     height: $TOPNAV_HEIGHT - 5px;
     padding-left: 20px;
-
     justify-content: flex-start;
-    cursor: pointer;
+
     @include hvr-color($OVC_GRAY);
 
     i {

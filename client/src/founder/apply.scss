@@ -42,7 +42,6 @@ $INVESTOR_PANEL_HEIGHT: 70px;
     align-items: center;
 
     @include hvr-color($OVC_GRAY);
-    cursor: pointer;
 
     .filter-close {
       width: 30px;
@@ -79,7 +78,6 @@ $INVESTOR_PANEL_HEIGHT: 70px;
     align-items: center;
 
     @include hvr-shadow($OVC_DARK_GRAY);
-    cursor: pointer;
 
     // Left icon
     img.investor-logo {
@@ -127,7 +125,6 @@ $INVESTOR_PANEL_HEIGHT: 70px;
         color: $OVC_GRAY;
 
         @include hvr-color($OVC_DARK_GRAY);
-        cursor: pointer;
       }
     }
   }

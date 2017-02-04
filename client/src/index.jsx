@@ -26,6 +26,7 @@ import InvestorLandscapePage from './investor/landscape.jsx';
 import InvestorComparePage from './investor/compare.jsx';
 
 import ContactsPage from './shared/contacts.jsx';
+import ProfilePage from './shared/profile.jsx';
 
 import RoomsApp from './rooms/rooms.jsx';
 
@@ -74,6 +75,7 @@ class App extends React.Component {
             <Route path="fundraising" component={FounderFundraisingPage} />
             <Route path="contacts" component={ContactsPage} />
             <Route path="rooms" component={RoomsApp} />
+            <Route path="profile" component={ProfilePage} />
           </Route>
 
           <Route path="investor" components={{main: InvestorAppContainer,
@@ -85,6 +87,7 @@ class App extends React.Component {
             <Route path="compare" component={InvestorComparePage} />
             <Route path="contacts" component={ContactsPage} />
             <Route path="rooms" component={RoomsApp} />
+            <Route path="profile" component={ProfilePage} />
           </Route>
         </Route>
       </Router>

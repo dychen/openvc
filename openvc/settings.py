@@ -21,7 +21,18 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '=dw--%mhcm*z0&exro6*rv7g86o*g5twn^7&8tpd@0@6q@_x_q'
+SECRET_KEY = os.environ['SECRET_KEY']
+
+# Development settings:
+if os.environ['ENVIRONMENT'] == 'development':
+    DEBUG = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+# Production settings:
+else:
+    DEBUG = False
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -38,12 +49,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
     'contacts',
     'data',
     'users',
 ]
 
 MIDDLEWARE = [
+    # Put corsheaders at the front:
+    # https://github.com/ottoyiu/django-cors-headers#setup
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -73,6 +90,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'openvc.wsgi.application'
 
+# CORS
+CORS_ORIGIN_WHITELIST = (
+    '127.0.0.1:8080',
+    # TODO: Allow staging and production URLs
+)
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases

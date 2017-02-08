@@ -17,7 +17,11 @@ const config = {
     filename: 'app.js'
   },
   plugins: [
-    new ExtractTextPlugin('app.css')
+    new ExtractTextPlugin('app.css'),
+    new webpack.DefinePlugin({
+        ENVIRONMENT: JSON.stringify('development'),
+        SERVER_URL: JSON.stringify('http://127.0.0.1:8000'),
+    })
   ],
   module: {
     loaders: [

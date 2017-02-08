@@ -15,6 +15,12 @@ class Migration(migrations.Migration):
         ('data', '0001_initial'),
     ]
 
+    # Added this for Django Rest Framework token auth dependencies:
+    # http://www.tomchristie.com/rest-framework-2-docs/api-guide/authentication
+    needed_by = [
+        ('authtoken', '0001_initial'),
+    ]
+
     operations = [
         migrations.CreateModel(
             name='User',

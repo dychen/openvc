@@ -1,5 +1,6 @@
 import React from 'react';
 import {Link, hashHistory} from 'react-router';
+import 'whatwg-fetch';
 
 import './login.scss';
 
@@ -11,7 +12,8 @@ class LoginForm extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      email: ''
+      email: '',
+      password: ''
     };
 
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -23,9 +25,41 @@ class LoginForm extends React.Component {
   }
 
   handleSubmit(e) {
-    /* TODO: Login */
-    hashHistory.push('/founder');
-    return;
+    fetch(SERVER_URL + '/api/v1/auth/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        username: this.state.email,
+        password: this.state.password,
+      })
+    }).then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          // TODO: Handle error responses:
+          /*
+           * {
+           *   'username': ['This field may not be blank.'],
+           *   'password': ['This field may not be blank.'],
+           *   'non_field_errors': ['Unable to log in with provided
+           *                         credentials.']
+           * }
+           */
+          throw new Error('Unable to log in');
+        })
+      }
+    }).then(json => {
+      // TODO: Store token
+      hashHistory.push('/founder');
+      return;
+    }).catch(err => {
+      return err;
+    });
   }
 
   render() {
@@ -35,7 +69,8 @@ class LoginForm extends React.Component {
         <input type="text" name="email" value={this.state.email}
                onChange={this.handleChange} />
         <label>Password:</label>
-        <input type="password" name="password" value={this.state.password} />
+        <input type="password" name="password" value={this.state.password}
+               onChange={this.handleChange} />
         <div className="basic-submit" onClick={this.handleSubmit}>
           Log In
         </div>

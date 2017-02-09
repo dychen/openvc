@@ -35,8 +35,6 @@ const getCSRFToken = function() {
 }
 
 const authFetch = function(url, options) {
-  console.log(getCSRFToken());
-
   options = options || {};
   options.headers = options.headers || {};
   options.headers['Authorization'] = `Bearer ${getToken()}`;

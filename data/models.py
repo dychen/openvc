@@ -34,8 +34,8 @@ class CompanyTag(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 class Employment(models.Model):
-    person     = models.ForeignKey(Person, related_name='employers')
-    company    = models.ForeignKey(Company, related_name='employees')
+    person     = models.ForeignKey(Person, related_name='employment')
+    company    = models.ForeignKey(Company, related_name='employment')
     title      = models.TextField(null=True, blank=True)
     start_date = models.DateField(null=True, blank=True)
     end_date   = models.DateField(null=True, blank=True)

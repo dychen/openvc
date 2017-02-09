@@ -4,6 +4,19 @@ import {authFetch} from '../utils/auth.js';
 
 import './profile.scss';
 
+/*
+ * props:
+ *   field [string]: Name of field being edited (e.g. 'title'), the name of
+ *                   the innermost key for nested fields.
+ *   value [string]: Value of the field being edited (e.g. 'Google').
+ *   id [string]: [Optional] Id of the parent object, used if the object is in
+ *                           a list of objects, such as for experience objects.
+ *   editing [Object]: { editing: [boolean], value: [string] }
+ *
+ *   editField [function]: Function to enter editing mode.
+ *   updateInput [function]: Function to update field based on user input.
+ *   saveInput [function]: Function to write updated field to database.
+ */
 class EditField extends React.Component {
   constructor(props) {
     super(props);
@@ -20,17 +33,24 @@ class EditField extends React.Component {
 
   editField(e) {
     e.stopPropagation();
-    this.props.editField(this.props.field);
+    // this.props.id is passed for experience fields but is undefined for
+    // profile fields
+    this.props.editField(this.props.field, this.props.id);
   }
 
   updateInput(e) {
-    this.props.updateInput(this.props.field, e.currentTarget.value);
+    // this.props.id is passed for experience fields but is undefined for
+    // profile fields
+    this.props.updateInput(this.props.field, e.currentTarget.value,
+                           this.props.id);
   }
 
   saveInput(e) {
     const trimmedValue = this.props.editing.value.trim();
     if (e.key === 'Enter' && trimmedValue !== '') {
-      this.props.saveInput(this.props.field, trimmedValue);
+      // this.props.id is passed for experience fields but is undefined for
+      // profile fields
+      this.props.saveInput(this.props.field, trimmedValue, this.props.id);
     }
   }
 
@@ -69,6 +89,20 @@ class EditField extends React.Component {
   }
 }
 
+/*
+ * props:
+ *   experience [Array]: this.state.profile.experience - list of experience
+ *                       objects.
+ *   editingExperience [Array]: this.state.editing.experience - list of
+ *                              experience editing objects.
+ *
+ *   editField [function]: Function to enter editing mode.
+ *   updateInput [function]: Function to update field based on user input.
+ *   saveInput [function]: Function to write updated field to database.
+ *
+ *   addExperience [function]: Function to create a new experience object.
+ *   removeExperience [function]: Function to delete an experience object.
+ */
 class ExperienceSection extends React.Component {
   constructor(props) {
     super(props);
@@ -87,6 +121,9 @@ class ExperienceSection extends React.Component {
 
     this.state = this._INITIAL_STATE;
 
+    // These functions all govern experience creation/deletion - they do not
+    // have anything to do with field updating, which are all handled through
+    // props.
     this.stopPropagation = this.stopPropagation.bind(this);
     this.updateInput = this.updateInput.bind(this);
     this.addExperience = this.addExperience.bind(this);
@@ -99,6 +136,7 @@ class ExperienceSection extends React.Component {
     e.stopPropagation();
   }
 
+  /* NOTE: This is different from this.props.updateInput */
   updateInput(e) {
     const newState = Immutable.fromJS(this.state)
       .setIn(['newExperience', e.currentTarget.name], e.currentTarget.value);
@@ -177,37 +215,37 @@ class ExperienceSection extends React.Component {
           <i className="ion-trash-a remove-experience" id={exp.id}
              onClick={this.removeExperience} />
           <div>
-            <EditField field={['experience', index, 'title']}
-                       value={exp.title}
+            <EditField field="title"
+                       value={exp.title} id={exp.id}
                        editing={this.props.editingExperience[index].title}
                        editField={this.props.editField}
                        updateInput={this.props.updateInput}
                        saveInput={this.props.saveInput} />
             &nbsp;at&nbsp;
-            <EditField field={['experience', index, 'company']}
-                       value={exp.company}
+            <EditField field="company"
+                       value={exp.company} id={exp.id}
                        editing={this.props.editingExperience[index].company}
                        editField={this.props.editField}
                        updateInput={this.props.updateInput}
                        saveInput={this.props.saveInput} />
           </div>
           <div className="light italic">
-            <EditField field={['experience', index, 'location']}
-                       value={exp.location}
+            <EditField field="location"
+                       value={exp.location} id={exp.id}
                        editing={this.props.editingExperience[index].location}
                        editField={this.props.editField}
                        updateInput={this.props.updateInput}
                        saveInput={this.props.saveInput} />
             &nbsp;(
-            <EditField field={['experience', index, 'startDate']}
-                       value={exp.startDate}
+            <EditField field="startDate"
+                       value={exp.startDate} id={exp.id}
                        editing={this.props.editingExperience[index].startDate}
                        editField={this.props.editField}
                        updateInput={this.props.updateInput}
                        saveInput={this.props.saveInput} />
             &nbsp;-&nbsp;
-            <EditField field={['experience', index, 'endDate']}
-                       value={exp.endDate}
+            <EditField field="endDate"
+                       value={exp.endDate} id={exp.id}
                        editing={this.props.editingExperience[index].endDate}
                        editField={this.props.editField}
                        updateInput={this.props.updateInput}
@@ -215,8 +253,8 @@ class ExperienceSection extends React.Component {
             )
           </div>
           <div className="light">
-            <EditField field={['experience', index, 'notes']}
-                       value={exp.notes}
+            <EditField field="notes"
+                       value={exp.notes} id={exp.id}
                        editing={this.props.editingExperience[index].notes}
                        editField={this.props.editField}
                        updateInput={this.props.updateInput}
@@ -271,15 +309,21 @@ class ProfilePage extends React.Component {
 
     this._createEditingExperience = this._createEditingExperience.bind(this);
 
+    // Profile/Experience field CRUD
     this.editField = this.editField.bind(this);
+    this.editExperienceField = this.editExperienceField.bind(this);
     this.updateInput = this.updateInput.bind(this);
+    this.updateExperienceInput = this.updateExperienceInput.bind(this);
     this.saveInput = this.saveInput.bind(this);
+    this.saveExperienceInput = this.saveExperienceInput.bind(this);
+
     this.cancelEdits = this.cancelEdits.bind(this);
+
+    // Experience CRUD
     this.addExperience = this.addExperience.bind(this);
     this.removeExperience = this.removeExperience.bind(this);
 
-    fetch('/data/shared/profile/profile.json')
-    //authFetch(SERVER_URL + '/api/v1/users/self.json')
+    authFetch(`${SERVER_URL}/api/v1/users/self`)
       .then(function(response) {
         return response.json();
       }).then(json => {
@@ -312,62 +356,94 @@ class ProfilePage extends React.Component {
   }
 
   /*
-   * Args:
-   *   @field [string/array]: Either a single string representing the target
-   *                          field or a list of strings representing the
-   *                          nested field.
+   * Profile/Experience field CRUD
    */
+
   editField(field) {
     // TODO: Find a better pattern than callbacks
     //       This is currently necessary because setState is often asynchronous
-    const updateArray = (
-      Array.isArray(field)
-      ? ['editing'].concat(field).concat(['editing'])
-      : ['editing', field, 'editing']
-    );
     this.cancelEdits(() => {
       const newState = Immutable.fromJS(this.state)
-        .setIn(updateArray, true);
+        .setIn(['editing', field, 'editing'], true);
       this.setState(newState.toJS());
     });
   }
 
-  /*
-   * Args:
-   *   @field [string/array]: Either a single string representing the target
-   *                          field or a list of strings representing the
-   *                          nested field.
-   */
+  editExperienceField(field, experienceId) {
+    // TODO: Find a better pattern than callbacks
+    //       This is currently necessary because setState is often asynchronous
+    this.cancelEdits(() => {
+      const experienceIdx = this.state.editing.experience.findIndex(exp =>
+        exp.id === experienceId
+      );
+      const newState = Immutable.fromJS(this.state)
+        .setIn(['editing', 'experience', experienceIdx, field, 'editing'], true);
+      this.setState(newState.toJS());
+    });
+  }
+
   updateInput(field, value) {
-    const updateArray = (
-      Array.isArray(field)
-      ? ['editing'].concat(field).concat(['value'])
-      : ['editing', field, 'value']
-    );
-    const newState = Immutable.fromJS(this.state).setIn(updateArray, value);
+    const newState = Immutable.fromJS(this.state)
+      .setIn(['editing', field, 'value'], value);
     this.setState(newState.toJS());
   }
 
-  /*
-   * Args:
-   *   @field [string/array]: Either a single string representing the target
-   *                          field or a list of strings representing the
-   *                          nested field.
-   */
-  saveInput(field, value) {
-    let profileUpdateArray;
-    let editingUpdateArray;
-    if (Array.isArray(field)) {
-      profileUpdateArray = ['profile'].concat(field);
-      editingUpdateArray = ['editing'].concat(field).concat('editing');
-    }
-    else {
-      profileUpdateArray = ['profile', field];
-      editingUpdateArray = ['editing', field, 'editing'];
-    }
-    let newState = Immutable.fromJS(this.state).setIn(profileUpdateArray, value);
-    newState = newState.setIn(editingUpdateArray, false);
+  updateExperienceInput(field, value, experienceId) {
+    const experienceIdx = this.state.editing.experience.findIndex(exp =>
+      exp.id === experienceId
+    );
+    const newState = Immutable.fromJS(this.state)
+      .setIn(['editing', 'experience', experienceIdx, field, 'value'], value);
     this.setState(newState.toJS());
+  }
+
+  saveInput(field, value) {
+    const newProfileState = Immutable.fromJS(this.state)
+      .setIn(['profile', field], value);
+    const newEditingState = newProfileState
+      .setIn(['editing', field, 'editing'], false);
+    this.setState(newEditingState.toJS());
+  }
+
+  saveExperienceInput(field, value, experienceId) {
+    let body = {}
+    body[field] = value;
+    authFetch(`${SERVER_URL}/api/v1/users/experience/${experienceId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(body)
+    }).then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          // TODO: Handle error responses
+          throw new Error('Unable to log in');
+        });
+      }
+    }).then(json => {
+      // Success
+      const profileExperienceIdx = this.state.profile.experience.findIndex(exp =>
+        exp.id === experienceId
+      );
+      const editingExperienceIdx = this.state.editing.experience.findIndex(exp =>
+        exp.id === experienceId
+      );
+      const newProfileState = Immutable.fromJS(this.state)
+        .setIn(['profile', 'experience', profileExperienceIdx], json);
+      const newEditingState = newProfileState
+        .setIn(['editing', 'experience', editingExperienceIdx],
+               this._createEditingExperience(json));
+      this.setState(newEditingState.toJS());
+    }).catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
   }
 
   /*
@@ -395,8 +471,12 @@ class ProfilePage extends React.Component {
       this.setState({ editing: newEditing.toJS() });
   }
 
+  /*
+   * Experience CRUD
+   */
+
   addExperience(experience) {
-    authFetch(SERVER_URL + '/api/v1/users/experience', {
+    authFetch(`${SERVER_URL}/api/v1/users/experience`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -434,17 +514,41 @@ class ProfilePage extends React.Component {
   }
 
   removeExperience(experienceId) {
-    const newProfileExperience = this.state.profile.experience.filter(exp =>
-      exp.id !== experienceId
-    );
-    const newProfileEditing = this.state.editing.experience.filter(exp =>
-      exp.id !== experienceId
-    );
-    const newProfileState = Immutable.fromJS(this.state)
-      .setIn(['profile', 'experience'], newProfileExperience);
-    const newEditingState = newProfileState
-      .setIn(['editing', 'experience'], newProfileEditing);
-    this.setState(newEditingState.toJS());
+    authFetch(`${SERVER_URL}/api/v1/users/experience`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({ id: experienceId })
+    }).then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          // TODO: Handle error responses
+          throw new Error('Unable to log in');
+        });
+      }
+    }).then(json => {
+      const deletedId = json.id;
+      const newProfileExperience = this.state.profile.experience.filter(exp =>
+        exp.id !== deletedId
+      );
+      const newProfileEditing = this.state.editing.experience.filter(exp =>
+        exp.id !== deletedId
+      );
+      const newProfileState = Immutable.fromJS(this.state)
+        .setIn(['profile', 'experience'], newProfileExperience);
+      const newEditingState = newProfileState
+        .setIn(['editing', 'experience'], newProfileEditing);
+      this.setState(newEditingState.toJS());
+    }).catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
   }
 
   render() {
@@ -515,9 +619,9 @@ class ProfilePage extends React.Component {
         </div>
         <ExperienceSection experience={this.state.profile.experience}
                            editingExperience={this.state.editing.experience}
-                           editField={this.editField}
-                           updateInput={this.updateInput}
-                           saveInput={this.saveInput}
+                           editField={this.editExperienceField}
+                           updateInput={this.updateExperienceInput}
+                           saveInput={this.saveExperienceInput}
                            addExperience={this.addExperience}
                            removeExperience={this.removeExperience} />
       </div>

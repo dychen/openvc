@@ -23,11 +23,12 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
     # Auth API
-    url(r'^api/v1/auth/token', authoken_views.obtain_auth_token),
+    url(r'^api/v1/auth/token$', authoken_views.obtain_auth_token),
 
     # Users API
-    url(r'^api/v1/users/self', user_views.get_self),
-    url(r'^api/v1/users/experience', user_views.UserExperience.as_view()),
+    url(r'^api/v1/users/self$', user_views.UserSelf.as_view()),
+    url(r'^api/v1/users/experience$', user_views.UserExperience.as_view()),
+    url(r'^api/v1/users/experience/(?P<id>[0-9]+)$', user_views.UserExperience.as_view()),
 
     # Data API
 ]

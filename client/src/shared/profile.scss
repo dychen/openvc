@@ -64,15 +64,15 @@
   span.info-edit {
     @include hvr-color($OVC_LIGHT_GRAY);
   }
-  input.info-edit {
+  input.info-edit, textarea.info-edit {
     border: 1px solid $OVC_DARK_GRAY;
     border-radius: 5px;
+    padding: 5px;
+    font-size: 0.9em;
   }
   textarea.info-edit {
     min-height: 200px;
     min-width: 400px;
-    border: 1px solid $OVC_DARK_GRAY;
-    border-radius: 5px;
     resize: none;
   }
 
@@ -84,5 +84,61 @@
   }
   .light {
     color: $OVC_GRAY;
+  }
+}
+
+.profile-experience-container {
+  .profile-info-subsection {
+    width: 500px;
+    margin: 5px;
+    padding: 10px;
+    box-shadow: 0 1px 3px 0 $OVC_GRAY;
+
+    position: relative;
+    i.remove-experience {
+      position: absolute;
+      right: 10px;
+      top: 5px;
+      font-size: 20px;
+
+      @include hvr-color($OVC_GRAY);
+    }
+  }
+
+  .profile-info-subsection.profile-add-experience {
+    @include hvr-shadow($OVC_DARK_GRAY);
+
+    i {
+      font-size: 30px;
+    }
+
+    position: relative;
+    .add-experience-footer {
+      height: 25px;
+      width: 100%;
+      i {
+        @include hvr-color($OVC_GRAY);
+        position: absolute;
+        bottom: 0px;
+      }
+      i.cancel-experience {
+        left: 15px;
+      }
+      i.save-experience {
+        right: 15px;
+      }
+    }
+
+    .add-experience-input-group {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      width: 100%;
+
+      input, textarea {
+        margin: 5px;
+        width: 100%;
+      }
+    }
   }
 }

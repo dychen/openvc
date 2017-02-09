@@ -15,14 +15,19 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
-from rest_framework.authtoken import views
+from rest_framework.authtoken import views as authoken_views
+from users import views as user_views
 
 urlpatterns = [
     # Admin API
     url(r'^admin/', admin.site.urls),
 
     # Auth API
-    url(r'^api/v1/auth/token', views.obtain_auth_token),
+    url(r'^api/v1/auth/token', authoken_views.obtain_auth_token),
+
+    # Users API
+    url(r'^api/v1/users/self', user_views.get_self),
+    url(r'^api/v1/users/experience', user_views.UserExperience.as_view()),
 
     # Data API
 ]

@@ -1,6 +1,6 @@
 import React from 'react';
 import Immutable from 'immutable';
-import 'whatwg-fetch';
+import {authFetch} from '../utils/auth.js';
 
 import './profile.scss';
 
@@ -69,6 +69,172 @@ class EditField extends React.Component {
   }
 }
 
+class ExperienceSection extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this._INITIAL_STATE = {
+      addingExperience: false,
+      newExperience: {
+        title: '',
+        company: '',
+        location: '',
+        startDate: '',
+        endDate: '',
+        notes: ''
+      }
+    };
+
+    this.state = this._INITIAL_STATE;
+
+    this.stopPropagation = this.stopPropagation.bind(this);
+    this.updateInput = this.updateInput.bind(this);
+    this.addExperience = this.addExperience.bind(this);
+    this.cancelExperience = this.cancelExperience.bind(this);
+    this.saveExperience = this.saveExperience.bind(this);
+    this.removeExperience = this.removeExperience.bind(this);
+  }
+
+  stopPropagation(e) {
+    e.stopPropagation();
+  }
+
+  updateInput(e) {
+    const newState = Immutable.fromJS(this.state)
+      .setIn(['newExperience', e.currentTarget.name], e.currentTarget.value);
+    this.setState(newState.toJS());
+  }
+
+  addExperience(e) {
+    this.setState({ addingExperience: true });
+  }
+
+  cancelExperience(e) {
+    this.setState(this._INITIAL_STATE);
+  }
+
+  saveExperience(e) {
+    this.props.addExperience(this.state.newExperience);
+    this.setState(this._INITIAL_STATE); // TODO: Will this affect
+                                        //       parent.setState?
+  }
+
+  removeExperience(e) {
+    this.props.removeExperience(Number(e.currentTarget.id));
+  }
+
+  render() {
+    const addExperience = (
+      this.state.addingExperience
+      ? (
+        <div className="profile-info-subsection profile-add-experience">
+          <div className="add-experience-input-group">
+            <input className="info-edit" name="company" value={this.company}
+                   placeholder="Company (e.g. Google)"
+                   onChange={this.updateInput} />
+            <input className="info-edit" name="title" value={this.title}
+                   placeholder="Title (e.g. CEO)"
+                   onChange={this.updateInput} />
+          </div>
+          <div className="add-experience-input-group">
+            <input className="info-edit" name="location" value={this.location}
+                   placeholder="Location (e.g. San Francisco, CA)"
+                   onChange={this.updateInput} />
+          </div>
+          <div className="add-experience-input-group">
+            <input className="info-edit" name="startDate" value={this.startDate}
+                   placeholder="Start Date (e.g. 2016-01-01)"
+                   onChange={this.updateInput} />
+            <input className="info-edit" name="endDate" value={this.endDate}
+                   placeholder="End Date (e.g. 2016-12-31)"
+                   onChange={this.updateInput} />
+          </div>
+          <div className="add-experience-input-group">
+            <textarea className="info-edit" rows="5"
+                      name="notes" value={this.notes}
+                      placeholder="Notes/comments"
+                      onChange={this.updateInput} />
+          </div>
+          <div className="add-experience-footer">
+            <i className="ion-ios-close-outline cancel-experience"
+               onClick={this.cancelExperience} />
+            <i className="ion-ios-checkmark-outline save-experience"
+               onClick={this.saveExperience} />
+          </div>
+        </div>
+      )
+      : (
+        <div className="profile-info-subsection profile-add-experience"
+             onClick={this.addExperience}>
+          <i className="ion-ios-plus-empty" />
+        </div>
+      )
+    );
+    const experience = this.props.experience.map((exp, index) => {
+      const endDate = exp.endDate ? exp.endDate : 'present';
+      return (
+        <div className="profile-info-subsection" key={exp.id}>
+          <i className="ion-trash-a remove-experience" id={exp.id}
+             onClick={this.removeExperience} />
+          <div>
+            <EditField field={['experience', index, 'title']}
+                       value={exp.title}
+                       editing={this.props.editingExperience[index].title}
+                       editField={this.props.editField}
+                       updateInput={this.props.updateInput}
+                       saveInput={this.props.saveInput} />
+            &nbsp;at&nbsp;
+            <EditField field={['experience', index, 'company']}
+                       value={exp.company}
+                       editing={this.props.editingExperience[index].company}
+                       editField={this.props.editField}
+                       updateInput={this.props.updateInput}
+                       saveInput={this.props.saveInput} />
+          </div>
+          <div className="light italic">
+            <EditField field={['experience', index, 'location']}
+                       value={exp.location}
+                       editing={this.props.editingExperience[index].location}
+                       editField={this.props.editField}
+                       updateInput={this.props.updateInput}
+                       saveInput={this.props.saveInput} />
+            &nbsp;(
+            <EditField field={['experience', index, 'startDate']}
+                       value={exp.startDate}
+                       editing={this.props.editingExperience[index].startDate}
+                       editField={this.props.editField}
+                       updateInput={this.props.updateInput}
+                       saveInput={this.props.saveInput} />
+            &nbsp;-&nbsp;
+            <EditField field={['experience', index, 'endDate']}
+                       value={exp.endDate}
+                       editing={this.props.editingExperience[index].endDate}
+                       editField={this.props.editField}
+                       updateInput={this.props.updateInput}
+                       saveInput={this.props.saveInput} />
+            )
+          </div>
+          <div className="light">
+            <EditField field={['experience', index, 'notes']}
+                       value={exp.notes}
+                       editing={this.props.editingExperience[index].notes}
+                       editField={this.props.editField}
+                       updateInput={this.props.updateInput}
+                       saveInput={this.props.saveInput} />
+          </div>
+        </div>
+      );
+    });
+    return (
+      <div className="profile-info-section profile-experience-container"
+           onClick={this.stopPropagation}>
+        {addExperience}
+        {experience}
+      </div>
+    );
+  }
+}
+
 class ProfilePage extends React.Component {
   constructor(props) {
     super(props);
@@ -103,36 +269,46 @@ class ProfilePage extends React.Component {
       }
     };
 
+    this._createEditingExperience = this._createEditingExperience.bind(this);
+
     this.editField = this.editField.bind(this);
     this.updateInput = this.updateInput.bind(this);
     this.saveInput = this.saveInput.bind(this);
     this.cancelEdits = this.cancelEdits.bind(this);
+    this.addExperience = this.addExperience.bind(this);
+    this.removeExperience = this.removeExperience.bind(this);
 
-    fetch('/data/shared/profile/profile.json').then(function(response) {
-      return response.json();
-    }).then(json => {
-      let editingJSON = {}
-      this._PROFILE_FIELDS.forEach(field => {
-        editingJSON[field] = {
-          value: json[field],
-          editing: false
-        };
-      });
-      editingJSON.experience = json.experience.map(exp => {
-        let experienceJSON = {}
-        this._EXPERIENCE_FIELDS.forEach(field => {
-          experienceJSON[field] = {
-            value: exp[field],
+    fetch('/data/shared/profile/profile.json')
+    //authFetch(SERVER_URL + '/api/v1/users/self.json')
+      .then(function(response) {
+        return response.json();
+      }).then(json => {
+        let editingJSON = { id: json.id };
+        this._PROFILE_FIELDS.forEach(field => {
+          editingJSON[field] = {
+            value: json[field],
             editing: false
           };
         });
-        return experienceJSON;
-      });
-      this.setState({
-        profile: json,
-        editing: editingJSON
-      });
-    }); // TODO: Handle errors
+        editingJSON.experience = json.experience.map(exp =>
+          this._createEditingExperience(exp)
+        );
+        this.setState({
+          profile: json,
+          editing: editingJSON
+        });
+      }); // TODO: Handle errors
+  }
+
+  _createEditingExperience(exp) {
+    let experienceJSON = { id: exp.id };
+    this._EXPERIENCE_FIELDS.forEach(field => {
+      experienceJSON[field] = {
+        value: exp[field],
+        editing: false
+      };
+    });
+    return experienceJSON;
   }
 
   /*
@@ -194,25 +370,24 @@ class ProfilePage extends React.Component {
     this.setState(newState.toJS());
   }
 
-  // TODO: Find a better pattern than callbacks
+  /*
+   * WARNING: This can cause unexpected bugs because it's bound to the
+   *          the container div and modifies state. Be sure to stop propagation
+   *          on subcomponent clicks, and consider only firing if an "in edit
+   *          mode" flag is set.
+   * TODO: Find a better pattern than callbacks
+   */
   cancelEdits(callback) {
+    console.log('DEBUG: profile.cancelEdits()');
     let newEditing = Immutable.fromJS(this.state.editing);
     this._PROFILE_FIELDS.forEach(field => {
       newEditing = newEditing.setIn([field, 'editing'], false);
       newEditing = newEditing.setIn([field, 'value'], this.state.profile[field]);
     });
-    newEditing = newEditing.update('experience', experiences => {
-      return experiences.map((exp, index) => {
-        let experienceJSON = {}
-        this._EXPERIENCE_FIELDS.forEach(field => {
-          experienceJSON[field] = {
-            value: this.state.profile.experience[index][field],
-            editing: false
-          };
-        });
-        return experienceJSON;
-      });
-    });
+    const newEditingExperiences = this.state.profile.experience.map(exp =>
+      this._createEditingExperience(exp)
+    );
+    newEditing = newEditing.set('experience', newEditingExperiences);
 
     if (callback && typeof(callback) === 'function')
       this.setState({ editing: newEditing.toJS() }, callback);
@@ -220,60 +395,59 @@ class ProfilePage extends React.Component {
       this.setState({ editing: newEditing.toJS() });
   }
 
-  render() {
-    const experience = this.state.profile.experience.map((exp, index) => {
-      const endDate = exp.endDate ? exp.endDate : 'present';
-      return (
-        <div className="profile-info-subsection" key={exp.id}>
-          <div>
-            <EditField field={['experience', index, 'title']}
-                       value={exp.title}
-                       editing={this.state.editing.experience[index].title}
-                       editField={this.editField}
-                       updateInput={this.updateInput}
-                       saveInput={this.saveInput} />
-            &nbsp;at&nbsp;
-            <EditField field={['experience', index, 'company']}
-                       value={exp.company}
-                       editing={this.state.editing.experience[index].company}
-                       editField={this.editField}
-                       updateInput={this.updateInput}
-                       saveInput={this.saveInput} />
-          </div>
-          <div className="light italic">
-            <EditField field={['experience', index, 'location']}
-                       value={exp.location}
-                       editing={this.state.editing.experience[index].location}
-                       editField={this.editField}
-                       updateInput={this.updateInput}
-                       saveInput={this.saveInput} />
-            &nbsp;(
-            <EditField field={['experience', index, 'startDate']}
-                       value={exp.startDate}
-                       editing={this.state.editing.experience[index].startDate}
-                       editField={this.editField}
-                       updateInput={this.updateInput}
-                       saveInput={this.saveInput} />
-            &nbsp;-&nbsp;
-            <EditField field={['experience', index, 'endDate']}
-                       value={exp.endDate}
-                       editing={this.state.editing.experience[index].endDate}
-                       editField={this.editField}
-                       updateInput={this.updateInput}
-                       saveInput={this.saveInput} />
-            )
-          </div>
-          <div className="light">
-            <EditField field={['experience', index, 'notes']}
-                       value={exp.notes}
-                       editing={this.state.editing.experience[index].notes}
-                       editField={this.editField}
-                       updateInput={this.updateInput}
-                       saveInput={this.saveInput} />
-          </div>
-        </div>
-      );
+  addExperience(experience) {
+    authFetch(SERVER_URL + '/api/v1/users/experience', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(experience)
+    }).then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          // TODO: Handle error responses
+          throw new Error('Unable to log in');
+        });
+      }
+    }).then(json => {
+      // Success
+      const newExperience = json;
+      const newEditingExperience = this._createEditingExperience(json);
+      const newProfileState = Immutable.fromJS(this.state)
+        .updateIn(['profile', 'experience'], experience =>
+          experience.unshift(newExperience)
+        );
+      const newEditingState = newProfileState
+        .updateIn(['editing', 'experience'], experience =>
+          experience.unshift(newEditingExperience)
+        );
+      this.setState(newEditingState.toJS());
+    }).catch(err => {
+      // Failure
+      console.log(err);
+      return err;
     });
+  }
+
+  removeExperience(experienceId) {
+    const newProfileExperience = this.state.profile.experience.filter(exp =>
+      exp.id !== experienceId
+    );
+    const newProfileEditing = this.state.editing.experience.filter(exp =>
+      exp.id !== experienceId
+    );
+    const newProfileState = Immutable.fromJS(this.state)
+      .setIn(['profile', 'experience'], newProfileExperience);
+    const newEditingState = newProfileState
+      .setIn(['editing', 'experience'], newProfileEditing);
+    this.setState(newEditingState.toJS());
+  }
+
+  render() {
     return (
       <div className="ovc-shared-profile-container"
            onClick={this.cancelEdits}>
@@ -339,9 +513,13 @@ class ProfilePage extends React.Component {
                        saveInput={this.saveInput} />
           </div>
         </div>
-        <div className="profile-info-section profile-experience-container">
-          {experience}
-        </div>
+        <ExperienceSection experience={this.state.profile.experience}
+                           editingExperience={this.state.editing.experience}
+                           editField={this.editField}
+                           updateInput={this.updateInput}
+                           saveInput={this.saveInput}
+                           addExperience={this.addExperience}
+                           removeExperience={this.removeExperience} />
       </div>
     );
   }

@@ -60,9 +60,9 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     # Put corsheaders at the front:
     # https://github.com/ottoyiu/django-cors-headers#setup
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -89,6 +89,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'openvc.wsgi.application'
+
+# Django Rest Framework
+"""
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    )
+}
+"""
 
 # CORS
 CORS_ORIGIN_WHITELIST = (

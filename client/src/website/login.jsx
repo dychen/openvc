@@ -1,6 +1,7 @@
 import React from 'react';
 import {Link, hashHistory} from 'react-router';
 import 'whatwg-fetch';
+import {storeToken} from '../utils/auth.js';
 
 import './login.scss';
 
@@ -51,10 +52,11 @@ class LoginForm extends React.Component {
            * }
            */
           throw new Error('Unable to log in');
-        })
+        });
       }
     }).then(json => {
       // TODO: Store token
+      storeToken(json.token);
       hashHistory.push('/founder');
       return;
     }).catch(err => {

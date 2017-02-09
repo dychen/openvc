@@ -16,6 +16,7 @@ class CusomUserManager(BaseUserManager):
 
         user.set_password(password)
         user.save(using=self._db)
+        #Person.objects.update_or_create(email=email)
         return user
 
     def create_superuser(self, email, role, password):

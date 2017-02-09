@@ -29,6 +29,7 @@
       width: 200px;
       height: 200px;
       border-radius: 100px;
+      @include hvr-outline($OVC_DARK_GRAY, $OVC_LIGHT_GRAY);
     }
   }
 
@@ -74,6 +75,10 @@
     min-height: 200px;
     min-width: 400px;
     resize: none;
+  }
+  .info-edit-photo {
+    margin: 5px;
+    width: 300px;
   }
 
   .italic {

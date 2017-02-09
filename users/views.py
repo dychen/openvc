@@ -26,51 +26,105 @@ def check_authentication(request):
         # No user found for given token
         return None
 
-def get_user_experience(user):
+def get_person_experience(person):
     return [
         {
             'id': employment.id,
             'company': employment.company.name,
             'title': employment.title,
+            'location': employment.location,
             'startDate': employment.start_date,
             'endDate': employment.end_date,
             'notes': employment.notes,
         }
-        for employment in user.person.employment.order_by('start_date',
-                                                          'end_date')
+        for employment in person.get_ordered_employment(reverse=True)
     ]
 
 class UserSelf(APIView):
 
     authentication_classes = (TokenAuthentication,)
 
+    # GET /self
     def get(self, request, format=None):
         user = check_authentication(request)
         if user:
-            return JsonResponse({
-                'id': user.id,
-                'firstName': 'Daniel',
-                'lastName': 'Chen',
-                'name': 'Daniel Chen',
-                'company': 'Andreessen Horowitz',
-                'title': 'Test User',
-                'photoUrl': 'https://media.licdn.com/media/p/7/005/0b1/15a/0634b6f.jpg',
-                'email': 'daniel@a16z.com',
-                'linkedinUrl': 'https://www.linkedin.com/in/danielyoungchen',
-                'experience': get_user_experience(user)
+            user = check_authentication(request)
+            person = user.person
+            latest_employment = person.get_latest_employment()
+            if latest_employment:
+                (company, title) = (latest_employment.company.name,
+                                    latest_employment.title)
+            else:
+                (company, title) = (None, None)
+
+            return Response({
+                'id': person.id,
+                'firstName': person.first_name,
+                'lastName': person.last_name,
+                'name': person.full_name,
+                'company': company,
+                'title': title,
+                'location': person.location,
+                'email': person.email,
+                'photoUrl': person.photo_url,
+                'linkedinUrl': person.linkedin_url,
+                'experience': get_person_experience(person)
             }, status=status.HTTP_200_OK)
         else:
+            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+    # GET /self
+    def post(self, request, format=None):
+        request_json = json.loads(request.body)
+        try:
+            user = check_authentication(request)
+            person = user.person
+            if request_json.get('firstName'):
+                person.first_name = request_json.get('firstName')
+            if request_json.get('lastName'):
+                person.last_name = request_json.get('lastName')
+            if request_json.get('location'):
+                person.location = request_json.get('location')
+            if request_json.get('email'):
+                person.email = request_json.get('email')
+            if request_json.get('photoUrl'):
+                person.photo_url = request_json.get('photoUrl')
+            if request_json.get('linkedinUrl'):
+                person.linkedin_url = request_json.get('linkedinUrl')
+            person.save()
+
+            latest_employment = person.get_latest_employment()
+            if latest_employment:
+                (company, title) = (latest_employment.company.name,
+                                    latest_employment.title)
+            else:
+                (company, title) = (None, None)
+            return Response({
+                'id': person.id,
+                'firstName': person.first_name,
+                'lastName': person.last_name,
+                'name': person.full_name,
+                'company': company,
+                'title': title,
+                'location': person.location,
+                'email': person.email,
+                'photoUrl': person.photo_url,
+                'linkedinUrl': person.linkedin_url,
+            }, status=status.HTTP_200_OK)
+        except Person.DoesNotExist:
             return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserExperience(APIView):
 
     authentication_classes = (TokenAuthentication,)
 
+    # GET /experience
     def get(self, request, format=None):
         return Response({
 
         })
 
+    # POST /experience
     def __post_create(self, request, format=None):
         request_json = json.loads(request.body)
         try:
@@ -83,6 +137,7 @@ class UserExperience(APIView):
                 person=person,
                 company=company,
                 title=request_json.get('title'),
+                location=request_json.get('location'),
                 start_date=parse_date(request_json.get('startDate')),
                 end_date=parse_date(request_json.get('endDate')),
                 notes=request_json.get('notes'),
@@ -91,6 +146,7 @@ class UserExperience(APIView):
                 'id': employment.id,
                 'company': employment.company.name,
                 'title': employment.title,
+                'location': employment.location,
                 'startDate': employment.start_date,
                 'endDate': employment.end_date,
                 'notes': employment.notes,
@@ -98,17 +154,21 @@ class UserExperience(APIView):
         except Person.DoesNotExist:
             return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
+    # POST /experience/:id
     def __post_update(self, request, employment_id, format=None):
         request_json = json.loads(request.body)
         try:
             user = check_authentication(request)
             employment = user.person.employment.get(id=employment_id)
             if request_json.get('company'):
-                employment.company = Company.objects.get_or_create(
+                company, _ = Company.objects.get_or_create(
                     name=request_json.get('company')
                 )
+                employment.company = company
             if request_json.get('title'):
                 employment.title = request_json.get('title')
+            if request_json.get('location'):
+                employment.location = request_json.get('location')
             if request_json.get('startDate'):
                 employment.start_date = parse_date(request_json.get('startDate'))
             if request_json.get('endDate'):
@@ -120,6 +180,7 @@ class UserExperience(APIView):
                 'id': employment.id,
                 'company': employment.company.name,
                 'title': employment.title,
+                'location': employment.location,
                 'startDate': employment.start_date,
                 'endDate': employment.end_date,
                 'notes': employment.notes,
@@ -133,6 +194,7 @@ class UserExperience(APIView):
         else:
             return self.__post_create(request, format=format)
 
+    # DELETE /experience/:id
     def delete(self, request, format=None):
         request_json = json.loads(request.body)
         try:
@@ -148,5 +210,3 @@ class UserExperience(APIView):
         except (Person.DoesNotExist, Employment.DoesNotExist):
             return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-def get_user(request):
-    return

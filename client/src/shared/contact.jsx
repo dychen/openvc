@@ -53,14 +53,12 @@ class ContactPage extends React.Component {
         <div className="profile-picture-container">
           <img src={this.state.contact.photoUrl} />
         </div>
-        <div className="profile-info-section profile-name-section">
+        <div className="profile-info-section profile-basic-info-section">
           <div className="bold">
             {this.state.contact.firstName}
             &nbsp;
             {this.state.contact.lastName}
           </div>
-        </div>
-        <div className="profile-info-section profile-basic-info-section">
           <div>
             {this.state.contact.title}
           </div>

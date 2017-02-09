@@ -1,5 +1,6 @@
 import React from 'react';
 import Immutable from 'immutable';
+import {preprocessJSON} from '../utils/api.js';
 import {authFetch} from '../utils/auth.js';
 
 import './profile.scss';
@@ -12,6 +13,8 @@ import './profile.scss';
  *   id [string]: [Optional] Id of the parent object, used if the object is in
  *                           a list of objects, such as for experience objects.
  *   editing [Object]: { editing: [boolean], value: [string] }
+ *   placeholder [string]: String to display if field value is empty.
+ *   className [string]: Any additional CSS classes to pass to the component.
  *
  *   editField [function]: Function to enter editing mode.
  *   updateInput [function]: Function to update field based on user input.
@@ -21,13 +24,13 @@ class EditField extends React.Component {
   constructor(props) {
     super(props);
 
-    this.stopPropagation = this.stopPropagation.bind(this);
+    this._stopPropagation = this._stopPropagation.bind(this);
     this.editField = this.editField.bind(this);
     this.updateInput = this.updateInput.bind(this);
     this.saveInput = this.saveInput.bind(this);
   }
 
-  stopPropagation(e) {
+  _stopPropagation(e) {
     e.stopPropagation();
   }
 
@@ -47,7 +50,8 @@ class EditField extends React.Component {
 
   saveInput(e) {
     const trimmedValue = this.props.editing.value.trim();
-    if (e.key === 'Enter' && trimmedValue !== '') {
+    // Only submit if there is text; allow shift+enter to create a new line
+    if (e.key === 'Enter' && trimmedValue !== '' && !e.shiftKey) {
       // this.props.id is passed for experience fields but is undefined for
       // profile fields
       this.props.saveInput(this.props.field, trimmedValue, this.props.id);
@@ -56,32 +60,35 @@ class EditField extends React.Component {
 
   render() {
     let editComponent;
+    const className = this.props.className + ' ' + 'info-edit';
     if (this.props.editing && this.props.editing.editing) {
       if (this.props.field.includes('notes')) {
         editComponent = (
           <textarea rows="8"
-                    className="info-edit"
+                    className={className}
+                    placeholder={this.props.placeholder}
                     value={this.props.editing.value}
                     onChange={this.updateInput}
                     onKeyPress={this.saveInput}
-                    onClick={this.stopPropagation} />
+                    onClick={this._stopPropagation} />
         );
       }
       else {
         editComponent = (
-          <input className="info-edit"
+          <input className={className}
+                 placeholder={this.props.placeholder}
                  value={this.props.editing.value}
                  onChange={this.updateInput}
                  onKeyPress={this.saveInput}
-                 onClick={this.stopPropagation} />
+                 onClick={this._stopPropagation} />
         );
       }
     }
     else {
       editComponent = (
-        <span className="info-edit"
+        <span className={className}
               onClick={this.editField}>
-          {this.props.value}
+          {this.props.value ? this.props.value : this.props.placeholder}
         </span>
       );
     }
@@ -121,10 +128,10 @@ class ExperienceSection extends React.Component {
 
     this.state = this._INITIAL_STATE;
 
+    this._stopPropagation = this._stopPropagation.bind(this);
     // These functions all govern experience creation/deletion - they do not
     // have anything to do with field updating, which are all handled through
     // props.
-    this.stopPropagation = this.stopPropagation.bind(this);
     this.updateInput = this.updateInput.bind(this);
     this.addExperience = this.addExperience.bind(this);
     this.cancelExperience = this.cancelExperience.bind(this);
@@ -132,7 +139,7 @@ class ExperienceSection extends React.Component {
     this.removeExperience = this.removeExperience.bind(this);
   }
 
-  stopPropagation(e) {
+  _stopPropagation(e) {
     e.stopPropagation();
   }
 
@@ -217,6 +224,7 @@ class ExperienceSection extends React.Component {
           <div>
             <EditField field="title"
                        value={exp.title} id={exp.id}
+                       placeholder="Update your title"
                        editing={this.props.editingExperience[index].title}
                        editField={this.props.editField}
                        updateInput={this.props.updateInput}
@@ -224,6 +232,7 @@ class ExperienceSection extends React.Component {
             &nbsp;at&nbsp;
             <EditField field="company"
                        value={exp.company} id={exp.id}
+                       placeholder="Update your company"
                        editing={this.props.editingExperience[index].company}
                        editField={this.props.editField}
                        updateInput={this.props.updateInput}
@@ -232,6 +241,7 @@ class ExperienceSection extends React.Component {
           <div className="light italic">
             <EditField field="location"
                        value={exp.location} id={exp.id}
+                       placeholder="Update your location"
                        editing={this.props.editingExperience[index].location}
                        editField={this.props.editField}
                        updateInput={this.props.updateInput}
@@ -239,6 +249,7 @@ class ExperienceSection extends React.Component {
             &nbsp;(
             <EditField field="startDate"
                        value={exp.startDate} id={exp.id}
+                       placeholder="Update your start date"
                        editing={this.props.editingExperience[index].startDate}
                        editField={this.props.editField}
                        updateInput={this.props.updateInput}
@@ -246,6 +257,7 @@ class ExperienceSection extends React.Component {
             &nbsp;-&nbsp;
             <EditField field="endDate"
                        value={exp.endDate} id={exp.id}
+                       placeholder="Present"
                        editing={this.props.editingExperience[index].endDate}
                        editField={this.props.editField}
                        updateInput={this.props.updateInput}
@@ -255,6 +267,7 @@ class ExperienceSection extends React.Component {
           <div className="light">
             <EditField field="notes"
                        value={exp.notes} id={exp.id}
+                       placeholder="Update any notes"
                        editing={this.props.editingExperience[index].notes}
                        editField={this.props.editField}
                        updateInput={this.props.updateInput}
@@ -265,7 +278,7 @@ class ExperienceSection extends React.Component {
     });
     return (
       <div className="profile-info-section profile-experience-container"
-           onClick={this.stopPropagation}>
+           onClick={this._stopPropagation}>
         {addExperience}
         {experience}
       </div>
@@ -278,7 +291,7 @@ class ProfilePage extends React.Component {
     super(props);
 
     this._PROFILE_FIELDS = ['firstName', 'lastName', 'title', 'company',
-                            'location', 'email', 'linkedin'];
+                            'location', 'email', 'photoUrl', 'linkedinUrl'];
     this._EXPERIENCE_FIELDS = ['company', 'title', 'startDate', 'endDate',
                                'location', 'notes'];
 
@@ -292,7 +305,8 @@ class ProfilePage extends React.Component {
         company: '',
         location: '',
         email: '',
-        linkedin: '',
+        photoUrl: '',
+        linkedinUrl: '',
         experience: []
       },
       editing: {
@@ -302,7 +316,8 @@ class ProfilePage extends React.Component {
         company: {},
         location: {},
         email: {},
-        linkedin: {},
+        photoUrl: {},
+        linkedinUrl: {},
         experience: []
       }
     };
@@ -327,6 +342,7 @@ class ProfilePage extends React.Component {
       .then(function(response) {
         return response.json();
       }).then(json => {
+        json = preprocessJSON(json);
         let editingJSON = { id: json.id };
         this._PROFILE_FIELDS.forEach(field => {
           editingJSON[field] = {
@@ -348,7 +364,7 @@ class ProfilePage extends React.Component {
     let experienceJSON = { id: exp.id };
     this._EXPERIENCE_FIELDS.forEach(field => {
       experienceJSON[field] = {
-        value: exp[field],
+        value: exp[field] || '',
         editing: false
       };
     });
@@ -398,11 +414,38 @@ class ProfilePage extends React.Component {
   }
 
   saveInput(field, value) {
-    const newProfileState = Immutable.fromJS(this.state)
-      .setIn(['profile', field], value);
-    const newEditingState = newProfileState
-      .setIn(['editing', field, 'editing'], false);
-    this.setState(newEditingState.toJS());
+    let body = {}
+    body[field] = value;
+    authFetch(`${SERVER_URL}/api/v1/users/self`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(body)
+    }).then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          // TODO: Handle error responses
+          throw new Error('Unable to log in');
+        });
+      }
+    }).then(json => {
+      // Success
+      json = preprocessJSON(json);
+      const newProfileState = Immutable.fromJS(this.state)
+        .setIn(['profile', field], json[field]);
+      const newEditingState = newProfileState
+        .setIn(['editing', field, 'editing'], false);
+      this.setState(newEditingState.toJS());
+    }).catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
   }
 
   saveExperienceInput(field, value, experienceId) {
@@ -427,6 +470,7 @@ class ProfilePage extends React.Component {
       }
     }).then(json => {
       // Success
+      json = preprocessJSON(json);
       const profileExperienceIdx = this.state.profile.experience.findIndex(exp =>
         exp.id === experienceId
       );
@@ -495,6 +539,7 @@ class ProfilePage extends React.Component {
       }
     }).then(json => {
       // Success
+      json = preprocessJSON(json);
       const newExperience = json;
       const newEditingExperience = this._createEditingExperience(json);
       const newProfileState = Immutable.fromJS(this.state)
@@ -532,6 +577,7 @@ class ProfilePage extends React.Component {
         });
       }
     }).then(json => {
+      json = preprocessJSON(json);
       const deletedId = json.id;
       const newProfileExperience = this.state.profile.experience.filter(exp =>
         exp.id !== deletedId
@@ -552,16 +598,44 @@ class ProfilePage extends React.Component {
   }
 
   render() {
+    const company = (
+      this.state.profile.experience && this.state.profile.experience.length > 0
+      ? this.state.profile.experience[0].company
+      : 'No company - add a company below'
+    );
+    const title = (
+      this.state.profile.experience && this.state.profile.experience.length > 0
+      ? this.state.profile.experience[0].title
+      : 'No title - add a company below'
+    );
+    const editPhotoComponent = (
+      this.state.editing.photoUrl.editing
+      ? (
+        <EditField className="info-edit-photo"
+                   field="photoUrl"
+                   value={this.state.profile.photoUrl}
+                   placeholder="Enter a photo URL (e.g. your LinkedIn photo URL)"
+                   editing={this.state.editing.photoUrl}
+                   editField={this.editField}
+                   updateInput={this.updateInput}
+                   saveInput={this.saveInput} />
+      )
+      : ''
+    );
+
     return (
       <div className="ovc-shared-profile-container"
            onClick={this.cancelEdits}>
         <div className="profile-picture-container">
-          <img src={this.state.profile.photoUrl} />
+          <img src={this.state.profile.photoUrl}
+               onClick={() => this.editField('photoUrl')} />
         </div>
-        <div className="profile-info-section profile-name-section">
+        {editPhotoComponent}
+        <div className="profile-info-section profile-basic-info-section">
           <div className="bold">
             <EditField field="firstName"
                        value={this.state.profile.firstName}
+                       placeholder="Update your first name"
                        editing={this.state.editing.firstName}
                        editField={this.editField}
                        updateInput={this.updateInput}
@@ -569,32 +643,22 @@ class ProfilePage extends React.Component {
             &nbsp;
             <EditField field="lastName"
                        value={this.state.profile.lastName}
+                       placeholder="Update your last name"
                        editing={this.state.editing.lastName}
                        editField={this.editField}
                        updateInput={this.updateInput}
                        saveInput={this.saveInput} />
           </div>
-        </div>
-        <div className="profile-info-section profile-basic-info-section">
           <div>
-            <EditField field="title"
-                       value={this.state.profile.title}
-                       editing={this.state.editing.title}
-                       editField={this.editField}
-                       updateInput={this.updateInput}
-                       saveInput={this.saveInput} />
+            <span>{title}</span>
           </div>
           <div>
-            <EditField field="company"
-                       value={this.state.profile.company}
-                       editing={this.state.editing.company}
-                       editField={this.editField}
-                       updateInput={this.updateInput}
-                       saveInput={this.saveInput} />
+            <span>{company}</span>
           </div>
           <div className="light">
             <EditField field="location"
                        value={this.state.profile.location}
+                       placeholder="Update your location"
                        editing={this.state.editing.location}
                        editField={this.editField}
                        updateInput={this.updateInput}
@@ -604,14 +668,16 @@ class ProfilePage extends React.Component {
             <EditField field="email"
                        value={this.state.profile.email}
                        editing={this.state.editing.email}
+                       placeholder="Update your email"
                        editField={this.editField}
                        updateInput={this.updateInput}
                        saveInput={this.saveInput} />
           </div>
           <div className="light">
-            <EditField field="linkedin"
-                       value={this.state.profile.linkedin}
-                       editing={this.state.editing.linkedin}
+            <EditField field="linkedinUrl"
+                       value={this.state.profile.linkedinUrl}
+                       placeholder="Update your LinkedIn URL"
+                       editing={this.state.editing.linkedinUrl}
                        editField={this.editField}
                        updateInput={this.updateInput}
                        saveInput={this.saveInput} />

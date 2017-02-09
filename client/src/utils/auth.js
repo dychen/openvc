@@ -20,19 +20,19 @@ const getCookie = function(name) {
     }
   }
   return cookieValue;
-}
+};
 
 const storeToken = function(token) {
   localStorage.setItem('apiToken', token);
-}
+};
 
 const getToken = function() {
   return localStorage.getItem('apiToken');
-}
+};
 
 const getCSRFToken = function() {
   return getCookie('csrftoken');
-}
+};
 
 const authFetch = function(url, options) {
   options = options || {};

@@ -27,7 +27,7 @@ import InvestorComparePage from './investor/compare.jsx';
 
 import ContactsPage from './shared/contacts.jsx';
 import ContactPage from './shared/contact.jsx';
-import ProfilePage from './shared/profile.jsx';
+import ProfilePage from './shared/profile/profile.jsx';
 
 import RoomsApp from './rooms/rooms.jsx';
 

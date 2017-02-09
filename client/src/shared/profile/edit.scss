@@ -1,0 +1,34 @@
+@import '../../mixins';
+@import '../../constants.scss';
+
+.ovc-shared-profile-container {
+  span.info-edit {
+    @include hvr-color($OVC_LIGHT_GRAY);
+  }
+  input.info-edit, textarea.info-edit {
+    border: 1px solid $OVC_DARK_GRAY;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 0.9em;
+  }
+  textarea.info-edit {
+    min-height: 200px;
+    min-width: 400px;
+    resize: none;
+  }
+  .info-edit-photo {
+    margin: 5px;
+    width: 300px;
+  }
+
+  .italic {
+    font-style: italic;
+  }
+  .bold {
+    font-weight: 900;
+  }
+  .light {
+    color: $OVC_GRAY;
+  }
+}
+

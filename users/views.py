@@ -1,30 +1,12 @@
 import json
-from dateutil import parser as dateparser
 
-from django.http import JsonResponse
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from users.models import User
 from data.models import Company, Person, Employment
-
-def parse_date(datestr):
-    if datestr:
-        return dateparser.parse(datestr.strip()).date()
-    return None
-
-def check_authentication(request):
-    try:
-        # Header: Bearer [token]
-        _, token = request.META['HTTP_AUTHORIZATION'].split(' ')
-        return User.objects.get(auth_token=token)
-    except KeyError:
-        # No token included in auth headers
-        return None
-    except User.DoesNotExist:
-        # No user found for given token
-        return None
+from shared.utils import parse_date, check_authentication
 
 def get_person_experience(person):
     return [
@@ -44,11 +26,10 @@ class UserSelf(APIView):
 
     authentication_classes = (TokenAuthentication,)
 
-    # GET /self
+    # GET /users/self
     def get(self, request, format=None):
         user = check_authentication(request)
         if user:
-            user = check_authentication(request)
             person = user.person
             latest_employment = person.get_latest_employment()
             if latest_employment:
@@ -73,7 +54,7 @@ class UserSelf(APIView):
         else:
             return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-    # GET /self
+    # POST /users/self
     def post(self, request, format=None):
         request_json = json.loads(request.body)
         try:
@@ -118,13 +99,13 @@ class UserExperience(APIView):
 
     authentication_classes = (TokenAuthentication,)
 
-    # GET /experience
+    # GET /users/experience
     def get(self, request, format=None):
         return Response({
 
         })
 
-    # POST /experience
+    # POST /users/experience
     def __post_create(self, request, format=None):
         request_json = json.loads(request.body)
         try:
@@ -154,7 +135,7 @@ class UserExperience(APIView):
         except Person.DoesNotExist:
             return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-    # POST /experience/:id
+    # POST /users/experience/:id
     def __post_update(self, request, employment_id, format=None):
         request_json = json.loads(request.body)
         try:
@@ -194,7 +175,7 @@ class UserExperience(APIView):
         else:
             return self.__post_create(request, format=format)
 
-    # DELETE /experience/:id
+    # DELETE /users/experience/:id
     def delete(self, request, format=None):
         request_json = json.loads(request.body)
         try:

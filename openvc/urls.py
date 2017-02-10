@@ -17,6 +17,7 @@ from django.conf.urls import url
 from django.contrib import admin
 from rest_framework.authtoken import views as authoken_views
 from users import views as user_views
+from contacts import views as contact_views
 
 urlpatterns = [
     # Admin API
@@ -28,7 +29,12 @@ urlpatterns = [
     # Users API
     url(r'^api/v1/users/self$', user_views.UserSelf.as_view()),
     url(r'^api/v1/users/experience$', user_views.UserExperience.as_view()),
-    url(r'^api/v1/users/experience/(?P<id>[0-9]+)$', user_views.UserExperience.as_view()),
+    url(r'^api/v1/users/experience/(?P<id>[0-9]+)$',
+        user_views.UserExperience.as_view()),
+
+    # Contacts API
+    url(r'^api/v1/contacts/self$', contact_views.UserContacts.as_view()),
+    url(r'^api/v1/contacts/all$', contact_views.AllContacts.as_view()),
 
     # Data API
 ]

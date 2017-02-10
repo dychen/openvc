@@ -3,8 +3,6 @@
  *       This requires a server-side implementation.
  */
 
-import 'whatwg-fetch';
-
 // TODO: Consider moving to this: https://github.com/js-cookie/js-cookie/
 const getCookie = function(name) {
   let cookieValue;
@@ -34,16 +32,4 @@ const getCSRFToken = function() {
   return getCookie('csrftoken');
 };
 
-const authFetch = function(url, options) {
-  options = options || {};
-  options.headers = options.headers || {};
-  options.headers['Authorization'] = `Bearer ${getToken()}`;
-  // CSRF Token
-  // options.headers['X-CSRFToken'] = getCSRFToken();
-  // Allow cookies to be sent via MDN fetch (and its polyfill).
-  // https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials
-  // options.credentials = 'include';
-  return fetch(url, options);
-};
-
-export {storeToken, getToken, authFetch};
+export {storeToken, getToken};

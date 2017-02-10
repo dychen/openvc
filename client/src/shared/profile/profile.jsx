@@ -1,7 +1,6 @@
 import React from 'react';
 import Immutable from 'immutable';
-import {preprocessJSON} from '../../utils/api.js';
-import {authFetch} from '../../utils/auth.js';
+import {authFetch, preprocessJSON} from '../../utils/api.js';
 
 import EditField from './edit.jsx';
 import ExperienceSection from './experience.jsx';

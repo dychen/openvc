@@ -1,6 +1,6 @@
 import React from 'react';
 import Immutable from 'immutable';
-import 'whatwg-fetch';
+import {authFetch, preprocessJSON} from '../../utils/api.js';
 
 import SearchSection from './search.jsx';
 import UserContactsSection from './user.jsx';
@@ -29,6 +29,10 @@ class ContactsPage extends React.Component {
       contacts: []
     };
 
+    // Load data
+    this.getUserContacts = this.getUserContacts.bind(this);
+    this.getAllContacts = this.getAllContacts.bind(this);
+
     // Search section
     this.changeSection = this.changeSection.bind(this);
     this.selectGroupBy = this.selectGroupBy.bind(this);
@@ -39,14 +43,58 @@ class ContactsPage extends React.Component {
     // Contact actions
     this.toggleExpanded = this.toggleExpanded.bind(this);
     this.addInteraction = this.addInteraction.bind(this);
+    this.createContact = this.createContact.bind(this);
 
     this._filterContacts = this._filterContacts.bind(this);
+  }
 
-    fetch('/data/shared/contacts/contacts.json').then(function(response) {
-      return response.json();
-    }).then(json => {
-      this.setState({ 'contacts': json });
-    }); // TODO: Handle errors
+  /* Load data */
+  getUserContacts() {
+    authFetch(`${SERVER_URL}/api/v1/contacts/self`)
+      .then(function(response) {
+        if (response.ok) {
+          return response.json();
+        }
+        else {
+          return response.json().then(json => {
+            // TODO: Handle error responses
+            throw new Error('Unable to log in');
+          });
+        }
+      }).then(json => {
+        // Success
+        json = preprocessJSON(json);
+        const newState = Immutable.fromJS(this.state).set('contacts', json);
+        this.setState(newState.toJS());
+      }).catch(err => {
+        // Failure
+        console.log(err);
+        return err;
+      });
+  }
+
+  getAllContacts() {
+    authFetch(`${SERVER_URL}/api/v1/contacts/all`)
+      .then(function(response) {
+        if (response.ok) {
+          return response.json();
+        }
+        else {
+          return response.json().then(json => {
+            // TODO: Handle error responses
+            throw new Error('Unable to log in');
+          });
+        }
+      }).then(json => {
+        // Success
+        json = preprocessJSON(json);
+        const newState = Immutable.fromJS(this.state).set('contacts', json);
+        this.setState(newState.toJS());
+      }).catch(err => {
+        // Failure
+        console.log(err);
+        return err;
+      });
   }
 
   /* Search section */
@@ -106,6 +154,37 @@ class ContactsPage extends React.Component {
     this.setState(newState.toJS());
   }
 
+  createContact(contact) {
+    authFetch(`${SERVER_URL}/api/v1/contacts/self`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(contact)
+    }).then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          // TODO: Handle error responses
+          throw new Error('Unable to log in');
+        });
+      }
+    }).then(json => {
+      // Success
+      json = preprocessJSON(json);
+      const newState = Immutable.fromJS(this.state)
+        .update('contacts', contacts => contacts.unshift(json));
+      this.setState(newState.toJS());
+    }).catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
+  }
+
   _filterContacts(contacts) {
     const filterAttribute = function(contact, attr) {
       return contact[attr].toLowerCase()
@@ -149,19 +228,22 @@ class ContactsPage extends React.Component {
       ? <UserContactsSection _USER_TYPE={this._USER_TYPE}
                              contacts={filteredContacts}
                              groupBy={this.state.groupBy}
+                             getUserContacts={this.getUserContacts}
                              toggleExpanded={this.toggleExpanded}
                              addInteraction={this.addInteraction} />
       : <AllContactsSection _USER_TYPE={this._USER_TYPE}
                             contacts={filteredContacts}
-                            groupBy={this.state.groupBy} />
+                            groupBy={this.state.groupBy}
+                            getAllContacts={this.getAllContacts}
+                            createContact={this.createContact} />
     );
 
     return (
       <div className="ovc-shared-contacts-container">
-        <SearchSection groupBy={this.state.groupBy}
+        <SearchSection section={this.state.section}
+                       groupBy={this.state.groupBy}
                        filterInputs={this.state.filterInputs}
                        filterTags={this.state.filterTags}
-                       section={this.state.section}
                        changeSection={this.changeSection}
                        selectGroupBy={this.selectGroupBy}
                        updateFilter={this.updateFilter}

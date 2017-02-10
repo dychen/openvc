@@ -5,6 +5,17 @@ import CreateContactModal from './modal.jsx';
 
 import './all.scss';
 
+/*
+ * props:
+ *   _USER_TYPE [string]: 'founder' or 'investor', depending on user role.
+ *   contacts [list]: List of contact objects.
+ *   groupBy [string]: Field to group contacts by (e.g. 'company' or 'title').
+ *
+ *   getAllContacts [function]: Function to load contact data.
+ *   createContact [function]: Function to write new contact to database. Gets
+ *                             called in the child component
+ *                             (CreateContactModal).
+ */
 class AllContactsSection extends React.Component {
   constructor(props) {
     super(props);
@@ -15,6 +26,9 @@ class AllContactsSection extends React.Component {
 
     this.toggleCreatingContact = this.toggleCreatingContact.bind(this);
     this._goToContactPage = this._goToContactPage.bind(this);
+
+    // Fetch data
+    this.props.getAllContacts();
   }
 
   toggleCreatingContact(e) {
@@ -80,7 +94,8 @@ class AllContactsSection extends React.Component {
         </div>
         {contactGroups}
         <CreateContactModal creatingContact={this.state.creatingContact}
-                            toggleCreatingContact={this.toggleCreatingContact} />
+                            toggleCreatingContact={this.toggleCreatingContact}
+                            createContact={this.props.createContact} />
       </div>
     );
   }

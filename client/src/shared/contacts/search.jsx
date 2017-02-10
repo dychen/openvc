@@ -3,6 +3,20 @@ import {DropdownButton, MenuItem, Nav, NavItem} from 'react-bootstrap';
 
 import './search.scss';
 
+/*
+ * props:
+ *   section [string]: Current visible section ('user' or 'all').
+ *   groupBy [string]: Field to group contacts by (e.g. 'company' or 'title').
+ *   filterInputs [Object]: Object of search nav input names and their values.
+ *                          { company: '', name: '', title: '', tag: '' }
+ *   filterTags [Array]: List of filter tags.
+ *
+ *   changeSection [function]: Function to change the visible section.
+ *   selectGroupBy [function]: Function to change the groupBy field.
+ *   updateFilter [function]: Function to update filter input text.
+ *   addFilterTag [function]: Function to add a filter tag.
+ *   removeFilterTag [function]: Function to remove a filter tag.
+ */
 class SearchSection extends React.Component {
   constructor(props) {
     super(props);

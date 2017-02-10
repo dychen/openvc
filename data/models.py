@@ -6,14 +6,16 @@ class Person(models.Model):
         names = [n for n in [self.first_name, self.last_name] if n]
         return ' '.join(names)
 
-    first_name = models.TextField(null=True, blank=True)
-    last_name  = models.TextField(null=True, blank=True)
-    email      = models.EmailField(unique=True)
+    first_name = models.TextField()
+    last_name  = models.TextField()
+    email      = models.EmailField(null=True, blank=True, unique=True)
     location   = models.TextField(null=True, blank=True)
     gender     = models.TextField(null=True, blank=True)
     race       = models.TextField(null=True, blank=True)
     website    = models.TextField(null=True, blank=True)
     photo_url  = models.TextField(null=True, blank=True)
+    # Should be unique, but don't add a constraint for more flexibility around
+    # user input.
     linkedin_url = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -25,16 +27,34 @@ class Person(models.Model):
 
     def __get_current_employment(self):
         return (self.employment.filter(current=True)
-                               .order_by('end_date', 'start_date'))
+                               .order_by('end_date', 'start_date',
+                                         'company__name', 'title'))
     def __get_null_employment(self):
         """Assume None in end_date implies present"""
         return (self.employment.filter(end_date__isnull=True)
                                .exclude(current=True)
-                               .order_by('end_date', 'start_date'))
+                               .order_by('end_date', 'start_date',
+                                         'company__name', 'title'))
     def __get_remaining_employment(self):
         return (self.employment.exclude(current=True)
                                .exclude(end_date__isnull=True)
-                               .order_by('end_date', 'start_date'))
+                               .order_by('end_date', 'start_date',
+                                         'company__name', 'title'))
+
+    @classmethod
+    def update_or_create_duplicate_check(cls, **kwargs):
+        if 'email' in kwargs and kwargs['email']:
+            person, _ = Person.objects.update_or_create(
+                email=kwargs['email'], defaults=kwargs
+            )
+            return person
+        elif 'linkedin_url' in kwargs and kwargs['linkedin_url']:
+            person, _ = Person.objects.update_or_create(
+                linkedin_url=kwargs['linkedin_url'], defaults=kwargs
+            )
+            return person
+        else:
+            return Person.objects.create(**kwargs)
 
     def get_latest_employment(self):
         try:

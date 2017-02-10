@@ -3,6 +3,16 @@ import {hashHistory} from 'react-router';
 
 import './user.scss';
 
+/*
+ * props:
+ *   _USER_TYPE [string]: 'founder' or 'investor', depending on user role.
+ *   contacts [list]: List of contact objects.
+ *   groupBy [string]: Field to group contacts by (e.g. 'company' or 'title').
+ *
+ *   getUserContacts [function]: Function to load contact data.
+ *   toggleExpanded [function]: Function to toggle interaction list visibility.
+ *   addInteraction [function]: Function to write new interaction to database.
+ */
 class UserContactsSection extends React.Component {
   constructor(props) {
     super(props);
@@ -10,6 +20,9 @@ class UserContactsSection extends React.Component {
     this.toggleExpanded = this.toggleExpanded.bind(this);
     this.addInteraction = this.addInteraction.bind(this);
     this._goToContactPage = this._goToContactPage.bind(this);
+
+    // Fetch data
+    this.props.getUserContacts();
   }
 
   toggleExpanded(e) {

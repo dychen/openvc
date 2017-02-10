@@ -11,6 +11,12 @@ class Contact(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        unique_together = ('user', 'person')
+
+    def __unicode__(self):
+        return u'%s: %s' % (unicode(user), unicode(person))
+
 class Interaction(models.Model):
     contact    = models.ForeignKey(Contact, related_name='interactions')
     title      = models.TextField(null=True, blank=True)

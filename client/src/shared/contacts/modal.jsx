@@ -3,11 +3,19 @@ import Immutable from 'immutable';
 
 import './modal.scss';
 
+/*
+ * props:
+ *   creatingContact [boolean]: Whether or not a contact is being created - if
+ *                              so, show the modal.
+ *
+ *   toggleCreatingContact [function]: Function toggle modal visibility.
+ *   createContact [function]: Function to write new contact to database.
+ */
 class CreateContactModal extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state = {
+    this._INITIAL_STATE = {
       contact: {
         firstName: '',
         lastName: '',
@@ -18,20 +26,49 @@ class CreateContactModal extends React.Component {
         photoUrl: '',
         linkedinUrl: ''
       }
-    };
+    }
+
+    this.state = this._INITIAL_STATE;
 
     this._preventModalClose = this._preventModalClose.bind(this);
+    this._clearContact = this._clearContact.bind(this);
     this.updateInput = this.updateInput.bind(this);
+    this.createContact = this.createContact.bind(this);
   }
 
   _preventModalClose(e) {
     e.stopPropagation();
   }
 
+  _clearContact() {
+    // WARNING: May cause a race condition, but should be okay because both
+    //          function calls (toggleCreatingContact() and _clearContact())
+    //          update the states of different components.
+    this.setState(this._INITIAL_STATE);
+    this.props.toggleCreatingContact();
+  }
+
   updateInput(e) {
     const newState = Immutable.fromJS(this.state)
       .setIn(['contact', e.currentTarget.name], e.currentTarget.value);
     this.setState(newState.toJS());
+  }
+
+  createContact(e) {
+    // WARNING: May cause a race condition, but should be okay because all
+    //          three function calls (createContact(), toggleCreatingContact(),
+    //          and _clearContact()) update the states of different components.
+    this.props.createContact({
+      firstName: this.state.contact.firstName,
+      lastName: this.state.contact.lastName,
+      company: this.state.contact.company,
+      title: this.state.contact.title,
+      location: this.state.contact.location,
+      email: this.state.contact.email,
+      photoUrl: this.state.contact.photoUrl,
+      linkedinUrl: this.state.contact.linkedinUrl
+    });
+    this._clearContact();
   }
 
   render() {
@@ -119,11 +156,12 @@ class CreateContactModal extends React.Component {
           </div>
           <div className="create-contact-modal-footer">
             <div className="modal-footer-button cancel-create-contact"
-                 onClick={this.props.toggleCreatingContact}>
+                 onClick={this._clearContact}>
               <i className="ion-close" />
               <span>Cancel</span>
             </div>
-            <div className="modal-footer-button confirm-create-contact">
+            <div className="modal-footer-button confirm-create-contact"
+                 onClick={this.createContact}>
               <i className="ion-plus" />
               <span>Create Contact</span>
             </div>

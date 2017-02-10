@@ -45,6 +45,8 @@ class ContactsPage extends React.Component {
     this.addInteraction = this.addInteraction.bind(this);
     this.createContact = this.createContact.bind(this);
     this.createContactandConnect = this.createContactandConnect.bind(this);
+    this.addConnection = this.addConnection.bind(this);
+    this.removeConnection = this.removeConnection.bind(this);
 
     this._filterContacts = this._filterContacts.bind(this);
   }
@@ -217,6 +219,64 @@ class ContactsPage extends React.Component {
     });
   }
 
+  addConnection(contactId) {
+    authFetch(`${SERVER_URL}/api/v1/contacts/connect/${contactId}`, {
+      method: 'POST'
+    }).then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          // TODO: Handle error responses
+          throw new Error('Unable to log in');
+        });
+      }
+    }).then(json => {
+      // Success
+      json = preprocessJSON(json);
+      const contactIdx = this.state.contacts.findIndex(contact =>
+        contact.id === json.id
+      );
+      const newState = Immutable.fromJS(this.state)
+        .setIn(['contacts', contactIdx, 'connected'], true);
+      this.setState(newState.toJS());
+    }).catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
+  }
+
+  removeConnection(contactId) {
+    authFetch(`${SERVER_URL}/api/v1/contacts/connect/${contactId}`, {
+      method: 'DELETE'
+    }).then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          // TODO: Handle error responses
+          throw new Error('Unable to log in');
+        });
+      }
+    }).then(json => {
+      // Success
+      json = preprocessJSON(json);
+      const contactIdx = this.state.contacts.findIndex(contact =>
+        contact.id === json.id
+      );
+      const newState = Immutable.fromJS(this.state)
+        .setIn(['contacts', contactIdx, 'connected'], false);
+      this.setState(newState.toJS());
+    }).catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
+  }
+
   _filterContacts(contacts) {
     const filterAttribute = function(contact, attr) {
       return contact[attr].toLowerCase()
@@ -268,7 +328,9 @@ class ContactsPage extends React.Component {
                             groupBy={this.state.groupBy}
                             getAllContacts={this.getAllContacts}
                             createContact={this.createContact}
-                            createContactandConnect={this.createContactandConnect} />
+                            createContactandConnect={this.createContactandConnect}
+                            addConnection={this.addConnection}
+                            removeConnection={this.removeConnection} />
     );
 
     return (

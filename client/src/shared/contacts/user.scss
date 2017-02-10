@@ -26,3 +26,25 @@
   }
 }
 
+.ovc-contacts-contact-panel-container {
+  .ovc-contacts-contact-panel {
+    // Right icons
+    position: relative;
+    i {
+      font-size: 20px;
+
+      @include hvr-color($OVC_GRAY);
+    }
+    i.start-chat {
+      position: absolute;
+      right: 25px;
+      top: 0px;
+    }
+    i.expand-contact {
+      position: absolute;
+      right: 5px;
+      top: 0px;
+    }
+  }
+}
+

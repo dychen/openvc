@@ -1,7 +1,7 @@
 import datetime
 import json
 
-from django.core.exceptions import PermissionDenied
+from django.db import IntegrityError
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework import status
@@ -10,14 +10,6 @@ from users.models import User
 from contacts.models import Connection
 from data.models import Company, Person, Employment
 from shared.utils import parse_date, check_authentication
-
-def get_company(person):
-    latest_employment = person.get_latest_employment()
-    return latest_employment.company.name if latest_employment else None
-
-def get_title(person):
-    latest_employment = person.get_latest_employment()
-    return latest_employment.title if latest_employment else None
 
 def create_contact(request_json):
     if request_json.get('firstName') and request_json.get('lastName'):
@@ -51,39 +43,47 @@ def create_contact(request_json):
         # Can not create person - validation issues
         raise Person.DoesNotExist
 
+def format_contact_dict(person, connected=True):
+    def get_company(person):
+        latest_employment = person.get_latest_employment()
+        return latest_employment.company.name if latest_employment else None
+
+    def get_title(person):
+        latest_employment = person.get_latest_employment()
+        return latest_employment.title if latest_employment else None
+
+    return {
+        'id': person.id,
+        'firstName': person.first_name,
+        'lastName': person.last_name,
+        'name': person.full_name,
+        'company': get_company(person),
+        'title': get_title(person),
+        'location': person.location,
+        'email': person.email,
+        'photoUrl': person.photo_url,
+        'linkedinUrl': person.linkedin_url,
+        'tags': [], # TODO
+        'interactions': [], #TODO
+        'connected': connected,
+    }
+
 class UserContacts(APIView):
 
     authentication_classes = (TokenAuthentication,)
 
     def __get_user_contacts(self, user):
         return [
-            {
-                'id': connection.id,
-                'firstName': connection.person.first_name,
-                'lastName': connection.person.last_name,
-                'name': connection.person.full_name,
-                'company': get_company(connection.person),
-                'title': get_title(connection.person),
-                'location': connection.person.location,
-                'email': connection.person.email,
-                'photoUrl': connection.person.photo_url,
-                'linkedinUrl': connection.person.linkedin_url,
-                'tags': [], # TODO
-                'interactions': [], #TODO
-            }
+            format_contact_dict(connection.person, connected=True)
             for connection in user.connections.order_by('person__first_name',
                                                         'person__last_name')
         ]
 
     # GET /contacts/self
     def get(self, request, format=None):
-        try:
-            user = check_authentication(request)
-            return Response(self.__get_user_contacts(user),
-                            status=status.HTTP_200_OK)
-        except PermissionDenied as e:
-            return Response({ 'error': str(e) },
-                            status=status.HTTP_400_BAD_REQUEST)
+        user = check_authentication(request)
+        return Response(self.__get_user_contacts(user),
+                        status=status.HTTP_200_OK)
 
     # POST /contacts/self
     def post(self, request, format=None):
@@ -97,105 +97,83 @@ class UserContacts(APIView):
                 defaults={ 'date': datetime.date.today() }
             )
 
-            latest_employment = person.get_latest_employment()
-            if latest_employment:
-                (company, title) = (latest_employment.company.name,
-                                    latest_employment.title)
-            else:
-                (company, title) = (None, None)
-            return Response({
-                'id': person.id,
-                'firstName': person.first_name,
-                'lastName': person.last_name,
-                'name': person.full_name,
-                'company': company,
-                'title': title,
-                'location': person.location,
-                'email': person.email,
-                'photoUrl': person.photo_url,
-                'linkedinUrl': person.linkedin_url,
-                'tags': [], # TODO
-                'interactions': [], #TODO
-            }, status=status.HTTP_200_OK)
+            return Response(format_contact_dict(person, connected=True),
+                            status=status.HTTP_200_OK)
 
-        except PermissionDenied as e:
-            return Response({ 'error': str(e) },
-                            status=status.HTTP_400_BAD_REQUEST)
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
         except Person.DoesNotExist as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-
 
 class AllContacts(APIView):
 
     authentication_classes = (TokenAuthentication,)
 
-    def __get_all_contacts(self):
+    def __get_all_contacts(self, user):
+        connection_ids = set(user.connections.values_list('person__id',
+                                                          flat=True))
         return [
-            {
-                'id': person.id,
-                'firstName': person.first_name,
-                'lastName': person.last_name,
-                'name': person.full_name,
-                'company': get_company(person),
-                'title': get_title(person),
-                'location': person.location,
-                'email': person.email,
-                'photoUrl': person.photo_url,
-                'linkedinUrl': person.linkedin_url,
-                'tags': [], # TODO,
-                'interactions': [], #TODO
-            }
+            format_contact_dict(person,
+                                connected=(person.id in connection_ids))
             for person in Person.objects.order_by('first_name', 'last_name')
         ]
 
     # GET /contacts/all
     def get(self, request, format=None):
-        try:
-            user = check_authentication(request)
-            return Response(self.__get_all_contacts(),
-                            status=status.HTTP_200_OK)
-        except PermissionDenied as e:
-            return Response({ 'error': str(e) },
-                            status=status.HTTP_400_BAD_REQUEST)
+        user = check_authentication(request)
+        return Response(self.__get_all_contacts(user),
+                        status=status.HTTP_200_OK)
+
     # POST /contacts/all
     def post(self, request, format=None):
         try:
             user = check_authentication(request)
             request_json = json.loads(request.body)
-            person = create_contact(request_json)
+            person = create_contact(request_json, connected=False)
 
-            latest_employment = person.get_latest_employment()
-            if latest_employment:
-                (company, title) = (latest_employment.company.name,
-                                    latest_employment.title)
-            else:
-                (company, title) = (None, None)
-            return Response({
-                'id': person.id,
-                'firstName': person.first_name,
-                'lastName': person.last_name,
-                'name': person.full_name,
-                'company': company,
-                'title': title,
-                'location': person.location,
-                'email': person.email,
-                'photoUrl': person.photo_url,
-                'linkedinUrl': person.linkedin_url,
-                'tags': [], # TODO
-                'interactions': [], #TODO
-            }, status=status.HTTP_200_OK)
+            return Response(format_contact_dict(person),
+                            status=status.HTTP_200_OK)
 
-        except PermissionDenied as e:
-            return Response({ 'error': str(e) },
-                            status=status.HTTP_400_BAD_REQUEST)
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
         except Person.DoesNotExist as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+class ContactsConnect(APIView):
+
+    authentication_classes = (TokenAuthentication,)
+
+    def post(self, request, id=None, format=None):
+        try:
+            user = check_authentication(request)
+            person_id = int(id)
+            person = Person.objects.get(id=person_id)
+            Connection.objects.create(
+                user=user, person=person, date=datetime.date.today()
+            )
+            return Response({ 'id': person_id }, status=status.HTTP_200_OK)
+
+        except Person.DoesNotExist as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError as e:
+            return Response({ 'error': 'Connection already exists' },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id=None, format=None):
+        try:
+            user = check_authentication(request)
+            person_id = int(id)
+            person = Person.objects.get(id=person_id)
+            connection = Connection.objects.get(user=user, person=person)
+            connection.delete()
+            return Response({ 'id': person_id }, status=status.HTTP_200_OK)
+
+        except (Person.DoesNotExist, Connection.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 

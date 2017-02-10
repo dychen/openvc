@@ -1,5 +1,6 @@
 from dateutil import parser as dateparser
 from django.core.exceptions import PermissionDenied
+from rest_framework.exceptions import NotAuthenticated
 from users.models import User
 
 def parse_date(datestr):
@@ -14,7 +15,7 @@ def check_authentication(request):
         return User.objects.get(auth_token=token)
     except KeyError:
         # No token included in auth headers
-        raise PermissionDenied('No token found')
+        raise NotAuthenticated('No token found')
     except User.DoesNotExist:
         # No user found for given token
-        raise PermissionDenied('Could not authenticate')
+        raise NotAuthenticated('Could not authenticate')

@@ -19,6 +19,10 @@ import './all.scss';
  *                                       database as a connection. Gets called
  *                                       in the child component
  *                                       (CreateContactModal).
+ *   addConnection [function]: Function that creates a new connection in the
+ *                             database.
+ *   removeConnection [function]: Function that removes an existing connection
+ *                                in the database.
  */
 class AllContactsSection extends React.Component {
   constructor(props) {
@@ -29,6 +33,8 @@ class AllContactsSection extends React.Component {
     };
 
     this.toggleCreatingContact = this.toggleCreatingContact.bind(this);
+    this.addConnection = this.addConnection.bind(this);
+    this.removeConnection = this.removeConnection.bind(this);
     this._goToContactPage = this._goToContactPage.bind(this);
 
     // Fetch data
@@ -37,6 +43,16 @@ class AllContactsSection extends React.Component {
 
   toggleCreatingContact(e) {
     this.setState({ 'creatingContact': !this.state.creatingContact });
+  }
+
+  addConnection(e) {
+    e.stopPropagation();
+    this.props.addConnection(e.currentTarget.id);
+  }
+
+  removeConnection(e) {
+    e.stopPropagation();
+    this.props.removeConnection(e.currentTarget.id);
   }
 
   _goToContactPage(e) {
@@ -55,7 +71,16 @@ class AllContactsSection extends React.Component {
     const contactGroups = contactGroupLabels.map(label => {
       const contacts = this.props.contacts.filter(contact =>
         contact[this.props.groupBy] === label
-      ).map(contact => {
+      ).map((contact) => {
+        const contactIcon = (
+          contact.connected
+          ? <i className="ion-close-circled remove-contact"
+               id={contact.id}
+               onClick={this.removeConnection} />
+          : <i className="ion-person-add add-contact"
+               id={contact.id}
+               onClick={this.addConnection} />
+        );
         return (
           <div className="ovc-contacts-contact-panel-container" key={contact.id}>
             <div className="ovc-contacts-contact-panel" id={contact.id}
@@ -72,7 +97,7 @@ class AllContactsSection extends React.Component {
                   {contact.tags.join(', ')}
                 </div>
                 <div className="contact-icons">
-                  <i className="ion-ios-plus add-contact" />
+                  {contactIcon}
                 </div>
               </div>
             </div>

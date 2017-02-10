@@ -1,6 +1,5 @@
 import json
 
-from django.core.exceptions import PermissionDenied
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework import status
@@ -53,9 +52,6 @@ class UserSelf(APIView):
                 'experience': get_person_experience(person)
             }, status=status.HTTP_200_OK)
 
-        except PermissionDenied as e:
-            return Response({ 'error': str(e) },
-                            status=status.HTTP_400_BAD_REQUEST)
         except Person.DoesNotExist as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
@@ -99,9 +95,6 @@ class UserSelf(APIView):
                 'linkedinUrl': person.linkedin_url,
             }, status=status.HTTP_200_OK)
 
-        except PermissionDenied as e:
-            return Response({ 'error': str(e) },
-                            status=status.HTTP_400_BAD_REQUEST)
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
@@ -145,9 +138,6 @@ class UserExperience(APIView):
                 'notes': employment.notes,
             }, status=status.HTTP_201_CREATED)
 
-        except PermissionDenied as e:
-            return Response({ 'error': str(e) },
-                            status=status.HTTP_400_BAD_REQUEST)
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
@@ -187,9 +177,6 @@ class UserExperience(APIView):
                 'notes': employment.notes,
             }, status=status.HTTP_200_OK)
 
-        except PermissionDenied as e:
-            return Response({ 'error': str(e) },
-                            status=status.HTTP_400_BAD_REQUEST)
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
@@ -204,22 +191,15 @@ class UserExperience(APIView):
             return self.__post_create(request, format=format)
 
     # DELETE /users/experience/:id
-    def delete(self, request, format=None):
+    def delete(self, request, id=None, format=None):
         try:
             user = check_authentication(request)
-            request_json = json.loads(request.body)
             person = user.person
-            employment = person.employment.get(id=request_json.get('id'))
-            employment_id = employment.id # Save - this gets set to None after
-                                          # deletion
+            employment_id = int(id)
+            employment = person.employment.get(id=employment_id)
             employment.delete()
-            return Response({
-                'id': employment_id
-            }, status=status.HTTP_200_OK)
+            return Response({ 'id': employment_id }, status=status.HTTP_200_OK)
 
-        except PermissionDenied as e:
-            return Response({ 'error': str(e) },
-                            status=status.HTTP_400_BAD_REQUEST)
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)

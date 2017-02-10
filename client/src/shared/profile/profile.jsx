@@ -280,13 +280,8 @@ class ProfilePage extends React.Component {
   }
 
   removeExperience(experienceId) {
-    authFetch(`${SERVER_URL}/api/v1/users/experience`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({ id: experienceId })
+    authFetch(`${SERVER_URL}/api/v1/users/experience/${experienceId}`, {
+      method: 'DELETE'
     }).then(function(response) {
       if (response.ok) {
         return response.json();

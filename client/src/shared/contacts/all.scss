@@ -23,3 +23,25 @@
   }
 }
 
+.ovc-contacts-contact-panel-container {
+  .ovc-contacts-contact-panel {
+    // Right icons
+    position: relative;
+    i {
+      font-size: 20px;
+
+      @include hvr-color($OVC_GRAY);
+    }
+    i.add-contact {
+      position: absolute;
+      right: 5px;
+      top: 0px;
+    }
+    i.remove-contact {
+      position: absolute;
+      right: 5px;
+      top: 0px;
+    }
+  }
+}
+

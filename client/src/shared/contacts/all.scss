@@ -1,3 +1,25 @@
 @import '../../mixins';
 @import '../../constants.scss';
 @import './constants.scss';
+
+.ovc-create-contact-button {
+  width: 200px;
+  height: 40px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid $OVC_DARK_GRAY;
+  border-radius: 5px;
+
+  @include hvr-fade($OVC_LIGHT_GRAY, $OVC_DARK_GRAY);
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  i.create-contact {
+    position: absolute;
+    left: 10px;
+    font-size: 20px;
+  }
+}
+

@@ -79,7 +79,7 @@ class EmailModal extends React.Component {
 
     return (
       <div className={modalShowClass} onClick={this.props.toggleModal}>
-        <div className="ovc-modal" onClick={this.preventModalClose}>
+        <div className="ovc-modal email-modal" onClick={this.preventModalClose}>
           <div className="email-modal-header head"></div>
           <div className="email-modal-header to"></div>
           <div className="email-modal-header subject"></div>

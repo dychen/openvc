@@ -1,13 +1,24 @@
 import React from 'react';
 import {hashHistory} from 'react-router';
 
+import CreateContactModal from './modal.jsx';
+
 import './all.scss';
 
 class AllContactsSection extends React.Component {
   constructor(props) {
     super(props);
 
+    this.state = {
+      creatingContact: false
+    };
+
+    this.toggleCreatingContact = this.toggleCreatingContact.bind(this);
     this._goToContactPage = this._goToContactPage.bind(this);
+  }
+
+  toggleCreatingContact(e) {
+    this.setState({ 'creatingContact': !this.state.creatingContact });
   }
 
   _goToContactPage(e) {
@@ -62,7 +73,14 @@ class AllContactsSection extends React.Component {
 
     return (
       <div className="ovc-contacts-contact-list">
+        <div className="ovc-create-contact-button"
+             onClick={this.toggleCreatingContact}>
+          <i className="ion-plus create-contact" />
+          <span>Create a new contact</span>
+        </div>
         {contactGroups}
+        <CreateContactModal creatingContact={this.state.creatingContact}
+                            toggleCreatingContact={this.toggleCreatingContact} />
       </div>
     );
   }

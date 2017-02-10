@@ -1,5 +1,6 @@
 @import '../mixins';
 @import '../constants.scss';
+@import '../modal.scss';
 
 $LANDSCAPE_SEARCH_WIDTH: 200px;
 $STARTUP_PANEL_HEIGHT: 160px;
@@ -159,34 +160,8 @@ $STARTUP_PANEL_HEIGHT: 160px;
 
 /* Email Modal */
 
-/* The Modal (background) */
-.ovc-modal-background {
-  display: none;
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  left: 0;
-  top: 0;
-  z-index: 100;
-  overflow: hidden;
-  background-color: rgba(0,0,0,0.4);
-}
-
-/* Modal Content/Box */
-.ovc-modal {
-  width: 60%;
+.ovc-modal.email-modal {
   height: 80%;
-  margin: 5% auto;
-
-  background-color: $OVC_WHITE;
-  border: 1px solid $OVC_GRAY;
-}
-
-.ovc-modal-background.show {
-  display: block;
-}
-
-.ovc-modal {
   display: flex;
   flex-direction: column;
 

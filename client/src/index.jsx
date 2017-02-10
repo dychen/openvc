@@ -25,7 +25,7 @@ import InvestorDealPage from './investor/deals.jsx';
 import InvestorLandscapePage from './investor/landscape.jsx';
 import InvestorComparePage from './investor/compare.jsx';
 
-import ContactsPage from './shared/contacts.jsx';
+import ContactsPage from './shared/contacts/contacts.jsx';
 import ContactPage from './shared/contact.jsx';
 import ProfilePage from './shared/profile/profile.jsx';
 

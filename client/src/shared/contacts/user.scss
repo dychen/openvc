@@ -1,0 +1,28 @@
+@import '../../mixins';
+@import '../../constants.scss';
+@import './constants.scss';
+
+.ovc-contacts-contact-interactions {
+  table {
+    width: 100%;
+    thead {
+      background-color: $OVC_SUBNAV_GRAY;
+    }
+    tr {
+      width: 100%;
+      border: 1px solid $OVC_LIGHT_GRAY;
+      td {
+        padding: 5px;
+        text-align: center;
+      }
+      td.add-interaction {
+        width: 100%;
+        font-size: 15px;
+        color: $OVC_GRAY;
+
+        @include hvr-fade($OVC_DARK_GRAY, $OVC_SUBNAV_GRAY);
+      }
+    }
+  }
+}
+

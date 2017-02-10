@@ -1,9 +1,6 @@
-@import '../mixins';
-@import '../constants.scss';
-
-$CONTACTS_SEARCH_WIDTH: 200px;
-$CONTACTS_PANEL_HEIGHT: 80px;
-$CONTACTS_PANEL_WIDTH: 300px;
+@import '../../mixins';
+@import '../../constants.scss';
+@import './constants.scss';
 
 .ovc-shared-contacts-container {
   width: 100%;
@@ -29,75 +26,6 @@ $CONTACTS_PANEL_WIDTH: 300px;
     padding-left: 25px;
     padding-right: 25px;
     padding-bottom: 25px;
-  }
-}
-
-.ovc-contacts-search-menu {
-  display: flex;
-  flex-direction: column;
-
-  .ovc-contacts-search-dropdown {
-    padding: 20px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid $OVC_LIGHT_GRAY;
-
-    display: flex;
-    flex-direction: column;
-
-    .dropdown-button {
-      width: 100%;
-      border-color: $OVC_GRAY;
-    }
-  }
-
-  .ovc-contacts-search-inputs {
-    padding: 20px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid $OVC_LIGHT_GRAY;
-
-    @include ovc-nav-input($CONTACTS_SEARCH_WIDTH - 40px, 30px,
-                           $OVC_GRAY, $OVC_DARK_GRAY);
-  }
-
-  .ovc-contacts-search-tags {
-    padding: 20px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-
-    .filter-tag {
-      width: auto;
-      height: 30px;
-      border: 1px solid $OVC_LIGHT_GRAY;
-      border-radius: 5px;
-      padding-right: 10px;
-      margin: 1px;
-
-      display: inline-flex; // inline to make width size to element
-      justify-content: center;
-      align-items: center;
-
-      @include hvr-color($OVC_GRAY);
-
-      .filter-close {
-        width: 30px;
-        height: 30px;
-        margin-right: 5px;
-        border-right: 1px solid $OVC_LIGHT_GRAY;
-
-        display: flex;
-        justify-content: center;
-        align-items: center;
-
-        i {
-          font-size: 20px;
-        }
-      }
-      .light {
-        color: $OVC_GRAY;
-      }
-    }
   }
 }
 
@@ -185,29 +113,10 @@ $CONTACTS_PANEL_WIDTH: 300px;
       right: 5px;
       top: 0px;
     }
-  }
-}
-
-.ovc-contacts-contact-interactions {
-  table {
-    width: 100%;
-    thead {
-      background-color: $OVC_SUBNAV_GRAY;
-    }
-    tr {
-      width: 100%;
-      border: 1px solid $OVC_LIGHT_GRAY;
-      td {
-        padding: 5px;
-        text-align: center;
-      }
-      td.add-interaction {
-        width: 100%;
-        font-size: 15px;
-        color: $OVC_GRAY;
-
-        @include hvr-fade($OVC_DARK_GRAY, $OVC_SUBNAV_GRAY);
-      }
+    i.add-contact {
+      position: absolute;
+      right: 5px;
+      top: 0px;
     }
   }
 }

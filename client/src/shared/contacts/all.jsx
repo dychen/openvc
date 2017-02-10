@@ -15,6 +15,10 @@ import './all.scss';
  *   createContact [function]: Function to write new contact to database. Gets
  *                             called in the child component
  *                             (CreateContactModal).
+ *   createContactandConnect [function]: Function to write new contact to
+ *                                       database as a connection. Gets called
+ *                                       in the child component
+ *                                       (CreateContactModal).
  */
 class AllContactsSection extends React.Component {
   constructor(props) {
@@ -95,7 +99,8 @@ class AllContactsSection extends React.Component {
         {contactGroups}
         <CreateContactModal creatingContact={this.state.creatingContact}
                             toggleCreatingContact={this.toggleCreatingContact}
-                            createContact={this.props.createContact} />
+                            createContact={this.props.createContact}
+                            createContactandConnect={this.props.createContactandConnect} />
       </div>
     );
   }

@@ -32,6 +32,7 @@ class UserContactsSection extends React.Component {
 
   addInteraction(e) {
     this.props.addInteraction({
+      person: 'Daniel Chen',
       label: 'Meeting',
       date: '2017-02-02',
       notes: ''
@@ -59,8 +60,9 @@ class UserContactsSection extends React.Component {
         const interactions = contact.interactions.map((interaction, index) =>
           (
             <tr key={index}>
-              <td>{interaction.label}</td>
               <td>{interaction.date}</td>
+              <td>{interaction.label}</td>
+              <td>{interaction.person}</td>
             </tr>
           )
         );
@@ -69,12 +71,12 @@ class UserContactsSection extends React.Component {
           ? (
             <table>
               <thead>
-                <tr><td colSpan="2">Interaction History</td></tr>
+                <tr><td colSpan="3">Interaction History</td></tr>
               </thead>
               <tbody>
                 {interactions}
                 <tr>
-                  <td className="add-interaction" colSpan="2" id={contact.id}
+                  <td className="add-interaction" colSpan="3" id={contact.id}
                       onClick={this.addInteraction}>
                     <i className="ion-plus" />
                   </td>

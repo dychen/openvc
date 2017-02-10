@@ -1,4 +1,5 @@
 from dateutil import parser as dateparser
+from django.core.exceptions import PermissionDenied
 from users.models import User
 
 def parse_date(datestr):
@@ -13,7 +14,7 @@ def check_authentication(request):
         return User.objects.get(auth_token=token)
     except KeyError:
         # No token included in auth headers
-        return None
+        raise PermissionDenied('No token found')
     except User.DoesNotExist:
         # No user found for given token
-        return None
+        raise PermissionDenied('Could not authenticate')

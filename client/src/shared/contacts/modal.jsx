@@ -10,6 +10,8 @@ import './modal.scss';
  *
  *   toggleCreatingContact [function]: Function toggle modal visibility.
  *   createContact [function]: Function to write new contact to database.
+ *   createContactandConnect [function]: Function to write new contact to
+ *                                       database as a connection.
  */
 class CreateContactModal extends React.Component {
   constructor(props) {
@@ -34,6 +36,7 @@ class CreateContactModal extends React.Component {
     this._clearContact = this._clearContact.bind(this);
     this.updateInput = this.updateInput.bind(this);
     this.createContact = this.createContact.bind(this);
+    this.createContactandConnect = this.createContactandConnect.bind(this);
   }
 
   _preventModalClose(e) {
@@ -59,6 +62,23 @@ class CreateContactModal extends React.Component {
     //          three function calls (createContact(), toggleCreatingContact(),
     //          and _clearContact()) update the states of different components.
     this.props.createContact({
+      firstName: this.state.contact.firstName,
+      lastName: this.state.contact.lastName,
+      company: this.state.contact.company,
+      title: this.state.contact.title,
+      location: this.state.contact.location,
+      email: this.state.contact.email,
+      photoUrl: this.state.contact.photoUrl,
+      linkedinUrl: this.state.contact.linkedinUrl
+    });
+    this._clearContact();
+  }
+
+  createContactandConnect(e) {
+    // WARNING: May cause a race condition, but should be okay because all
+    //          three function calls (createContact(), toggleCreatingContact(),
+    //          and _clearContact()) update the states of different components.
+    this.props.createContactandConnect({
       firstName: this.state.contact.firstName,
       lastName: this.state.contact.lastName,
       company: this.state.contact.company,
@@ -155,15 +175,20 @@ class CreateContactModal extends React.Component {
             </div>
           </div>
           <div className="create-contact-modal-footer">
-            <div className="modal-footer-button cancel-create-contact"
+            <div className="modal-footer-button left"
                  onClick={this._clearContact}>
               <i className="ion-close" />
               <span>Cancel</span>
             </div>
-            <div className="modal-footer-button confirm-create-contact"
+            <div className="modal-footer-button middle"
                  onClick={this.createContact}>
               <i className="ion-plus" />
               <span>Create Contact</span>
+            </div>
+            <div className="modal-footer-button right"
+                 onClick={this.createContactandConnect}>
+              <i className="ion-plus" />
+              <span>Create and Connect</span>
             </div>
           </div>
         </div>

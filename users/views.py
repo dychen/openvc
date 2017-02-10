@@ -1,5 +1,6 @@
 import json
 
+from django.core.exceptions import PermissionDenied
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
 from rest_framework import status
@@ -28,8 +29,8 @@ class UserSelf(APIView):
 
     # GET /users/self
     def get(self, request, format=None):
-        user = check_authentication(request)
-        if user:
+        try:
+            user = check_authentication(request)
             person = user.person
             latest_employment = person.get_latest_employment()
             if latest_employment:
@@ -51,14 +52,19 @@ class UserSelf(APIView):
                 'linkedinUrl': person.linkedin_url,
                 'experience': get_person_experience(person)
             }, status=status.HTTP_200_OK)
-        else:
-            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+        except PermissionDenied as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except Person.DoesNotExist as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
 
     # POST /users/self
     def post(self, request, format=None):
-        request_json = json.loads(request.body)
         try:
             user = check_authentication(request)
+            request_json = json.loads(request.body)
             person = user.person
             if request_json.get('firstName'):
                 person.first_name = request_json.get('firstName')
@@ -92,8 +98,16 @@ class UserSelf(APIView):
                 'photoUrl': person.photo_url,
                 'linkedinUrl': person.linkedin_url,
             }, status=status.HTTP_200_OK)
-        except Person.DoesNotExist:
-            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+        except PermissionDenied as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except Person.DoesNotExist as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
 
 class UserExperience(APIView):
 
@@ -101,15 +115,13 @@ class UserExperience(APIView):
 
     # GET /users/experience
     def get(self, request, format=None):
-        return Response({
-
-        })
+        return Response({})
 
     # POST /users/experience
     def __post_create(self, request, format=None):
-        request_json = json.loads(request.body)
         try:
             user = check_authentication(request)
+            request_json = json.loads(request.body)
             person = user.person
             company, _ = Company.objects.get_or_create(
                 name=request_json.get('company')
@@ -132,14 +144,22 @@ class UserExperience(APIView):
                 'endDate': employment.end_date,
                 'notes': employment.notes,
             }, status=status.HTTP_201_CREATED)
-        except Person.DoesNotExist:
-            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+        except PermissionDenied as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except Person.DoesNotExist as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
 
     # POST /users/experience/:id
     def __post_update(self, request, employment_id, format=None):
-        request_json = json.loads(request.body)
         try:
             user = check_authentication(request)
+            request_json = json.loads(request.body)
             employment = user.person.employment.get(id=employment_id)
             if request_json.get('company'):
                 company, _ = Company.objects.get_or_create(
@@ -166,8 +186,16 @@ class UserExperience(APIView):
                 'endDate': employment.end_date,
                 'notes': employment.notes,
             }, status=status.HTTP_200_OK)
-        except (Person.DoesNotExist, Employment.DoesNotExist):
-            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+        except PermissionDenied as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (Person.DoesNotExist, Employment.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
 
     def post(self, request, id=None, format=None):
         if id:
@@ -177,9 +205,9 @@ class UserExperience(APIView):
 
     # DELETE /users/experience/:id
     def delete(self, request, format=None):
-        request_json = json.loads(request.body)
         try:
             user = check_authentication(request)
+            request_json = json.loads(request.body)
             person = user.person
             employment = person.employment.get(id=request_json.get('id'))
             employment_id = employment.id # Save - this gets set to None after
@@ -188,6 +216,14 @@ class UserExperience(APIView):
             return Response({
                 'id': employment_id
             }, status=status.HTTP_200_OK)
-        except (Person.DoesNotExist, Employment.DoesNotExist):
-            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+        except PermissionDenied as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (Person.DoesNotExist, Employment.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
 

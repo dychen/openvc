@@ -68,7 +68,7 @@ class App extends React.Component {
           </Route>
 
           <Route path="founder" components={{main: FounderAppContainer,
-                                             topnav: FounderTopnav,
+                                             //topnav: FounderTopnav,
                                              sidenav: FounderSidenav}}>
             <IndexRoute component={FounderCompanyPage} />
             <Route path="company" component={FounderCompanyPage} />
@@ -81,7 +81,7 @@ class App extends React.Component {
           </Route>
 
           <Route path="investor" components={{main: InvestorAppContainer,
-                                              topnav: InvestorTopnav,
+                                              //topnav: InvestorTopnav,
                                               sidenav: InvestorSidenav}}>
             <IndexRoute component={InvestorDealPage} />
             <Route path="deals" component={InvestorDealPage} />

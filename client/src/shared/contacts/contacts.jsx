@@ -44,6 +44,7 @@ class ContactsPage extends React.Component {
     this.toggleExpanded = this.toggleExpanded.bind(this);
     this.addInteraction = this.addInteraction.bind(this);
     this.createContact = this.createContact.bind(this);
+    this.createContactandConnect = this.createContactandConnect.bind(this);
 
     this._filterContacts = this._filterContacts.bind(this);
   }
@@ -155,6 +156,37 @@ class ContactsPage extends React.Component {
   }
 
   createContact(contact) {
+    authFetch(`${SERVER_URL}/api/v1/contacts/all`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(contact)
+    }).then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          // TODO: Handle error responses
+          throw new Error('Unable to log in');
+        });
+      }
+    }).then(json => {
+      // Success
+      json = preprocessJSON(json);
+      const newState = Immutable.fromJS(this.state)
+        .update('contacts', contacts => contacts.unshift(json));
+      this.setState(newState.toJS());
+    }).catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
+  }
+
+  createContactandConnect(contact) {
     authFetch(`${SERVER_URL}/api/v1/contacts/self`, {
       method: 'POST',
       headers: {
@@ -235,7 +267,8 @@ class ContactsPage extends React.Component {
                             contacts={filteredContacts}
                             groupBy={this.state.groupBy}
                             getAllContacts={this.getAllContacts}
-                            createContact={this.createContact} />
+                            createContact={this.createContact}
+                            createContactandConnect={this.createContactandConnect} />
     );
 
     return (

@@ -98,19 +98,21 @@ $CREATE_CONTACT_PANEL_HEIGHT: 120px;
   width: 100%;
   position: relative;
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  padding-left: 10px;
+  padding-right: 10px;
 
   .modal-footer-button {
-    width: 150px;
+    width: 170px;
     height: 40px;
-    margin-bottom: 10px;
     padding: 10px;
     border: 1px solid $OVC_DARK_GRAY;
     border-radius: 5px;
 
     @include hvr-fade($OVC_LIGHT_GRAY, $OVC_DARK_GRAY);
 
-    position: absolute;
+    //position: absolute;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -119,12 +121,6 @@ $CREATE_CONTACT_PANEL_HEIGHT: 120px;
       left: 10px;
       font-size: 20px;
     }
-  }
-  .modal-footer-button.cancel-create-contact {
-    left: 20px;
-  }
-  .modal-footer-button.confirm-create-contact {
-    right: 20px;
   }
 }
 

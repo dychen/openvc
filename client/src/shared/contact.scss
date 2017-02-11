@@ -1,3 +1,32 @@
 @import '../mixins';
 @import '../constants.scss';
 
+.profile-interactions-container {
+  width: 100%;
+
+  table {
+    width: 500px;
+    thead {
+      background-color: $OVC_SUBNAV_GRAY;
+    }
+    tr {
+      width: 100%;
+      border: 1px solid $OVC_LIGHT_GRAY;
+      td {
+        padding: 5px;
+        text-align: center;
+
+        i.remove-interaction {
+          @include hvr-color($OVC_GRAY);
+        }
+      }
+      td.add-interaction {
+        width: 100%;
+        font-size: 15px;
+        color: $OVC_GRAY;
+
+        @include hvr-fade($OVC_DARK_GRAY, $OVC_SUBNAV_GRAY);
+      }
+    }
+  }
+}

@@ -8,20 +8,6 @@ from users.models import User
 from data.models import Company, Person, Employment
 from shared.utils import parse_date, check_authentication
 
-def get_person_experience(person):
-    return [
-        {
-            'id': employment.id,
-            'company': employment.company.name,
-            'title': employment.title,
-            'location': employment.location,
-            'startDate': employment.start_date,
-            'endDate': employment.end_date,
-            'notes': employment.notes,
-        }
-        for employment in person.get_ordered_employment(reverse=True)
-    ]
-
 class UserSelf(APIView):
 
     authentication_classes = (TokenAuthentication,)
@@ -49,7 +35,7 @@ class UserSelf(APIView):
                 'email': person.email,
                 'photoUrl': person.photo_url,
                 'linkedinUrl': person.linkedin_url,
-                'experience': get_person_experience(person)
+                'experience': person.get_api_experience(),
             }, status=status.HTTP_200_OK)
 
         except Person.DoesNotExist as e:

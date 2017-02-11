@@ -1,6 +1,6 @@
 import React from 'react';
 import Immutable from 'immutable';
-import 'whatwg-fetch';
+import {authFetch, preprocessJSON} from '../utils/api.js';
 
 import './contact.scss';
 
@@ -22,12 +22,14 @@ class ContactPage extends React.Component {
       }
     }
 
-    /* TODO - query by this.props.params.contactId */
-    fetch('/data/shared/contact/contact.json').then(function(response) {
-      return response.json();
-    }).then(json => {
-      this.setState({ 'contact': json });
-    }); // TODO: Handle errors
+    const contactId = this.props.params.contactId;
+    authFetch(`${SERVER_URL}/api/v1/contacts/self/${contactId}`)
+      .then(function(response) {
+        return response.json();
+      }).then(json => {
+        json = preprocessJSON(json);
+        this.setState({ 'contact': json });
+      }); // TODO: Handle errors
   }
 
   render() {
@@ -47,6 +49,18 @@ class ContactPage extends React.Component {
         </div>
       );
     });
+    const interactions = this.state.contact.interactions.map(interaction =>
+      (
+        <tr key={interaction.id}>
+          <td>{interaction.date}</td>
+          <td>{interaction.label}</td>
+          <td>{interaction.user}</td>
+          <td>
+            <i className="ion-ios-close remove-interaction" />
+          </td>
+        </tr>
+      )
+    );
 
     return (
       <div className="ovc-shared-profile-container">
@@ -77,6 +91,21 @@ class ContactPage extends React.Component {
         </div>
         <div className="profile-info-section profile-experience-container">
           {experience}
+        </div>
+        <div className="profile-info-section profile-interactions-container">
+          <table>
+            <thead>
+              <tr><td colSpan="4">Interaction History</td></tr>
+            </thead>
+            <tbody>
+              {interactions}
+              <tr>
+                <td className="add-interaction" colSpan="4">
+                  <i className="ion-plus" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     );

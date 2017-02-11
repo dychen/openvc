@@ -64,6 +64,7 @@ def format_contact_dict(person, user, connected=True):
         'photoUrl': person.photo_url,
         'linkedinUrl': person.linkedin_url,
         'tags': [], # TODO
+        'experience': person.get_api_experience(),
         'interactions': [
             format_interaction_dict(interaction)
             for interaction in (person.interactions.filter(user=user)
@@ -96,10 +97,27 @@ class UserContacts(APIView):
         ]
 
     # GET /contacts/self
-    def get(self, request, format=None):
+    def __get_all(self, request, format=None):
         user = check_authentication(request)
         return Response(self.__get_user_contacts(user),
                         status=status.HTTP_200_OK)
+
+    # GET /contacts/self/:id
+    def __get_one(self, request, person_id, format=None):
+        try:
+            user = check_authentication(request)
+            person = user.connections.get(person__id=person_id).person
+            return Response(format_contact_dict(person, user, connected=True),
+                            status=status.HTTP_200_OK)
+        except (Person.DoesNotExist, Connection.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, id=None, format=None):
+        if id:
+            return self.__get_one(request, id, format=format)
+        else:
+            return self.__get_all(request, format=format)
 
     # POST /contacts/self
     def post(self, request, format=None):
@@ -185,7 +203,7 @@ class AllContacts(APIView):
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
-class ContactsConnect(APIView):
+class ContactConnect(APIView):
 
     authentication_classes = (TokenAuthentication,)
 

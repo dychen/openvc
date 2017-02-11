@@ -79,6 +79,20 @@ class Person(models.Model):
                           + current_employment)
         return all_employment if not reverse else all_employment[::-1]
 
+    def get_api_experience(self):
+        return [
+            {
+                'id': employment.id,
+                'company': employment.company.name,
+                'title': employment.title,
+                'location': employment.location,
+                'startDate': employment.start_date,
+                'endDate': employment.end_date,
+                'notes': employment.notes,
+            }
+            for employment in self.get_ordered_employment(reverse=True)
+        ]
+
 class PersonTag(models.Model):
     person     = models.ForeignKey(Person, related_name='tags')
     tag        = models.TextField()

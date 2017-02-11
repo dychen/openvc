@@ -34,9 +34,11 @@ urlpatterns = [
 
     # Contacts API
     url(r'^api/v1/contacts/self$', contact_views.UserContacts.as_view()),
+    url(r'^api/v1/contacts/self/(?P<id>[0-9]+)$',
+        contact_views.UserContacts.as_view()),
     url(r'^api/v1/contacts/all$', contact_views.AllContacts.as_view()),
     url(r'^api/v1/contacts/connect/(?P<id>[0-9]+)$',
-        contact_views.ContactsConnect.as_view()),
+        contact_views.ContactConnect.as_view()),
     url(r'^api/v1/contacts/interactions$',
         contact_views.ContactInteractions.as_view()),
     url(r'^api/v1/contacts/interactions/(?P<id>[0-9]+)$',

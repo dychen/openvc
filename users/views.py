@@ -58,6 +58,17 @@ class UserSelf(APIView):
 
     # POST /users/self
     def post(self, request, format=None):
+        """
+        Expected request body:
+        {
+            'firstName': [str],
+            'lastName': [str],
+            'location': [str],
+            'email': [str],
+            'photoUrl': [str],
+            'linkedinUrl': [str]
+        }
+        """
         try:
             user = check_authentication(request)
             request_json = json.loads(request.body)
@@ -112,31 +123,46 @@ class UserExperience(APIView):
 
     # POST /users/experience
     def __post_create(self, request, format=None):
+        """
+        Expected request body:
+        {
+            'company': [required] [str],
+            'title': [str],
+            'location': [str],
+            'startDate': [str],
+            'endDate': [str],
+            'notes': [str]
+        }
+        """
         try:
             user = check_authentication(request)
             request_json = json.loads(request.body)
             person = user.person
-            company, _ = Company.objects.get_or_create(
-                name=request_json.get('company')
-            )
-            employment = Employment.objects.create(
-                person=person,
-                company=company,
-                title=request_json.get('title'),
-                location=request_json.get('location'),
-                start_date=parse_date(request_json.get('startDate')),
-                end_date=parse_date(request_json.get('endDate')),
-                notes=request_json.get('notes'),
-            )
-            return Response({
-                'id': employment.id,
-                'company': employment.company.name,
-                'title': employment.title,
-                'location': employment.location,
-                'startDate': employment.start_date,
-                'endDate': employment.end_date,
-                'notes': employment.notes,
-            }, status=status.HTTP_201_CREATED)
+            if request_json.get('company'):
+                company, _ = Company.objects.get_or_create(
+                    name=request_json.get('company')
+                )
+                employment = Employment.objects.create(
+                    person=person,
+                    company=company,
+                    title=request_json.get('title'),
+                    location=request_json.get('location'),
+                    start_date=parse_date(request_json.get('startDate')),
+                    end_date=parse_date(request_json.get('endDate')),
+                    notes=request_json.get('notes'),
+                )
+                return Response({
+                    'id': employment.id,
+                    'company': employment.company.name,
+                    'title': employment.title,
+                    'location': employment.location,
+                    'startDate': employment.start_date,
+                    'endDate': employment.end_date,
+                    'notes': employment.notes,
+                }, status=status.HTTP_201_CREATED)
+            else:
+                return Response({ 'error': 'No company provided' },
+                                status=status.HTTP_400_BAD_REQUEST)
 
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
@@ -147,6 +173,17 @@ class UserExperience(APIView):
 
     # POST /users/experience/:id
     def __post_update(self, request, employment_id, format=None):
+        """
+        Expected request body:
+        {
+            'company': [str],
+            'title': [str],
+            'location': [str],
+            'startDate': [str],
+            'endDate': [str],
+            'notes': [str]
+        }
+        """
         try:
             user = check_authentication(request)
             request_json = json.loads(request.body)

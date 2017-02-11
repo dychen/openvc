@@ -19,10 +19,10 @@ import './all.scss';
  *                                       database as a connection. Gets called
  *                                       in the child component
  *                                       (CreateContactModal).
- *   addConnection [function]: Function that creates a new connection in the
+ *   addConnection [function]: Function to create a new connection in the
  *                             database.
- *   removeConnection [function]: Function that removes an existing connection
- *                                in the database.
+ *   removeConnection [function]: Function to remove an existing connection
+ *                                from the database.
  */
 class AllContactsSection extends React.Component {
   constructor(props) {
@@ -71,10 +71,10 @@ class AllContactsSection extends React.Component {
     const contactGroups = contactGroupLabels.map(label => {
       const contacts = this.props.contacts.filter(contact =>
         contact[this.props.groupBy] === label
-      ).map((contact) => {
+      ).map(contact => {
         const contactIcon = (
           contact.connected
-          ? <i className="ion-close-circled remove-contact"
+          ? <i className="ion-ios-close remove-contact"
                id={contact.id}
                onClick={this.removeConnection} />
           : <i className="ion-person-add add-contact"

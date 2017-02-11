@@ -21,7 +21,7 @@ class Interaction(models.Model):
     user       = models.ForeignKey(settings.AUTH_USER_MODEL,
                                    related_name='interactions')
     person     = models.ForeignKey(Person, related_name='interactions')
-    title      = models.TextField(null=True, blank=True)
+    label      = models.TextField(null=True, blank=True)
     notes      = models.TextField(null=True, blank=True)
     date       = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from users.models import User
-from contacts.models import Connection
+from contacts.models import Connection, Interaction
 from data.models import Company, Person, Employment
 from shared.utils import parse_date, check_authentication
 
@@ -43,7 +43,7 @@ def create_contact(request_json):
         # Can not create person - validation issues
         raise Person.DoesNotExist
 
-def format_contact_dict(person, connected=True):
+def format_contact_dict(person, user, connected=True):
     def get_company(person):
         latest_employment = person.get_latest_employment()
         return latest_employment.company.name if latest_employment else None
@@ -64,8 +64,24 @@ def format_contact_dict(person, connected=True):
         'photoUrl': person.photo_url,
         'linkedinUrl': person.linkedin_url,
         'tags': [], # TODO
-        'interactions': [], #TODO
+        'interactions': [
+            format_interaction_dict(interaction)
+            for interaction in (person.interactions.filter(user=user)
+                                      .order_by('-date', 'label',
+                                                'user__person__first_name',
+                                                'user__person__last_name'))
+        ], #TODO
         'connected': connected,
+    }
+
+def format_interaction_dict(interaction):
+    return {
+        'id': interaction.id,
+        'personId': interaction.person.id,
+        'user': interaction.user.person.full_name,
+        'label': interaction.label,
+        'notes': interaction.notes,
+        'date': interaction.date,
     }
 
 class UserContacts(APIView):
@@ -74,7 +90,7 @@ class UserContacts(APIView):
 
     def __get_user_contacts(self, user):
         return [
-            format_contact_dict(connection.person, connected=True)
+            format_contact_dict(connection.person, user, connected=True)
             for connection in user.connections.order_by('person__first_name',
                                                         'person__last_name')
         ]
@@ -87,6 +103,19 @@ class UserContacts(APIView):
 
     # POST /contacts/self
     def post(self, request, format=None):
+        """
+        Expected request body:
+        {
+            'firstName': [required] [str],
+            'lastName': [required] [str],
+            'company': [str],
+            'title': [str],
+            'location': [str],
+            'email': [str],
+            'photoUrl': [str],
+            'linkedinUrl': [str]
+        }
+        """
         try:
             user = check_authentication(request)
             request_json = json.loads(request.body)
@@ -97,8 +126,8 @@ class UserContacts(APIView):
                 defaults={ 'date': datetime.date.today() }
             )
 
-            return Response(format_contact_dict(person, connected=True),
-                            status=status.HTTP_200_OK)
+            return Response(format_contact_dict(person, user, connected=True),
+                            status=status.HTTP_201_CREATED)
 
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
@@ -115,7 +144,7 @@ class AllContacts(APIView):
         connection_ids = set(user.connections.values_list('person__id',
                                                           flat=True))
         return [
-            format_contact_dict(person,
+            format_contact_dict(person, user,
                                 connected=(person.id in connection_ids))
             for person in Person.objects.order_by('first_name', 'last_name')
         ]
@@ -128,13 +157,26 @@ class AllContacts(APIView):
 
     # POST /contacts/all
     def post(self, request, format=None):
+        """
+        Expected request body:
+        {
+            'firstName': [required] [str],
+            'lastName': [required] [str],
+            'company': [str],
+            'title': [str],
+            'location': [str],
+            'email': [str],
+            'photoUrl': [str],
+            'linkedinUrl': [str]
+        }
+        """
         try:
             user = check_authentication(request)
             request_json = json.loads(request.body)
-            person = create_contact(request_json, connected=False)
+            person = create_contact(request_json)
 
-            return Response(format_contact_dict(person),
-                            status=status.HTTP_200_OK)
+            return Response(format_contact_dict(person, user, connected=False),
+                            status=status.HTTP_201_CREATED)
 
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
@@ -148,6 +190,9 @@ class ContactsConnect(APIView):
     authentication_classes = (TokenAuthentication,)
 
     def post(self, request, id=None, format=None):
+        """
+        Expected request body: None
+        """
         try:
             user = check_authentication(request)
             person_id = int(id)
@@ -182,19 +227,102 @@ class ContactInteractions(APIView):
     authentication_classes = (TokenAuthentication,)
 
     # GET /contacts/interactions
-    def get(self, request, format=None):
-        user = check_authentication(request)
-        if user:
-            return Response(self.__get_all_contacts(),
-                            status=status.HTTP_200_OK)
-        else:
-            return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
     # POST /contacts/interactions
-    def post(self, request, format=None):
-        pass
+    def __post_create(self, request, format=None):
+        """
+        Expected request body:
+        {
+            'personId': [required] [int],
+            'label': [str],
+            'notes': [str],
+            'date': [str],
+        }
+        """
+        try:
+            user = check_authentication(request)
+            request_json = json.loads(request.body)
+            interactions_dict = {}
+            # Restrict to user's connections
+            person = user.connections.get(
+                person__id=request_json.get('personId')
+            ).person
+            date = (parse_date(request_json.get('date'))
+                    if request_json.get('date')
+                    else datetime.date.today())
+
+            interaction = Interaction.objects.create(
+                user=user,
+                person=person,
+                label=request_json.get('label'),
+                notes=request_json.get('notes'),
+                date=date
+            )
+            return Response(format_interaction_dict(interaction),
+                            status=status.HTTP_201_CREATED)
+
+        except (Person.DoesNotExist, Connection.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError as e:
+            return Response({ 'error': 'Connection already exists' },
+                            status=status.HTTP_400_BAD_REQUEST)
 
     # POST /contacts/interactions/:id
+    def __post_update(self, request, interaction_id, format=None):
+        """
+        Expected request body:
+        {
+            'personId': [int],
+            'label': [str],
+            'notes': [str],
+            'date': [str],
+        }
+        """
+        try:
+            user = check_authentication(request)
+            request_json = json.loads(request.body)
+            interaction = user.interactions.get(id=interaction_id)
+            if request_json.get('personId'):
+                # Restrict to user's connections
+                person = user.connections.get(
+                    person__id=request_json.get('personId')
+                ).person
+                interaction.person = person
+            if request_json.get('label'):
+                interaction.label = request_json.get('label')
+            if request_json.get('notes'):
+                interaction.notes = request_json.get('notes')
+            if request_json.get('date'):
+                interaction.date = parse_date(request_json.get('date'))
+            interaction.save()
+            return Response(format_interaction_dict(interaction),
+                            status=status.HTTP_200_OK)
 
-    # DELETE /contacts/interactions
+        except (Person.DoesNotExist, Connection.DoesNotExist,
+                Interaction.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError as e:
+            return Response({ 'error': 'Connection already exists' },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, id=None, format=None):
+        if id:
+            return self.__post_update(request, id, format=format)
+        else:
+            return self.__post_create(request, format=format)
+
+    # DELETE /contacts/interactions/:id
+    def delete(self, request, id=None, format=None):
+        try:
+            user = check_authentication(request)
+            interaction_id = int(id)
+            interaction = user.interactions.get(id=interaction_id)
+            interaction.delete()
+            return Response({ 'id': interaction_id }, status=status.HTTP_200_OK)
+
+        except Interaction.DoesNotExist as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
 

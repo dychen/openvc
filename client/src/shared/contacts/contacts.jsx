@@ -41,8 +41,11 @@ class ContactsPage extends React.Component {
     this.removeFilterTag = this.removeFilterTag.bind(this);
 
     // Contact actions
+    // User contacts view
     this.toggleExpanded = this.toggleExpanded.bind(this);
     this.addInteraction = this.addInteraction.bind(this);
+    this.removeInteraction = this.removeInteraction.bind(this);
+    // All contacts view
     this.createContact = this.createContact.bind(this);
     this.createContactandConnect = this.createContactandConnect.bind(this);
     this.addConnection = this.addConnection.bind(this);
@@ -147,14 +150,76 @@ class ContactsPage extends React.Component {
   }
 
   addInteraction(interaction, contactId) {
-    const contactIdx = this.state.contacts.findIndex(contact =>
-      contact.id === contactId
-    );
-    const newState = Immutable.fromJS(this.state)
-      .updateIn(['contacts', contactIdx, 'interactions'], interactions =>
-        interactions.unshift(interaction)
+    let jsonBody = Immutable.fromJS(interaction)
+      .set('personId', contactId).toJS();
+    authFetch(`${SERVER_URL}/api/v1/contacts/interactions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(jsonBody)
+    }).then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          // TODO: Handle error responses
+          throw new Error('Unable to log in');
+        });
+      }
+    }).then(json => {
+      // Success
+      json = preprocessJSON(json);
+      const contactIdx = this.state.contacts.findIndex(contact =>
+        contact.id === contactId
       );
-    this.setState(newState.toJS());
+      const newState = Immutable.fromJS(this.state)
+        .updateIn(['contacts', contactIdx, 'interactions'], interactions =>
+          interactions.unshift(json)
+        );
+      this.setState(newState.toJS());
+
+    }).catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
+  }
+
+  removeInteraction(interactionId, contactId) {
+    authFetch(`${SERVER_URL}/api/v1/contacts/interactions/${interactionId}`, {
+      method: 'DELETE'
+    }).then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          // TODO: Handle error responses
+          throw new Error('Unable to log in');
+        });
+      }
+    }).then(json => {
+      // Success
+      json = preprocessJSON(json);
+      const contactIdx = this.state.contacts.findIndex(contact =>
+        contact.id === contactId
+      );
+      const newState = Immutable.fromJS(this.state)
+        .updateIn(['contacts', contactIdx, 'interactions'], interactions =>
+          interactions.filter(interaction => {
+            return interaction.toJS().id !== json.id;
+          })
+        );
+      this.setState(newState.toJS());
+    }).catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
+
   }
 
   createContact(contact) {
@@ -322,7 +387,8 @@ class ContactsPage extends React.Component {
                              groupBy={this.state.groupBy}
                              getUserContacts={this.getUserContacts}
                              toggleExpanded={this.toggleExpanded}
-                             addInteraction={this.addInteraction} />
+                             addInteraction={this.addInteraction}
+                             removeInteraction={this.removeInteraction} />
       : <AllContactsSection _USER_TYPE={this._USER_TYPE}
                             contacts={filteredContacts}
                             groupBy={this.state.groupBy}

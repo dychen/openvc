@@ -12,6 +12,8 @@ import './user.scss';
  *   getUserContacts [function]: Function to load contact data.
  *   toggleExpanded [function]: Function to toggle interaction list visibility.
  *   addInteraction [function]: Function to write new interaction to database.
+ *   removeInteraction [function]: Function to remove an existing interaction
+ *                                 from the database.
  */
 class UserContactsSection extends React.Component {
   constructor(props) {
@@ -19,6 +21,7 @@ class UserContactsSection extends React.Component {
 
     this.toggleExpanded = this.toggleExpanded.bind(this);
     this.addInteraction = this.addInteraction.bind(this);
+    this.removeInteraction = this.removeInteraction.bind(this);
     this._goToContactPage = this._goToContactPage.bind(this);
 
     // Fetch data
@@ -32,11 +35,16 @@ class UserContactsSection extends React.Component {
 
   addInteraction(e) {
     this.props.addInteraction({
-      person: 'Daniel Chen',
+      user: 'Daniel Chen', // TODO
       label: 'Meeting',
       date: '2017-02-02',
       notes: ''
     }, Number(e.currentTarget.id));
+  }
+
+  removeInteraction(interactionId, contactId) {
+    // This is redundant, but we have this function for symmetry.
+    this.props.removeInteraction(Number(interactionId), Number(contactId));
   }
 
   _goToContactPage(e) {
@@ -57,12 +65,17 @@ class UserContactsSection extends React.Component {
         contact[this.props.groupBy] === label
       ).map(contact => {
         contact.interactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-        const interactions = contact.interactions.map((interaction, index) =>
+        const interactions = contact.interactions.map(interaction =>
           (
-            <tr key={index}>
+            <tr key={interaction.id}>
               <td>{interaction.date}</td>
               <td>{interaction.label}</td>
-              <td>{interaction.person}</td>
+              <td>{interaction.user}</td>
+              <td>
+                <i className="ion-ios-close remove-interaction"
+                   onClick={() => this.removeInteraction(interaction.id,
+                                                         contact.id)} />
+              </td>
             </tr>
           )
         );
@@ -71,12 +84,13 @@ class UserContactsSection extends React.Component {
           ? (
             <table>
               <thead>
-                <tr><td colSpan="3">Interaction History</td></tr>
+                <tr><td colSpan="4">Interaction History</td></tr>
               </thead>
               <tbody>
                 {interactions}
                 <tr>
-                  <td className="add-interaction" colSpan="3" id={contact.id}
+                  <td className="add-interaction" colSpan="4"
+                      id={contact.id}
                       onClick={this.addInteraction}>
                     <i className="ion-plus" />
                   </td>

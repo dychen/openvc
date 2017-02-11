@@ -39,6 +39,8 @@ urlpatterns = [
         contact_views.ContactsConnect.as_view()),
     url(r'^api/v1/contacts/interactions$',
         contact_views.ContactInteractions.as_view()),
+    url(r'^api/v1/contacts/interactions/(?P<id>[0-9]+)$',
+        contact_views.ContactInteractions.as_view()),
 
     # Data API
 ]

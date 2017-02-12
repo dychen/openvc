@@ -1,5 +1,6 @@
 import json
 from django.db import models
+from shared.utils import parse_date
 
 class Person(models.Model):
 
@@ -104,6 +105,19 @@ class Person(models.Model):
 
     @classmethod
     def create_from_api(cls, request_json):
+        """
+        Expected request body:
+        {
+            'firstName': [required] [str],
+            'lastName': [required] [str],
+            'company': [str],
+            'title': [str],
+            'location': [str],
+            'email': [str],
+            'photoUrl': [str],
+            'linkedinUrl': [str]
+        }
+        """
         person_dict = {}
         if request_json.get('firstName'):
             person_dict['first_name'] = request_json.get('firstName')
@@ -133,8 +147,15 @@ class Person(models.Model):
 
     def update_from_api(self, request_json):
         """
-        Throws:
-            [TypeError, ValueError]: Could not parse request body.
+        Expected request body:
+        {
+            'firstName': [required] [str],
+            'lastName': [required] [str],
+            'location': [str],
+            'email': [str],
+            'photoUrl': [str],
+            'linkedinUrl': [str]
+        }
         """
         if request_json.get('firstName'):
             self.first_name = request_json.get('firstName')
@@ -152,18 +173,8 @@ class Person(models.Model):
         return self
 
     def get_api_experience(self):
-        return [
-            {
-                'id': employment.id,
-                'company': employment.company.name,
-                'title': employment.title,
-                'location': employment.location,
-                'startDate': employment.start_date,
-                'endDate': employment.end_date,
-                'notes': employment.notes,
-            }
-            for employment in self.get_ordered_employment(reverse=True)
-        ]
+        return [employment.get_api_format()
+                for employment in self.get_ordered_employment(reverse=True)]
 
 class PersonTag(models.Model):
     person     = models.ForeignKey(Person, related_name='tags')
@@ -202,4 +213,76 @@ class Employment(models.Model):
 
     def __unicode__(self):
         return u'%s %s' % (self.person, self.company)
+
+    def get_api_format(self):
+        return {
+            'id': self.id,
+            'company': self.company.name,
+            'title': self.title,
+            'location': self.location,
+            'startDate': self.start_date,
+            'endDate': self.end_date,
+            'notes': self.notes,
+        }
+
+    @classmethod
+    def create_from_api(cls, person, request_json):
+        """
+        Expected request body:
+        {
+            'company': [required] [str],
+            'title': [str],
+            'location': [str],
+            'startDate': [str],
+            'endDate': [str],
+            'notes': [str]
+        }
+        """
+        company, _ = Company.objects.get_or_create(
+            name=request_json.get('company')
+        )
+
+        employment_dict = {}
+        if request_json.get('title'):
+            employment_dict['title'] = request_json.get('title')
+        if request_json.get('location'):
+            employment_dict['location'] = request_json.get('location')
+        if request_json.get('startDate'):
+            employment_dict['start_date'] = parse_date(request_json.get('startDate'))
+        if request_json.get('endDate'):
+            employment_dict['end_date'] = parse_date(request_json.get('endDate'))
+        if request_json.get('notes'):
+            employment_dict['notes'] = request_json.get('notes')
+        return Employment.objects.create(person=person, company=company,
+                                         **employment_dict)
+
+    def update_from_api(self, request_json):
+        """
+        Expected request body:
+        {
+            'company': [str],
+            'title': [str],
+            'location': [str],
+            'startDate': [str],
+            'endDate': [str],
+            'notes': [str]
+        }
+        """
+        if request_json.get('company'):
+            company, _ = Company.objects.get_or_create(
+                name=request_json.get('company')
+            )
+            self.company = company
+        if request_json.get('title'):
+            self.title = request_json.get('title')
+        if request_json.get('location'):
+            self.location = request_json.get('location')
+        if request_json.get('startDate'):
+            self.start_date = parse_date(request_json.get('startDate'))
+        if request_json.get('endDate'):
+            self.end_date = parse_date(request_json.get('endDate'))
+        if request_json.get('notes'):
+            self.notes = request_json.get('notes')
+        self.save()
+        return self
 

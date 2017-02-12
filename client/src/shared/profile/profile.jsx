@@ -192,7 +192,7 @@ class ProfilePage extends React.Component {
   saveExperienceInput(field, value, experienceId) {
     let body = {}
     body[field] = value;
-    authFetch(`${SERVER_URL}/api/v1/users/experience/${experienceId}`, {
+    authFetch(`${this.props.updateExperienceUrl}/${experienceId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -264,7 +264,7 @@ class ProfilePage extends React.Component {
    */
 
   addExperience(experience) {
-    authFetch(`${SERVER_URL}/api/v1/users/experience`, {
+    authFetch(`${this.props.createExperienceUrl}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -305,7 +305,7 @@ class ProfilePage extends React.Component {
   }
 
   removeExperience(experienceId) {
-    authFetch(`${SERVER_URL}/api/v1/users/experience/${experienceId}`, {
+    authFetch(`${this.props.deleteExperienceUrl}/${experienceId}`, {
       method: 'DELETE'
     })
     .then(function(response) {

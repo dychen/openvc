@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.db import models
 from data.models import Person
+from shared.utils import parse_date
 
 class Connection(models.Model):
     # Should be users.User
@@ -30,6 +31,50 @@ class Interaction(models.Model):
     def __unicode__(self):
         return u'%s: %s (%s)' % (unicode(self.user), unicode(self.person),
                                  self.interaction_date)
+
+    def get_api_format(self):
+        return {
+            'id': self.id,
+            'personId': self.person.id,
+            'user': self.user.person.full_name,
+            'label': self.label,
+            'notes': self.notes,
+            'date': self.date,
+        }
+
+    @classmethod
+    def create_from_api(cls, user, person, request_json):
+        interaction_dict = {}
+        if request_json.get('label'):
+            interaction_dict['label'] = request_json.get('label')
+        if request_json.get('notes'):
+            interaction_dict['notes'] = request_json.get('notes')
+        interaction_dict['date'] = (
+            parse_date(request_json.get('date'))
+            if request_json.get('date')
+            else datetime.date.today()
+        )
+
+        return Interaction.objects.create(user=user, person=person,
+                                          **interaction_dict)
+
+    def update_from_api(self, request_json):
+        """
+        Expected request body:
+        {
+            'label': [str],
+            'notes': [str],
+            'date': [str],
+        }
+        """
+        if request_json.get('label'):
+            self.label = request_json.get('label')
+        if request_json.get('notes'):
+            self.notes = request_json.get('notes')
+        if request_json.get('date'):
+            self.date = parse_date(request_json.get('date'))
+        self.save()
+        return self
 
 class Event(models.Model):
     title      = models.TextField(null=True, blank=True)

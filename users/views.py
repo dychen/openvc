@@ -1,12 +1,15 @@
 import json
 
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
+
 from users.models import User
 from data.models import Company, Person, Employment
-from shared.utils import parse_date, check_authentication
+from shared.auth import check_authentication
+from shared.utils import parse_date
 
 class UserSelf(APIView):
 

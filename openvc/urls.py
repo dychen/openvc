@@ -18,6 +18,7 @@ from django.contrib import admin
 from rest_framework.authtoken import views as authoken_views
 from users import views as user_views
 from contacts import views as contact_views
+from data import views as data_views
 
 urlpatterns = [
     # Admin API
@@ -45,4 +46,9 @@ urlpatterns = [
         contact_views.ContactInteractions.as_view()),
 
     # Data API
+    url(r'^api/v1/data/person/(?P<person_id>[0-9]+)/experience$',
+        data_views.PersonEmployment.as_view()),
+    url(r'^api/v1/data/person/(?P<person_id>[0-9]+)/experience/'
+         '(?P<employment_id>[0-9]+)$',
+        data_views.PersonEmployment.as_view()),
 ]

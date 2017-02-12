@@ -7,16 +7,17 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
+
 from users.models import User
 from contacts.models import Connection, Interaction
 from data.models import Company, Person, Employment
-from shared.utils import parse_date, check_authentication
+from shared.auth import check_authentication
 
 def format_contact_dict(person, user, connected=True):
     person_dict = person.get_api_format()
     person_dict['tags'] = [] # TODO
     person_dict['interactions'] = [
-        format_interaction_dict(interaction)
+        interaction.get_api_format()
         for interaction in (person.interactions.filter(user=user)
                                   .order_by('-date', 'label',
                                             'user__person__first_name',
@@ -24,16 +25,6 @@ def format_contact_dict(person, user, connected=True):
     ]
     person_dict['connected'] = connected
     return person_dict
-
-def format_interaction_dict(interaction):
-    return {
-        'id': interaction.id,
-        'personId': interaction.person.id,
-        'user': interaction.user.person.full_name,
-        'label': interaction.label,
-        'notes': interaction.notes,
-        'date': interaction.date,
-    }
 
 class UserContacts(APIView):
 
@@ -119,8 +110,6 @@ class UserContacts(APIView):
         {
             'firstName': [required] [str],
             'lastName': [required] [str],
-            'company': [str],
-            'title': [str],
             'location': [str],
             'email': [str],
             'photoUrl': [str],
@@ -266,18 +255,10 @@ class ContactInteractions(APIView):
             person = user.connections.get(
                 person__id=request_json.get('personId')
             ).person
-            date = (parse_date(request_json.get('date'))
-                    if request_json.get('date')
-                    else datetime.date.today())
+            interaction = Interaction.create_from_api(user, person,
+                                                      request_json)
 
-            interaction = Interaction.objects.create(
-                user=user,
-                person=person,
-                label=request_json.get('label'),
-                notes=request_json.get('notes'),
-                date=date
-            )
-            return Response(format_interaction_dict(interaction),
+            return Response(interaction.get_api_format(),
                             status=status.HTTP_201_CREATED)
 
         except (Person.DoesNotExist, Connection.DoesNotExist) as e:
@@ -302,20 +283,8 @@ class ContactInteractions(APIView):
             user = check_authentication(request)
             request_json = json.loads(request.body)
             interaction = user.interactions.get(id=interaction_id)
-            if request_json.get('personId'):
-                # Restrict to user's connections
-                person = user.connections.get(
-                    person__id=request_json.get('personId')
-                ).person
-                interaction.person = person
-            if request_json.get('label'):
-                interaction.label = request_json.get('label')
-            if request_json.get('notes'):
-                interaction.notes = request_json.get('notes')
-            if request_json.get('date'):
-                interaction.date = parse_date(request_json.get('date'))
-            interaction.save()
-            return Response(format_interaction_dict(interaction),
+            interaction = interaction.update_from_api(request_json)
+            return Response(interaction.get_api_format(),
                             status=status.HTTP_200_OK)
 
         except (Person.DoesNotExist, Connection.DoesNotExist,

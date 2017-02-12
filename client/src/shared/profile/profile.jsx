@@ -7,9 +7,16 @@ import ExperienceSection from './experience.jsx';
 
 import './profile.scss';
 
+/*
+ * props:
+ *   getUrl [string]: URL to fetch user profile data.
+ *   updateUrl [string]: URL to update user profile data.
+ */
 class ProfilePage extends React.Component {
   constructor(props) {
     super(props);
+
+    console.log('In ProfilePage');
 
     this._PROFILE_FIELDS = ['firstName', 'lastName', 'title', 'company',
                             'location', 'email', 'photoUrl', 'linkedinUrl'];
@@ -59,10 +66,19 @@ class ProfilePage extends React.Component {
     this.addExperience = this.addExperience.bind(this);
     this.removeExperience = this.removeExperience.bind(this);
 
-    authFetch(`${SERVER_URL}/api/v1/users/self`)
+    authFetch(this.props.getUrl)
       .then(function(response) {
-        return response.json();
-      }).then(json => {
+        if (response.ok) {
+          return response.json();
+        }
+        else {
+          return response.json().then(json => {
+            // TODO: Handle error responses
+            throw new Error('Unable to log in');
+          });
+        }
+      })
+      .then(json => {
         json = preprocessJSON(json);
         let editingJSON = { id: json.id };
         this._PROFILE_FIELDS.forEach(field => {
@@ -78,7 +94,12 @@ class ProfilePage extends React.Component {
           profile: json,
           editing: editingJSON
         });
-      }); // TODO: Handle errors
+      })
+      .catch(err => {
+        // Failure
+        console.log(err);
+        return err;
+      });
   }
 
   _createEditingExperience(exp) {
@@ -137,14 +158,15 @@ class ProfilePage extends React.Component {
   saveInput(field, value) {
     let body = {}
     body[field] = value;
-    authFetch(`${SERVER_URL}/api/v1/users/self`, {
+    authFetch(this.props.updateUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
       body: JSON.stringify(body)
-    }).then(function(response) {
+    })
+    .then(function(response) {
       if (response.ok) {
         return response.json();
       }
@@ -154,7 +176,8 @@ class ProfilePage extends React.Component {
           throw new Error('Unable to log in');
         });
       }
-    }).then(json => {
+    })
+    .then(json => {
       // Success
       json = preprocessJSON(json);
       const newProfileState = Immutable.fromJS(this.state)
@@ -162,7 +185,8 @@ class ProfilePage extends React.Component {
       const newEditingState = newProfileState
         .setIn(['editing', field, 'editing'], false);
       this.setState(newEditingState.toJS());
-    }).catch(err => {
+    })
+    .catch(err => {
       // Failure
       console.log(err);
       return err;
@@ -179,7 +203,8 @@ class ProfilePage extends React.Component {
         'Accept': 'application/json'
       },
       body: JSON.stringify(body)
-    }).then(function(response) {
+    })
+    .then(function(response) {
       if (response.ok) {
         return response.json();
       }
@@ -189,7 +214,8 @@ class ProfilePage extends React.Component {
           throw new Error('Unable to log in');
         });
       }
-    }).then(json => {
+    })
+    .then(json => {
       // Success
       json = preprocessJSON(json);
       const profileExperienceIdx = this.state.profile.experience.findIndex(exp =>
@@ -204,7 +230,8 @@ class ProfilePage extends React.Component {
         .setIn(['editing', 'experience', editingExperienceIdx],
                this._createEditingExperience(json));
       this.setState(newEditingState.toJS());
-    }).catch(err => {
+    })
+    .catch(err => {
       // Failure
       console.log(err);
       return err;
@@ -248,7 +275,8 @@ class ProfilePage extends React.Component {
         'Accept': 'application/json'
       },
       body: JSON.stringify(experience)
-    }).then(function(response) {
+    })
+    .then(function(response) {
       if (response.ok) {
         return response.json();
       }
@@ -258,7 +286,8 @@ class ProfilePage extends React.Component {
           throw new Error('Unable to log in');
         });
       }
-    }).then(json => {
+    })
+    .then(json => {
       // Success
       json = preprocessJSON(json);
       const newExperience = json;
@@ -272,7 +301,8 @@ class ProfilePage extends React.Component {
           experience.unshift(newEditingExperience)
         );
       this.setState(newEditingState.toJS());
-    }).catch(err => {
+    })
+    .catch(err => {
       // Failure
       console.log(err);
       return err;
@@ -282,7 +312,8 @@ class ProfilePage extends React.Component {
   removeExperience(experienceId) {
     authFetch(`${SERVER_URL}/api/v1/users/experience/${experienceId}`, {
       method: 'DELETE'
-    }).then(function(response) {
+    })
+    .then(function(response) {
       if (response.ok) {
         return response.json();
       }
@@ -292,7 +323,8 @@ class ProfilePage extends React.Component {
           throw new Error('Unable to log in');
         });
       }
-    }).then(json => {
+    })
+    .then(json => {
       json = preprocessJSON(json);
       const deletedId = json.id;
       const newProfileExperience = this.state.profile.experience.filter(exp =>
@@ -306,7 +338,8 @@ class ProfilePage extends React.Component {
       const newEditingState = newProfileState
         .setIn(['editing', 'experience'], newProfileEditing);
       this.setState(newEditingState.toJS());
-    }).catch(err => {
+    })
+    .catch(err => {
       // Failure
       console.log(err);
       return err;
@@ -351,7 +384,7 @@ class ProfilePage extends React.Component {
           <div className="bold">
             <EditField field="firstName"
                        value={this.state.profile.firstName}
-                       placeholder="Update your first name"
+                       placeholder="Update first name"
                        editing={this.state.editing.firstName}
                        editField={this.editField}
                        updateInput={this.updateInput}
@@ -359,7 +392,7 @@ class ProfilePage extends React.Component {
             &nbsp;
             <EditField field="lastName"
                        value={this.state.profile.lastName}
-                       placeholder="Update your last name"
+                       placeholder="Update last name"
                        editing={this.state.editing.lastName}
                        editField={this.editField}
                        updateInput={this.updateInput}
@@ -374,7 +407,7 @@ class ProfilePage extends React.Component {
           <div className="light">
             <EditField field="location"
                        value={this.state.profile.location}
-                       placeholder="Update your location"
+                       placeholder="Update location"
                        editing={this.state.editing.location}
                        editField={this.editField}
                        updateInput={this.updateInput}
@@ -384,7 +417,7 @@ class ProfilePage extends React.Component {
             <EditField field="email"
                        value={this.state.profile.email}
                        editing={this.state.editing.email}
-                       placeholder="Update your email"
+                       placeholder="Update email"
                        editField={this.editField}
                        updateInput={this.updateInput}
                        saveInput={this.saveInput} />
@@ -392,7 +425,7 @@ class ProfilePage extends React.Component {
           <div className="light">
             <EditField field="linkedinUrl"
                        value={this.state.profile.linkedinUrl}
-                       placeholder="Update your LinkedIn URL"
+                       placeholder="Update LinkedIn URL"
                        editing={this.state.editing.linkedinUrl}
                        editField={this.editField}
                        updateInput={this.updateInput}
@@ -412,3 +445,4 @@ class ProfilePage extends React.Component {
 }
 
 export default ProfilePage;
+

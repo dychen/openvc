@@ -106,7 +106,9 @@ class UserContacts(APIView):
     def __get_one(self, request, person_id, format=None):
         try:
             user = check_authentication(request)
-            person = user.connections.get(person__id=person_id).person
+            # TODO: Set restrictions to connections
+            #person = user.connections.get(person__id=person_id).person
+            person = Person.objects.get(id=person_id)
             return Response(format_contact_dict(person, user, connected=True),
                             status=status.HTTP_200_OK)
         except (Person.DoesNotExist, Connection.DoesNotExist) as e:
@@ -120,7 +122,7 @@ class UserContacts(APIView):
             return self.__get_all(request, format=format)
 
     # POST /contacts/self
-    def post(self, request, format=None):
+    def __post_create(self, request, format=None):
         """
         Expected request body:
         {
@@ -153,6 +155,73 @@ class UserContacts(APIView):
         except Person.DoesNotExist as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
+
+    # POST /contacts/self/:id
+    def __post_update(self, request, person_id, format=None):
+        """
+        Expected request body:
+        {
+            'firstName': [required] [str],
+            'lastName': [required] [str],
+            'company': [str],
+            'title': [str],
+            'location': [str],
+            'email': [str],
+            'photoUrl': [str],
+            'linkedinUrl': [str]
+        }
+        """
+        try:
+            user = check_authentication(request)
+            request_json = json.loads(request.body)
+            # TODO: Set restrictions to connections
+            #person = user.connections.get(person__id=person_id).person
+            person = Person.objects.get(id=person_id)
+            if request_json.get('firstName'):
+                person.first_name = request_json.get('firstName')
+            if request_json.get('lastName'):
+                person.last_name = request_json.get('lastName')
+            if request_json.get('location'):
+                person.location = request_json.get('location')
+            if request_json.get('email'):
+                person.email = request_json.get('email')
+            if request_json.get('photoUrl'):
+                person.photo_url = request_json.get('photoUrl')
+            if request_json.get('linkedinUrl'):
+                person.linkedin_url = request_json.get('linkedinUrl')
+            person.save()
+
+            latest_employment = person.get_latest_employment()
+            if latest_employment:
+                (company, title) = (latest_employment.company.name,
+                                    latest_employment.title)
+            else:
+                (company, title) = (None, None)
+            return Response({
+                'id': person.id,
+                'firstName': person.first_name,
+                'lastName': person.last_name,
+                'name': person.full_name,
+                'company': company,
+                'title': title,
+                'location': person.location,
+                'email': person.email,
+                'photoUrl': person.photo_url,
+                'linkedinUrl': person.linkedin_url,
+            }, status=status.HTTP_200_OK)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except Person.DoesNotExist as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, id=None, format=None):
+        if id:
+            return self.__post_update(request, id, format=format)
+        else:
+            return self.__post_create(request, format=format)
 
 class AllContacts(APIView):
 

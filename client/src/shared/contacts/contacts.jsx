@@ -63,8 +63,7 @@ class ContactsPage extends React.Component {
         }
         else {
           return response.json().then(json => {
-            // TODO: Handle error responses
-            throw new Error('Unable to log in');
+            throw new Error(json);
           });
         }
       }).then(json => {
@@ -87,8 +86,7 @@ class ContactsPage extends React.Component {
         }
         else {
           return response.json().then(json => {
-            // TODO: Handle error responses
-            throw new Error('Unable to log in');
+            throw new Error(json);
           });
         }
       }).then(json => {
@@ -165,8 +163,7 @@ class ContactsPage extends React.Component {
       }
       else {
         return response.json().then(json => {
-          // TODO: Handle error responses
-          throw new Error('Unable to log in');
+          throw new Error(json);
         });
       }
     }).then(json => {
@@ -197,8 +194,7 @@ class ContactsPage extends React.Component {
       }
       else {
         return response.json().then(json => {
-          // TODO: Handle error responses
-          throw new Error('Unable to log in');
+          throw new Error(json);
         });
       }
     }).then(json => {
@@ -236,8 +232,7 @@ class ContactsPage extends React.Component {
       }
       else {
         return response.json().then(json => {
-          // TODO: Handle error responses
-          throw new Error('Unable to log in');
+          throw new Error(json);
         });
       }
     }).then(json => {
@@ -268,7 +263,7 @@ class ContactsPage extends React.Component {
       else {
         return response.json().then(json => {
           // TODO: Handle error responses
-          throw new Error('Unable to log in');
+          throw new Error(json);
         });
       }
     }).then(json => {
@@ -293,8 +288,7 @@ class ContactsPage extends React.Component {
       }
       else {
         return response.json().then(json => {
-          // TODO: Handle error responses
-          throw new Error('Unable to log in');
+          throw new Error(json);
         });
       }
     }).then(json => {
@@ -322,8 +316,7 @@ class ContactsPage extends React.Component {
       }
       else {
         return response.json().then(json => {
-          // TODO: Handle error responses
-          throw new Error('Unable to log in');
+          throw new Error(json);
         });
       }
     }).then(json => {

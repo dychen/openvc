@@ -159,7 +159,7 @@ class CreateContactModal extends React.Component {
                        onChange={this.updateInput} />
                 <input className="contact-input" name="location"
                        value={this.state.contact.location}
-                       placeholder="Location (e.g. Seattle, WA)"
+                       placeholder="Location (e.g. Redmond, WA)"
                        onChange={this.updateInput} />
               </div>
               <div className="create-contact-input-group">

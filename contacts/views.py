@@ -3,6 +3,7 @@ import json
 
 from django.db import IntegrityError
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -11,69 +12,18 @@ from contacts.models import Connection, Interaction
 from data.models import Company, Person, Employment
 from shared.utils import parse_date, check_authentication
 
-def create_contact(request_json):
-    if request_json.get('firstName') and request_json.get('lastName'):
-        person_dict = {}
-        if request_json.get('firstName'):
-            person_dict['first_name'] = request_json.get('firstName')
-        if request_json.get('lastName'):
-            person_dict['last_name'] = request_json.get('lastName')
-        if request_json.get('location'):
-            person_dict['location'] = request_json.get('location')
-        if request_json.get('email'):
-            person_dict['email'] = request_json.get('email')
-        if request_json.get('photoUrl'):
-            person_dict['photo_url'] = request_json.get('photoUrl')
-        if request_json.get('linkedinUrl'):
-            person_dict['linkedin_url'] = request_json.get('linkedinUrl')
-        person = Person.update_or_create_duplicate_check(**person_dict)
-
-        if request_json.get('company') and request_json.get('title'):
-            company, _ = Company.objects.get_or_create(
-                name=request_json.get('company')
-            )
-            # Don't create a new Employment object if
-            # (person, company, title) already exists
-            Employment.objects.get_or_create(
-                person=person, company=company,
-                title=request_json.get('title')
-            )
-        return person
-    else:
-        # Can not create person - validation issues
-        raise Person.DoesNotExist
-
 def format_contact_dict(person, user, connected=True):
-    def get_company(person):
-        latest_employment = person.get_latest_employment()
-        return latest_employment.company.name if latest_employment else None
-
-    def get_title(person):
-        latest_employment = person.get_latest_employment()
-        return latest_employment.title if latest_employment else None
-
-    return {
-        'id': person.id,
-        'firstName': person.first_name,
-        'lastName': person.last_name,
-        'name': person.full_name,
-        'company': get_company(person),
-        'title': get_title(person),
-        'location': person.location,
-        'email': person.email,
-        'photoUrl': person.photo_url,
-        'linkedinUrl': person.linkedin_url,
-        'tags': [], # TODO
-        'experience': person.get_api_experience(),
-        'interactions': [
-            format_interaction_dict(interaction)
-            for interaction in (person.interactions.filter(user=user)
-                                      .order_by('-date', 'label',
-                                                'user__person__first_name',
-                                                'user__person__last_name'))
-        ], #TODO
-        'connected': connected,
-    }
+    person_dict = person.get_api_format()
+    person_dict['tags'] = [] # TODO
+    person_dict['interactions'] = [
+        format_interaction_dict(interaction)
+        for interaction in (person.interactions.filter(user=user)
+                                  .order_by('-date', 'label',
+                                            'user__person__first_name',
+                                            'user__person__last_name'))
+    ]
+    person_dict['connected'] = connected
+    return person_dict
 
 def format_interaction_dict(interaction):
     return {
@@ -136,10 +86,16 @@ class UserContacts(APIView):
             'linkedinUrl': [str]
         }
         """
+        def validate(request_json):
+            if not (request_json.get('firstName')
+                    and request_json.get('lastName')):
+                raise ValidationError('First name and last name are required.')
+
         try:
             user = check_authentication(request)
             request_json = json.loads(request.body)
-            person = create_contact(request_json)
+            validate(request_json)
+            person = Person.create_from_api(request_json)
 
             Connection.objects.update_or_create(
                 user=user, person=person,
@@ -177,38 +133,8 @@ class UserContacts(APIView):
             # TODO: Set restrictions to connections
             #person = user.connections.get(person__id=person_id).person
             person = Person.objects.get(id=person_id)
-            if request_json.get('firstName'):
-                person.first_name = request_json.get('firstName')
-            if request_json.get('lastName'):
-                person.last_name = request_json.get('lastName')
-            if request_json.get('location'):
-                person.location = request_json.get('location')
-            if request_json.get('email'):
-                person.email = request_json.get('email')
-            if request_json.get('photoUrl'):
-                person.photo_url = request_json.get('photoUrl')
-            if request_json.get('linkedinUrl'):
-                person.linkedin_url = request_json.get('linkedinUrl')
-            person.save()
-
-            latest_employment = person.get_latest_employment()
-            if latest_employment:
-                (company, title) = (latest_employment.company.name,
-                                    latest_employment.title)
-            else:
-                (company, title) = (None, None)
-            return Response({
-                'id': person.id,
-                'firstName': person.first_name,
-                'lastName': person.last_name,
-                'name': person.full_name,
-                'company': company,
-                'title': title,
-                'location': person.location,
-                'email': person.email,
-                'photoUrl': person.photo_url,
-                'linkedinUrl': person.linkedin_url,
-            }, status=status.HTTP_200_OK)
+            person = person.update_from_api(request_json)
+            return Response(person.get_api_format(), status=status.HTTP_200_OK)
 
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
@@ -257,10 +183,16 @@ class AllContacts(APIView):
             'linkedinUrl': [str]
         }
         """
+        def validate(request_json):
+            if not (request_json.get('firstName')
+                    and request_json.get('lastName')):
+                raise ValidationError('First name and last name are required.')
+
         try:
             user = check_authentication(request)
             request_json = json.loads(request.body)
-            person = create_contact(request_json)
+            validate(request_json)
+            person = Person.create_from_api(request_json)
 
             return Response(format_contact_dict(person, user, connected=False),
                             status=status.HTTP_201_CREATED)

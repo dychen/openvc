@@ -16,8 +16,6 @@ class ProfilePage extends React.Component {
   constructor(props) {
     super(props);
 
-    console.log('In ProfilePage');
-
     this._PROFILE_FIELDS = ['firstName', 'lastName', 'title', 'company',
                             'location', 'email', 'photoUrl', 'linkedinUrl'];
     this._EXPERIENCE_FIELDS = ['company', 'title', 'startDate', 'endDate',
@@ -73,8 +71,7 @@ class ProfilePage extends React.Component {
         }
         else {
           return response.json().then(json => {
-            // TODO: Handle error responses
-            throw new Error('Unable to log in');
+            throw new Error(json);
           });
         }
       })
@@ -172,8 +169,7 @@ class ProfilePage extends React.Component {
       }
       else {
         return response.json().then(json => {
-          // TODO: Handle error responses
-          throw new Error('Unable to log in');
+          throw new Error(json);
         });
       }
     })
@@ -211,7 +207,7 @@ class ProfilePage extends React.Component {
       else {
         return response.json().then(json => {
           // TODO: Handle error responses
-          throw new Error('Unable to log in');
+          throw new Error(json);
         });
       }
     })
@@ -282,8 +278,7 @@ class ProfilePage extends React.Component {
       }
       else {
         return response.json().then(json => {
-          // TODO: Handle error responses
-          throw new Error('Unable to log in');
+          throw new Error(json);
         });
       }
     })
@@ -319,8 +314,7 @@ class ProfilePage extends React.Component {
       }
       else {
         return response.json().then(json => {
-          // TODO: Handle error responses
-          throw new Error('Unable to log in');
+          throw new Error(json);
         });
       }
     })

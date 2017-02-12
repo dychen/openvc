@@ -17,26 +17,7 @@ class UserSelf(APIView):
         try:
             user = check_authentication(request)
             person = user.person
-            latest_employment = person.get_latest_employment()
-            if latest_employment:
-                (company, title) = (latest_employment.company.name,
-                                    latest_employment.title)
-            else:
-                (company, title) = (None, None)
-
-            return Response({
-                'id': person.id,
-                'firstName': person.first_name,
-                'lastName': person.last_name,
-                'name': person.full_name,
-                'company': company,
-                'title': title,
-                'location': person.location,
-                'email': person.email,
-                'photoUrl': person.photo_url,
-                'linkedinUrl': person.linkedin_url,
-                'experience': person.get_api_experience(),
-            }, status=status.HTTP_200_OK)
+            return Response(person.get_api_format(), status=status.HTTP_200_OK)
 
         except Person.DoesNotExist as e:
             return Response({ 'error': str(e) },
@@ -58,39 +39,8 @@ class UserSelf(APIView):
         try:
             user = check_authentication(request)
             request_json = json.loads(request.body)
-            person = user.person
-            if request_json.get('firstName'):
-                person.first_name = request_json.get('firstName')
-            if request_json.get('lastName'):
-                person.last_name = request_json.get('lastName')
-            if request_json.get('location'):
-                person.location = request_json.get('location')
-            if request_json.get('email'):
-                person.email = request_json.get('email')
-            if request_json.get('photoUrl'):
-                person.photo_url = request_json.get('photoUrl')
-            if request_json.get('linkedinUrl'):
-                person.linkedin_url = request_json.get('linkedinUrl')
-            person.save()
-
-            latest_employment = person.get_latest_employment()
-            if latest_employment:
-                (company, title) = (latest_employment.company.name,
-                                    latest_employment.title)
-            else:
-                (company, title) = (None, None)
-            return Response({
-                'id': person.id,
-                'firstName': person.first_name,
-                'lastName': person.last_name,
-                'name': person.full_name,
-                'company': company,
-                'title': title,
-                'location': person.location,
-                'email': person.email,
-                'photoUrl': person.photo_url,
-                'linkedinUrl': person.linkedin_url,
-            }, status=status.HTTP_200_OK)
+            person = user.person.update_from_api(request_json)
+            return Response(person.get_api_format(), status=status.HTTP_200_OK)
 
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },

@@ -1,3 +1,4 @@
+import json
 from django.db import models
 
 class Person(models.Model):
@@ -78,6 +79,77 @@ class Person(models.Model):
                           + null_employment
                           + current_employment)
         return all_employment if not reverse else all_employment[::-1]
+
+    def get_api_format(self):
+        latest_employment = self.get_latest_employment()
+        if latest_employment:
+            (company, title) = (latest_employment.company.name,
+                                latest_employment.title)
+        else:
+            (company, title) = (None, None)
+
+        return {
+            'id': self.id,
+            'firstName': self.first_name,
+            'lastName': self.last_name,
+            'name': self.full_name,
+            'company': company,
+            'title': title,
+            'location': self.location,
+            'email': self.email,
+            'photoUrl': self.photo_url,
+            'linkedinUrl': self.linkedin_url,
+            'experience': self.get_api_experience(),
+        }
+
+    @classmethod
+    def create_from_api(cls, request_json):
+        person_dict = {}
+        if request_json.get('firstName'):
+            person_dict['first_name'] = request_json.get('firstName')
+        if request_json.get('lastName'):
+            person_dict['last_name'] = request_json.get('lastName')
+        if request_json.get('location'):
+            person_dict['location'] = request_json.get('location')
+        if request_json.get('email'):
+            person_dict['email'] = request_json.get('email')
+        if request_json.get('photoUrl'):
+            person_dict['photo_url'] = request_json.get('photoUrl')
+        if request_json.get('linkedinUrl'):
+            person_dict['linkedin_url'] = request_json.get('linkedinUrl')
+        person = Person.update_or_create_duplicate_check(**person_dict)
+
+        if request_json.get('company') and request_json.get('title'):
+            company, _ = Company.objects.get_or_create(
+                name=request_json.get('company')
+            )
+            # Don't create a new Employment object if
+            # (person, company, title) already exists
+            Employment.objects.get_or_create(
+                person=person, company=company,
+                title=request_json.get('title')
+            )
+        return person
+
+    def update_from_api(self, request_json):
+        """
+        Throws:
+            [TypeError, ValueError]: Could not parse request body.
+        """
+        if request_json.get('firstName'):
+            self.first_name = request_json.get('firstName')
+        if request_json.get('lastName'):
+            self.last_name = request_json.get('lastName')
+        if request_json.get('location'):
+            self.location = request_json.get('location')
+        if request_json.get('email'):
+            self.email = request_json.get('email')
+        if request_json.get('photoUrl'):
+            self.photo_url = request_json.get('photoUrl')
+        if request_json.get('linkedinUrl'):
+            self.linkedin_url = request_json.get('linkedinUrl')
+        self.save()
+        return self
 
     def get_api_experience(self):
         return [

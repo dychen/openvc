@@ -6,62 +6,34 @@ const profileWrapper = function(WrappedComponent, config) {
     constructor(props) {
       super(props);
 
-      this._GET_URL = config.getUrl(this.props);
-      this._UPDATE_URL = config.updateUrl(this.props);
-      this._CREATE_EXPERIENCE_URL = config.createExperienceUrl(this.props);
-      this._UPDATE_EXPERIENCE_URL = config.updateExperienceUrl(this.props);
-      this._DELETE_EXPERIENCE_URL = config.deleteExperienceUrl(this.props);
+      this._PROFILE_URL = config.profileUrl(this.props);
+      this._EXPERIENCE_URL = config.experienceUrl(this.props);
     }
 
     render() {
-      return <WrappedComponent getUrl={this._GET_URL}
-                               updateUrl={this._UPDATE_URL}
-                               createExperienceUrl={this._CREATE_EXPERIENCE_URL}
-                               updateExperienceUrl={this._UPDATE_EXPERIENCE_URL}
-                               deleteExperienceUrl={this._DELETE_EXPERIENCE_URL}
+      return <WrappedComponent profileUrl={this._PROFILE_URL}
+                               experienceUrl={this._EXPERIENCE_URL}
                                {...this.props} />;
     }
   };
 }
 
 const userConfig = {
-  getUrl: () => {
+  profileUrl: () => {
     return `${SERVER_URL}/api/v1/users/self`;
   },
-  updateUrl: () => {
-    return `${SERVER_URL}/api/v1/users/self`;
-  },
-  createExperienceUrl: () => {
+  experienceUrl: () => {
     return `${SERVER_URL}/api/v1/users/experience`;
   },
-  updateExperienceUrl: () => {
-    // Append /:experienceId
-    return `${SERVER_URL}/api/v1/users/experience`;
-  },
-  deleteExperienceUrl: () => {
-    // Append /:experienceId
-    return `${SERVER_URL}/api/v1/users/experience`;
-  }
 };
 
 const contactConfig = {
-  getUrl: (props) => {
+  profileUrl: (props) => {
     return `${SERVER_URL}/api/v1/contacts/self/${props.params.contactId}`;
   },
-  updateUrl: (props) => {
-    return `${SERVER_URL}/api/v1/contacts/self/${props.params.contactId}`;
-  },
-  createExperienceUrl: (props) => {
+  experienceUrl: (props) => {
     return `${SERVER_URL}/api/v1/data/person/${props.params.contactId}/experience`;
   },
-  updateExperienceUrl: (props) => {
-    // Append /:experienceId
-    return `${SERVER_URL}/api/v1/data/person/${props.params.contactId}/experience`;
-  },
-  deleteExperienceUrl: (props) => {
-    // Append /:experienceId
-    return `${SERVER_URL}/api/v1/data/person/${props.params.contactId}/experience`;
-  }
 }
 
 const UserProfilePage = profileWrapper(ProfilePage, userConfig);

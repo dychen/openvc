@@ -18,8 +18,6 @@ class ProfilePage extends React.Component {
 
     this._PROFILE_FIELDS = ['firstName', 'lastName', 'title', 'company',
                             'location', 'email', 'photoUrl', 'linkedinUrl'];
-    this._EXPERIENCE_FIELDS = ['company', 'title', 'startDate', 'endDate',
-                               'location', 'notes'];
 
     // Separate this so the page has data to render (this.state.profile) before
     // state gets populated.
@@ -32,8 +30,7 @@ class ProfilePage extends React.Component {
         location: '',
         email: '',
         photoUrl: '',
-        linkedinUrl: '',
-        experience: []
+        linkedinUrl: ''
       },
       editing: {
         firstName: {},
@@ -43,28 +40,18 @@ class ProfilePage extends React.Component {
         location: {},
         email: {},
         photoUrl: {},
-        linkedinUrl: {},
-        experience: []
+        linkedinUrl: {}
       }
     };
 
-    this._createEditingExperience = this._createEditingExperience.bind(this);
-
     // Profile/Experience field CRUD
     this.editField = this.editField.bind(this);
-    this.editExperienceField = this.editExperienceField.bind(this);
     this.updateInput = this.updateInput.bind(this);
-    this.updateExperienceInput = this.updateExperienceInput.bind(this);
     this.saveInput = this.saveInput.bind(this);
-    this.saveExperienceInput = this.saveExperienceInput.bind(this);
 
-    this.cancelEdits = this.cancelEdits.bind(this);
+    this._cancelEdits = this._cancelEdits.bind(this);
 
-    // Experience CRUD
-    this.addExperience = this.addExperience.bind(this);
-    this.removeExperience = this.removeExperience.bind(this);
-
-    authFetch(this.props.getUrl)
+    authFetch(this.props.profileUrl)
       .then(function(response) {
         if (response.ok) {
           return response.json();
@@ -84,9 +71,6 @@ class ProfilePage extends React.Component {
             editing: false
           };
         });
-        editingJSON.experience = json.experience.map(exp =>
-          this._createEditingExperience(exp)
-        );
         this.setState({
           profile: json,
           editing: editingJSON
@@ -99,17 +83,6 @@ class ProfilePage extends React.Component {
       });
   }
 
-  _createEditingExperience(exp) {
-    let experienceJSON = { id: exp.id };
-    this._EXPERIENCE_FIELDS.forEach(field => {
-      experienceJSON[field] = {
-        value: exp[field] || '',
-        editing: false
-      };
-    });
-    return experienceJSON;
-  }
-
   /*
    * Profile/Experience field CRUD
    */
@@ -117,22 +90,9 @@ class ProfilePage extends React.Component {
   editField(field) {
     // TODO: Find a better pattern than callbacks
     //       This is currently necessary because setState is often asynchronous
-    this.cancelEdits(() => {
+    this._cancelEdits(() => {
       const newState = Immutable.fromJS(this.state)
         .setIn(['editing', field, 'editing'], true);
-      this.setState(newState.toJS());
-    });
-  }
-
-  editExperienceField(field, experienceId) {
-    // TODO: Find a better pattern than callbacks
-    //       This is currently necessary because setState is often asynchronous
-    this.cancelEdits(() => {
-      const experienceIdx = this.state.editing.experience.findIndex(exp =>
-        exp.id === experienceId
-      );
-      const newState = Immutable.fromJS(this.state)
-        .setIn(['editing', 'experience', experienceIdx, field, 'editing'], true);
       this.setState(newState.toJS());
     });
   }
@@ -143,19 +103,10 @@ class ProfilePage extends React.Component {
     this.setState(newState.toJS());
   }
 
-  updateExperienceInput(field, value, experienceId) {
-    const experienceIdx = this.state.editing.experience.findIndex(exp =>
-      exp.id === experienceId
-    );
-    const newState = Immutable.fromJS(this.state)
-      .setIn(['editing', 'experience', experienceIdx, field, 'value'], value);
-    this.setState(newState.toJS());
-  }
-
   saveInput(field, value) {
     let body = {}
     body[field] = value;
-    authFetch(this.props.updateUrl, {
+    authFetch(this.props.profileUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -189,51 +140,6 @@ class ProfilePage extends React.Component {
     });
   }
 
-  saveExperienceInput(field, value, experienceId) {
-    let body = {}
-    body[field] = value;
-    authFetch(`${this.props.updateExperienceUrl}/${experienceId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(body)
-    })
-    .then(function(response) {
-      if (response.ok) {
-        return response.json();
-      }
-      else {
-        return response.json().then(json => {
-          // TODO: Handle error responses
-          throw new Error(json);
-        });
-      }
-    })
-    .then(json => {
-      // Success
-      json = preprocessJSON(json);
-      const profileExperienceIdx = this.state.profile.experience.findIndex(exp =>
-        exp.id === experienceId
-      );
-      const editingExperienceIdx = this.state.editing.experience.findIndex(exp =>
-        exp.id === experienceId
-      );
-      const newProfileState = Immutable.fromJS(this.state)
-        .setIn(['profile', 'experience', profileExperienceIdx], json);
-      const newEditingState = newProfileState
-        .setIn(['editing', 'experience', editingExperienceIdx],
-               this._createEditingExperience(json));
-      this.setState(newEditingState.toJS());
-    })
-    .catch(err => {
-      // Failure
-      console.log(err);
-      return err;
-    });
-  }
-
   /*
    * WARNING: This can cause unexpected bugs because it's bound to the
    *          the container div and modifies state. Be sure to stop propagation
@@ -241,17 +147,13 @@ class ProfilePage extends React.Component {
    *          mode" flag is set.
    * TODO: Find a better pattern than callbacks
    */
-  cancelEdits(callback) {
-    console.log('DEBUG: profile.cancelEdits()');
+  _cancelEdits(callback) {
+    console.log('DEBUG: profile._cancelEdits()');
     let newEditing = Immutable.fromJS(this.state.editing);
     this._PROFILE_FIELDS.forEach(field => {
       newEditing = newEditing.setIn([field, 'editing'], false);
       newEditing = newEditing.setIn([field, 'value'], this.state.profile[field]);
     });
-    const newEditingExperiences = this.state.profile.experience.map(exp =>
-      this._createEditingExperience(exp)
-    );
-    newEditing = newEditing.set('experience', newEditingExperiences);
 
     if (callback && typeof(callback) === 'function')
       this.setState({ editing: newEditing.toJS() }, callback);
@@ -259,96 +161,16 @@ class ProfilePage extends React.Component {
       this.setState({ editing: newEditing.toJS() });
   }
 
-  /*
-   * Experience CRUD
-   */
-
-  addExperience(experience) {
-    authFetch(`${this.props.createExperienceUrl}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(experience)
-    })
-    .then(function(response) {
-      if (response.ok) {
-        return response.json();
-      }
-      else {
-        return response.json().then(json => {
-          throw new Error(json);
-        });
-      }
-    })
-    .then(json => {
-      // Success
-      json = preprocessJSON(json);
-      const newExperience = json;
-      const newEditingExperience = this._createEditingExperience(json);
-      const newProfileState = Immutable.fromJS(this.state)
-        .updateIn(['profile', 'experience'], experience =>
-          experience.unshift(newExperience)
-        );
-      const newEditingState = newProfileState
-        .updateIn(['editing', 'experience'], experience =>
-          experience.unshift(newEditingExperience)
-        );
-      this.setState(newEditingState.toJS());
-    })
-    .catch(err => {
-      // Failure
-      console.log(err);
-      return err;
-    });
-  }
-
-  removeExperience(experienceId) {
-    authFetch(`${this.props.deleteExperienceUrl}/${experienceId}`, {
-      method: 'DELETE'
-    })
-    .then(function(response) {
-      if (response.ok) {
-        return response.json();
-      }
-      else {
-        return response.json().then(json => {
-          throw new Error(json);
-        });
-      }
-    })
-    .then(json => {
-      json = preprocessJSON(json);
-      const deletedId = json.id;
-      const newProfileExperience = this.state.profile.experience.filter(exp =>
-        exp.id !== deletedId
-      );
-      const newProfileEditing = this.state.editing.experience.filter(exp =>
-        exp.id !== deletedId
-      );
-      const newProfileState = Immutable.fromJS(this.state)
-        .setIn(['profile', 'experience'], newProfileExperience);
-      const newEditingState = newProfileState
-        .setIn(['editing', 'experience'], newProfileEditing);
-      this.setState(newEditingState.toJS());
-    })
-    .catch(err => {
-      // Failure
-      console.log(err);
-      return err;
-    });
-  }
-
   render() {
+    // TODO: Update based on experience component
     const company = (
-      this.state.profile.experience && this.state.profile.experience.length > 0
-      ? this.state.profile.experience[0].company
+      this.state.profile.company
+      ? this.state.profile.company
       : 'No company - add a company below'
     );
     const title = (
-      this.state.profile.experience && this.state.profile.experience.length > 0
-      ? this.state.profile.experience[0].title
+      this.state.profile.title
+      ? this.state.profile.title
       : 'No title - add a company below'
     );
     const editPhotoComponent = (
@@ -368,7 +190,7 @@ class ProfilePage extends React.Component {
 
     return (
       <div className="ovc-shared-profile-container"
-           onClick={this.cancelEdits}>
+           onClick={this._cancelEdits}>
         <div className="profile-picture-container">
           <img src={this.state.profile.photoUrl}
                onClick={() => this.editField('photoUrl')} />
@@ -426,13 +248,7 @@ class ProfilePage extends React.Component {
                        saveInput={this.saveInput} />
           </div>
         </div>
-        <ExperienceSection experience={this.state.profile.experience}
-                           editingExperience={this.state.editing.experience}
-                           editField={this.editExperienceField}
-                           updateInput={this.updateExperienceInput}
-                           saveInput={this.saveExperienceInput}
-                           addExperience={this.addExperience}
-                           removeExperience={this.removeExperience} />
+        <ExperienceSection {...this.props} />
       </div>
     );
   }

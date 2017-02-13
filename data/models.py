@@ -100,7 +100,6 @@ class Person(models.Model):
             'email': self.email,
             'photoUrl': self.photo_url,
             'linkedinUrl': self.linkedin_url,
-            'experience': self.get_api_experience(),
         }
 
     @classmethod

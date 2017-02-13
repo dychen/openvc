@@ -58,7 +58,15 @@ class UserExperience(APIView):
 
     # GET /users/experience
     def get(self, request, format=None):
-        return Response({})
+        try:
+            user = check_authentication(request)
+            person = user.person
+            return Response(person.get_api_experience(),
+                            status=status.HTTP_200_OK)
+
+        except Person.DoesNotExist as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
 
     # POST /users/experience
     def __post_create(self, request, format=None):

@@ -14,6 +14,18 @@ class PersonEmployment(APIView):
 
     authentication_classes = (TokenAuthentication,)
 
+    # GET /data/person/:person_id/experience
+    def get(self, request, person_id, format=None):
+        try:
+            user = check_authentication(request)
+            person = Person.objects.get(id=person_id)
+            return Response(person.get_api_experience(),
+                            status=status.HTTP_200_OK)
+
+        except Person.DoesNotExist as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
     # POST /data/person/:person_id/experience
     def __post_create(self, request, person_id, format=None):
         """

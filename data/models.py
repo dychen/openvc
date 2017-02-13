@@ -2,6 +2,10 @@ import json
 from django.db import models
 from shared.utils import parse_date
 
+class Investor(models.Model):
+    name       = models.TextField()
+    type       = models.TextField()
+
 class Person(models.Model):
 
     def _get_full_name(self):
@@ -19,6 +23,8 @@ class Person(models.Model):
     # Should be unique, but don't add a constraint for more flexibility around
     # user input.
     linkedin_url = models.TextField(null=True, blank=True)
+    investor   = models.OneToOneField(Investor, unique=True, null=True,
+                                      blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -186,6 +192,8 @@ class Company(models.Model):
     location   = models.TextField(null=True, blank=True)
     website    = models.TextField(null=True, blank=True)
     logo_url   = models.TextField(null=True, blank=True)
+    investor   = models.OneToOneField(Investor, unique=True, null=True,
+                                      blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -284,4 +292,41 @@ class Employment(models.Model):
             self.notes = request_json.get('notes')
         self.save()
         return self
+
+
+class Investment(models.Model):
+    company    = models.ForeignKey(Company, related_name='investments')
+    series     = models.CharField(max_length=25)
+    date       = models.DateField(null=True, blank=True)
+    pre_money  = models.DecimalField(max_digits=24, decimal_places=6,
+                                     null=True, blank=True)
+    raised     = models.DecimalField(max_digits=24, decimal_places=6,
+                                     null=True, blank=True)
+    post_money = models.DecimalField(max_digits=24, decimal_places=6,
+                                     null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('company', 'series')
+
+class InvestorInvestment(models.Model):
+    investment = models.ForeignKey(Investment,
+                                   related_name='investor_investments',
+                                   on_delete=models.CASCADE)
+    investor   = models.ForeignKey(Investor,
+                                   related_name='investor_investments',
+                                   on_delete=models.PROTECT)
+    date       = models.DateField(null=True, blank=True)
+    lead       = models.NullBooleanField()
+    ownership  = models.FloatField(null=True, blank=True) # Fully diluted
+    invested   = models.DecimalField(max_digits=24, decimal_places=6,
+                                     null=True, blank=True)
+    shares     = models.DecimalField(max_digits=24, decimal_places=6,
+                                     null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = (('investment', 'investor', 'date'))
 

@@ -39,6 +39,23 @@
       border-radius: 50px;
       margin-bottom: 5px;
     }
+
+    i.remove-team-member {
+      position: absolute;
+      left: 10px;
+      top: 5px;
+      font-size: 20px;
+
+      @include hvr-color($OVC_GRAY);
+    }
+    i.edit-team-member {
+      position: absolute;
+      right: 10px;
+      top: 5px;
+      font-size: 18px;
+
+      @include hvr-color($OVC_GRAY);
+    }
   }
 
   .ovc-team-card.edit {

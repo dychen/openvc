@@ -200,6 +200,22 @@ class Company(models.Model):
     def __unicode__(self):
         return u'%s' % self.name
 
+    def get_employees(self, **kwargs):
+        # Distinct on person id, sorted by end date and start date
+        return self.employment.filter(**kwargs).order_by(
+            'person__first_name', 'person__last_name',
+            'end_date', 'start_date', 'person_id'
+        ).distinct(
+            'person__first_name', 'person__last_name',
+            'end_date', 'start_date', 'person_id'
+        )
+
+    def get_api_team(self, current=True):
+        return [
+            employee.person.get_api_format()
+            for employee in self.get_employees(current=current)
+        ]
+
 class CompanyTag(models.Model):
     company    = models.ForeignKey(Company, related_name='tags')
     tag        = models.TextField()

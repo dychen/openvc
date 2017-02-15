@@ -75,6 +75,23 @@ class User(AbstractBaseUser):
         # TODO
         return True
 
+    def get_active_account(self):
+        """
+        Throws:
+            [UserAccount.MultipleObjectsReturned]
+            [UserAccount.DoesNotExist]
+            [Account.DoesNotExist]
+        """
+        return self.user_accounts.get(active=True).account
+
+    def add_to_account(self, account):
+        self.user_accounts.update(active=False)
+        UserAccount.objects.update_or_create(
+            user=self,
+            account=account,
+            defaults={ 'active': True }
+        )
+
     @property
     def is_staff(self):
         # TODO
@@ -82,14 +99,24 @@ class User(AbstractBaseUser):
 
 class Account(models.Model):
     company    = models.OneToOneField(Company, unique=True,
-                                      related_name='company')
+                                      related_name='account')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-class UserAccounts(models.Model):
+    def __unicode__(self):
+        return unicode(self.company)
+
+class UserAccount(models.Model):
     user       = models.ForeignKey(settings.AUTH_USER_MODEL,
                                    related_name='user_accounts')
-    acount     = models.ForeignKey(Account, related_name='account_users')
+    account    = models.ForeignKey(Account, related_name='account_users')
+    active     = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        unique_together = ('user', 'account')
+
+    def __unicode__(self):
+        return u'%s %s %s' % (unicode(self.user), unicode(self.account),
+                              account.active)

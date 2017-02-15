@@ -1,47 +1,91 @@
 import React from 'react';
 import Immutable from 'immutable';
-import 'whatwg-fetch';
+import {hashHistory} from 'react-router';
+import {authFetch, preprocessJSON} from '../utils/api.js';
+
+import CreatePersonModal from '../components/modals/person.jsx';
 
 import './company.scss';
 
+/*
+ * props:
+ *   _USER_TYPE [string]: 'founder' or 'investor', depending on user role.
+ */
 class TeamSection extends React.Component {
   constructor(props) {
     super(props);
 
-    // TODO: Load this from the server
+    this._API_URL = `${SERVER_URL}/api/v1/users/company/team`;
+
     this.state = {
-      'team': []
+      team: [],
+      modalVisible: false
     };
 
-    this.editCard = this.editCard.bind(this);
-    this.handleFieldChange = this.handleFieldChange.bind(this);
-    this.saveCard = this.saveCard.bind(this);
-    this.addCard = this.addCard.bind(this);
-    this.removeCard = this.removeCard.bind(this);
+    this._goToContactPage = this._goToContactPage.bind(this);
 
-    fetch('/data/founder/company/team.json').then(function(response) {
-      return response.json();
-    }).then(json => {
-      this.setState({ 'team': json });
-    }); // TODO: Handle errors
+    // New team member component handlers
+    this.addNewTeamMember = this.addNewTeamMember.bind(this);
+    this.handleDeleteTeamMember = this.handleDeleteTeamMember.bind(this);
+
+    // New team member modal handlers
+    this.cancelNewTeamMember = this.cancelNewTeamMember.bind(this);
+    this.handleCreateTeamMember = this.handleCreateTeamMember.bind(this);
+
+    // Update existing team member component handlers
+    this.updateInput = this.updateInput.bind(this);
+    this.cancelEdits = this.cancelEdits.bind(this);
+    this.editTeamMember = this.editTeamMember.bind(this);
+    this.handleUpdateTeamMember = this.handleUpdateTeamMember.bind(this);
+
+    // Team member API
+    this.getTeamMemberList = this.getTeamMemberList.bind(this);
+    this.createTeamMember = this.createTeamMember.bind(this);
+    this.updateTeamMember = this.updateTeamMember.bind(this);
+    this.deleteTeamMember = this.deleteTeamMember.bind(this);
+
+    this.getTeamMemberList();
   }
 
-  editCard(e) {
-    const memberIdx = Number(e.currentTarget.id);
-    const newState = Immutable.fromJS(this.state)
-      .update('team', teamMembers =>
-        teamMembers.map((teamMember, index) => {
-          if (index === memberIdx)
-            return teamMember.update('editing', value => true);
-          else
-            return teamMember.update('editing', value => false);
-        })
-      )
-    this.setState(newState.toJS());
+  _goToContactPage(e) {
+    const linkUrl = '/' + this.props._USER_TYPE + '/contacts/' + e.currentTarget.id;
+    hashHistory.push(linkUrl);
   }
 
-  handleFieldChange(e) {
-    const memberIdx = Number(e.currentTarget.id);
+  /*
+   * New team member component handlers
+   */
+
+  addNewTeamMember(e) {
+    this.setState({ modalVisible: true });
+  }
+
+  cancelNewTeamMember(e) {
+    this.setState({ modalVisible: false });
+  }
+
+  /*
+   * New team member modal handlers
+   */
+
+  handleCreateTeamMember(person) {
+    this.createTeamMember(person);
+  }
+
+  handleDeleteTeamMember(e) {
+    e.stopPropagation();
+    this.deleteTeamMember(Number(e.currentTarget.id));
+  }
+
+  /*
+   * Update existing team member component handlers
+   */
+
+  updateInput(e) {
+    const memberId = Number(e.currentTarget.id);
+    const memberIdx = this.state.team.findIndex(member =>
+      member.id === memberId
+    );
     const fieldName = e.target.name;
     const fieldValue = e.target.value;
     const newState = Immutable.fromJS(this.state)
@@ -49,75 +93,216 @@ class TeamSection extends React.Component {
     this.setState(newState.toJS());
   }
 
-  saveCard(e) {
-    const memberIdx = Number(e.currentTarget.id);
-    const newState = Immutable.fromJS(this.state)
-      .updateIn(['team', memberIdx, 'editing'], value => false);
-    this.setState(newState.toJS());
-  }
-
-  addCard(e) {
+  cancelEdits() {
     /* Get user out of edit mode for existing cards */
     const newState = Immutable.fromJS(this.state)
       .update('team', teamMembers =>
-        teamMembers.map((teamMember, index) => {
-          return teamMember.update('editing', value => false);
-        })
+        teamMembers.map(teamMember => teamMember.set('editing', false))
       );
-    const appendedState = newState.update('team', teamMembers =>
-      teamMembers.push({
-        "firstName": "",
-        "lastName": "",
-        "title": "",
-        "email": "",
-        "photoUrl": "",
-        "linkedinUrl": "",
-        "editing": true
-      })
-    );
-    this.setState(appendedState.toJS());
+    this.setState(newState.toJS());
   }
 
-  removeCard(e) {
-    const memberIdx = Number(e.currentTarget.id);
+  editTeamMember(e) {
+    e.stopPropagation();
+    const memberId = Number(e.currentTarget.id);
+    const memberIdx = this.state.team.findIndex(member =>
+      member.id === memberId
+    );
     const newState = Immutable.fromJS(this.state)
-      .get('team').filter((teamMembers, index) =>
-        index !== memberIdx
+      .update('team', teamMembers =>
+        teamMembers.map((teamMember, index) => {
+          if (index === memberIdx)
+            return teamMember.set('editing', true);
+          else
+            return teamMember.set('editing', false);
+          })
+        );
+    this.setState(newState.toJS());
+  }
+
+  handleUpdateTeamMember(e) {
+    const memberId = Number(e.currentTarget.id);
+    const memberIdx = this.state.team.findIndex(member =>
+      member.id === memberId
+    );
+    const member = this.state.team[memberIdx];
+    this.updateTeamMember(memberId, {
+      firstName: member.firstName,
+      lastName: member.lastName,
+      title: member.title,
+      email: member.email,
+      linkedinUrl: member.linkedinUrl
+    });
+  }
+
+  /*
+   * Team member API
+   */
+
+  getTeamMemberList() {
+    authFetch(this._API_URL)
+      .then(function(response) {
+        if (response.ok) {
+          return response.json();
+        }
+        else {
+          return response.json().then(json => {
+            throw new Error(json);
+          });
+        }
+      })
+      .then(json => {
+        json = preprocessJSON(json);
+        this.setState({ team: json });
+      })
+      .catch(err => {
+        // Failure
+        console.log(err);
+        return err;
+      });
+  }
+
+  createTeamMember(teamMember) {
+    authFetch(this._API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(teamMember)
+    })
+    .then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          throw new Error(json);
+        });
+      }
+    })
+    .then(json => {
+      // Success
+      json = preprocessJSON(json);
+      const newTeamState = Immutable.fromJS(this.state)
+        .update('team', team => team.push(json));
+      const newModalState = newTeamState.set('modalVisible', false);
+
+      this.setState(newModalState.toJS());
+    })
+    .catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
+  }
+
+  updateTeamMember(teamMemberId, teamMember) {
+    authFetch(`${this._API_URL}/${teamMemberId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(teamMember)
+    })
+    .then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          // TODO: Handle error responses
+          throw new Error(json);
+        });
+      }
+    })
+    .then(json => {
+      // Success
+      json = preprocessJSON(json);
+      const teamMemberIdx = this.state.team.findIndex(teamMember =>
+        teamMember.id === json.id
       );
-    this.setState({ team: newState.toJS() });
+
+      const newState = Immutable.fromJS(this.state)
+        .setIn(['team', teamMemberIdx], json);
+      this.setState(newState.toJS());
+    })
+    .catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
+  }
+
+  deleteTeamMember(teamMemberId) {
+    authFetch(`${this._API_URL}/${teamMemberId}`, {
+      method: 'DELETE'
+    })
+    .then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          throw new Error(json);
+        });
+      }
+    })
+    .then(json => {
+      // Success
+      json = preprocessJSON(json);
+      const deletedId = json.id;
+      const newTeam = this.state.team.filter(teamMember =>
+        teamMember.id !== deletedId
+      );
+      const newState = Immutable.fromJS(this.state)
+        .set('team', newTeam);
+
+      this.setState(newState.toJS());
+    })
+    .catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
   }
 
   render() {
     const teamMembers = this.state.team.map((member, index) => {
       if (member.editing) {
         return (
-          <div className="ovc-team-card edit" key={index}>
-            <input type="text" name="firstName" id={index}
-                   value={member.firstName} onChange={this.handleFieldChange}
+          <div className="ovc-team-card edit" key={member.id}>
+            <input type="text" name="firstName" id={member.id}
+                   value={member.firstName} onChange={this.updateInput}
                    placeholder="First name, e.g. John" />
-            <input type="text" name="lastName" id={index}
-                   value={member.lastName} onChange={this.handleFieldChange}
+            <input type="text" name="lastName" id={member.id}
+                   value={member.lastName} onChange={this.updateInput}
                    placeholder="Last name, e.g. Doe" />
-            <input type="text" name="title" id={index}
-                   value={member.title} onChange={this.handleFieldChange}
+            <input type="text" name="title" id={member.id}
+                   value={member.title} onChange={this.updateInput}
                    placeholder="Title, e.g. CEO" />
-            <input type="text" name="email" id={index}
-                   value={member.email} onChange={this.handleFieldChange}
+            <input type="text" name="email" id={member.id}
+                   value={member.email} onChange={this.updateInput}
                    placeholder="Email, e.g. john.doe@gmail.com" />
-            <input type="text" name="photoUrl" id={index}
-                   value={member.photoUrl} onChange={this.handleFieldChange}
+            <input type="text" name="photoUrl" id={member.id}
+                   value={member.photoUrl} onChange={this.updateInput}
                    placeholder="Image URL, http://..." />
-            <i className="ion-ios-close-outline cancel" id={index}
-                 onClick={this.removeCard} />
-            <i className="ion-ios-checkmark-outline save" id={index}
-                 onClick={this.saveCard} />
+            <i className="ion-ios-close-outline cancel" id={member.id}
+                 onClick={this.cancelEdits} />
+            <i className="ion-ios-checkmark-outline save" id={member.id}
+                 onClick={this.handleUpdateTeamMember} />
           </div>
         );
       }
       else {
         return (
-          <div className="ovc-team-card item" key={index} id={index}
-               onClick={this.editCard}>
+          <div className="ovc-team-card item" key={member.id} id={member.id}
+               onClick={this._goToContactPage}>
+            <i className="ion-trash-a remove-team-member" id={member.id}
+               onClick={this.handleDeleteTeamMember} />
+            <i className="ion-edit edit-team-member" id={member.id}
+               onClick={this.editTeamMember} />
             <img src={member.photoUrl} />
             <div>{member.firstName} {member.lastName}</div>
             <div>{member.title}</div>
@@ -130,9 +315,12 @@ class TeamSection extends React.Component {
     return (
       <div className="ovc-team-section">
         {teamMembers}
-        <div className="ovc-team-card add" onClick={this.addCard}>
+        <div className="ovc-team-card add" onClick={this.addNewTeamMember}>
           <i className="ion-ios-plus-empty" />
         </div>
+        <CreatePersonModal visible={this.state.modalVisible}
+                           hideModal={this.cancelNewTeamMember}
+                           createEntity={this.handleCreateTeamMember} />
       </div>
     );
   }
@@ -407,11 +595,20 @@ class InvestorSection extends React.Component {
 }
 
 class FounderCompanyPage extends React.Component {
+  constructor(props) {
+    super(props);
+
+    // TODO: Refactor this
+    this._USER_TYPE = (
+      this.props.location.pathname.includes('investor') ? 'investor' : 'founder'
+    );
+  }
+
   render() {
     return (
       <div className="ovc-founder-company-container">
         <h3>Team</h3>
-        <TeamSection />
+        <TeamSection _USER_TYPE={this._USER_TYPE} />
         <h3>Board</h3>
         <BoardSection />
         <h3>Investors</h3>

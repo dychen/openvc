@@ -81,11 +81,11 @@ class UserContacts(APIView):
             if not (request_json.get('firstName')
                     and request_json.get('lastName')):
                 raise ValidationError('First name and last name are required.')
+            return request_json
 
         try:
             user = check_authentication(request)
-            request_json = json.loads(request.body)
-            validate(request_json)
+            request_json = validate(json.loads(request.body))
             person = Person.create_from_api(request_json)
 
             Connection.objects.update_or_create(
@@ -176,11 +176,11 @@ class AllContacts(APIView):
             if not (request_json.get('firstName')
                     and request_json.get('lastName')):
                 raise ValidationError('First name and last name are required.')
+            return request_json
 
         try:
             user = check_authentication(request)
-            request_json = json.loads(request.body)
-            validate(request_json)
+            request_json = validate(json.loads(request.body))
             person = Person.create_from_api(request_json)
 
             return Response(format_contact_dict(person, user, connected=False),

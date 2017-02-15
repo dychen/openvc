@@ -42,11 +42,11 @@ class PersonEmployment(APIView):
         def validate(request_json):
             if not (request_json.get('company')):
                 raise ValidationError('Company name is required.')
+            return request_json
 
         try:
             user = check_authentication(request)
-            request_json = json.loads(request.body)
-            validate(request_json)
+            request_json = validate(json.loads(request.body))
             person = Person.objects.get(id=person_id)
             employment = Employment.create_from_api(person, request_json)
 

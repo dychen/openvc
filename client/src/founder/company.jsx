@@ -9,42 +9,41 @@ import './company.scss';
 
 /*
  * props:
+ *   _API_URL [string]: Backend API endpoint to hit.
  *   _USER_TYPE [string]: 'founder' or 'investor', depending on user role.
  */
-class TeamSection extends React.Component {
+class MemberSection extends React.Component {
   constructor(props) {
     super(props);
 
-    this._API_URL = `${SERVER_URL}/api/v1/users/company/team`;
-
     this.state = {
-      team: [],
+      members: [],
       modalVisible: false
     };
 
     this._goToContactPage = this._goToContactPage.bind(this);
 
-    // New team member component handlers
-    this.addNewTeamMember = this.addNewTeamMember.bind(this);
-    this.handleDeleteTeamMember = this.handleDeleteTeamMember.bind(this);
+    // New member component handlers
+    this.addNewMember = this.addNewMember.bind(this);
+    this.handleDeleteMember = this.handleDeleteMember.bind(this);
 
-    // New team member modal handlers
-    this.cancelNewTeamMember = this.cancelNewTeamMember.bind(this);
-    this.handleCreateTeamMember = this.handleCreateTeamMember.bind(this);
+    // New member modal handlers
+    this.cancelNewMember = this.cancelNewMember.bind(this);
+    this.handleCreateMember = this.handleCreateMember.bind(this);
 
-    // Update existing team member component handlers
+    // Update existing member component handlers
     this.updateInput = this.updateInput.bind(this);
     this.cancelEdits = this.cancelEdits.bind(this);
-    this.editTeamMember = this.editTeamMember.bind(this);
-    this.handleUpdateTeamMember = this.handleUpdateTeamMember.bind(this);
+    this.editMember = this.editMember.bind(this);
+    this.handleUpdateMember = this.handleUpdateMember.bind(this);
 
-    // Team member API
-    this.getTeamMemberList = this.getTeamMemberList.bind(this);
-    this.createTeamMember = this.createTeamMember.bind(this);
-    this.updateTeamMember = this.updateTeamMember.bind(this);
-    this.deleteTeamMember = this.deleteTeamMember.bind(this);
+    // Member API
+    this.getMemberList = this.getMemberList.bind(this);
+    this.createMember = this.createMember.bind(this);
+    this.updateMember = this.updateMember.bind(this);
+    this.deleteMember = this.deleteMember.bind(this);
 
-    this.getTeamMemberList();
+    this.getMemberList();
   }
 
   _goToContactPage(e) {
@@ -53,80 +52,80 @@ class TeamSection extends React.Component {
   }
 
   /*
-   * New team member component handlers
+   * New member component handlers
    */
 
-  addNewTeamMember(e) {
+  addNewMember(e) {
     this.setState({ modalVisible: true });
   }
 
-  cancelNewTeamMember(e) {
+  cancelNewMember(e) {
     this.setState({ modalVisible: false });
   }
 
   /*
-   * New team member modal handlers
+   * New member modal handlers
    */
 
-  handleCreateTeamMember(person) {
-    this.createTeamMember(person);
+  handleCreateMember(person) {
+    this.createMember(person);
   }
 
-  handleDeleteTeamMember(e) {
+  handleDeleteMember(e) {
     e.stopPropagation();
-    this.deleteTeamMember(Number(e.currentTarget.id));
+    this.deleteMember(Number(e.currentTarget.id));
   }
 
   /*
-   * Update existing team member component handlers
+   * Update existing member component handlers
    */
 
   updateInput(e) {
     const memberId = Number(e.currentTarget.id);
-    const memberIdx = this.state.team.findIndex(member =>
+    const memberIdx = this.state.members.findIndex(member =>
       member.id === memberId
     );
     const fieldName = e.target.name;
     const fieldValue = e.target.value;
     const newState = Immutable.fromJS(this.state)
-      .updateIn(['team', memberIdx, fieldName], value => fieldValue);
+      .updateIn(['members', memberIdx, fieldName], value => fieldValue);
     this.setState(newState.toJS());
   }
 
   cancelEdits() {
     /* Get user out of edit mode for existing cards */
     const newState = Immutable.fromJS(this.state)
-      .update('team', teamMembers =>
-        teamMembers.map(teamMember => teamMember.set('editing', false))
+      .update('members', members =>
+        members.map(member => member.set('editing', false))
       );
     this.setState(newState.toJS());
   }
 
-  editTeamMember(e) {
+  editMember(e) {
     e.stopPropagation();
     const memberId = Number(e.currentTarget.id);
-    const memberIdx = this.state.team.findIndex(member =>
+    const memberIdx = this.state.members.findIndex(member =>
       member.id === memberId
     );
     const newState = Immutable.fromJS(this.state)
-      .update('team', teamMembers =>
-        teamMembers.map((teamMember, index) => {
+      .update('members', members =>
+        members.map((member, index) => {
           if (index === memberIdx)
-            return teamMember.set('editing', true);
+            return member.set('editing', true);
           else
-            return teamMember.set('editing', false);
+            return member.set('editing', false);
           })
         );
     this.setState(newState.toJS());
   }
 
-  handleUpdateTeamMember(e) {
+  handleUpdateMember(e) {
     const memberId = Number(e.currentTarget.id);
-    const memberIdx = this.state.team.findIndex(member =>
+    const memberIdx = this.state.members.findIndex(member =>
       member.id === memberId
     );
-    const member = this.state.team[memberIdx];
-    this.updateTeamMember(memberId, {
+    const member = this.state.members[memberIdx];
+    this.updateMember(memberId, {
       firstName: member.firstName,
       lastName: member.lastName,
       title: member.title,
@@ -136,11 +135,11 @@ class TeamSection extends React.Component {
   }
 
   /*
-   * Team member API
+   * Member API
    */
 
-  getTeamMemberList() {
-    authFetch(this._API_URL)
+  getMemberList() {
+    authFetch(this.props._API_URL)
       .then(function(response) {
         if (response.ok) {
           return response.json();
@@ -153,7 +152,7 @@ class TeamSection extends React.Component {
       })
       .then(json => {
         json = preprocessJSON(json);
-        this.setState({ team: json });
+        this.setState({ members: json });
       })
       .catch(err => {
         // Failure
@@ -162,14 +161,14 @@ class TeamSection extends React.Component {
       });
   }
 
-  createTeamMember(teamMember) {
-    authFetch(this._API_URL, {
+  createMember(member) {
+    authFetch(this.props._API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify(teamMember)
+      body: JSON.stringify(member)
     })
     .then(function(response) {
       if (response.ok) {
@@ -184,9 +183,9 @@ class TeamSection extends React.Component {
     .then(json => {
       // Success
       json = preprocessJSON(json);
-      const newTeamState = Immutable.fromJS(this.state)
-        .update('team', team => team.push(json));
-      const newModalState = newTeamState.set('modalVisible', false);
+      const newMemberState = Immutable.fromJS(this.state)
+        .update('members', members => members.push(json));
+      const newModalState = newMemberState.set('modalVisible', false);
 
       this.setState(newModalState.toJS());
     })
@@ -197,14 +196,14 @@ class TeamSection extends React.Component {
     });
   }
 
-  updateTeamMember(teamMemberId, teamMember) {
-    authFetch(`${this._API_URL}/${teamMemberId}`, {
+  updateMember(memberId, member) {
+    authFetch(`${this.props._API_URL}/${memberId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify(teamMember)
+      body: JSON.stringify(member)
     })
     .then(function(response) {
       if (response.ok) {
@@ -220,12 +219,12 @@ class TeamSection extends React.Component {
     .then(json => {
       // Success
       json = preprocessJSON(json);
-      const teamMemberIdx = this.state.team.findIndex(teamMember =>
-        teamMember.id === json.id
+      const memberIdx = this.state.members.findIndex(member =>
+        member.id === json.id
       );
 
       const newState = Immutable.fromJS(this.state)
-        .setIn(['team', teamMemberIdx], json);
+        .setIn(['members', memberIdx], json);
       this.setState(newState.toJS());
     })
     .catch(err => {
@@ -235,8 +234,8 @@ class TeamSection extends React.Component {
     });
   }
 
-  deleteTeamMember(teamMemberId) {
-    authFetch(`${this._API_URL}/${teamMemberId}`, {
+  deleteMember(memberId) {
+    authFetch(`${this.props._API_URL}/${memberId}`, {
       method: 'DELETE'
     })
     .then(function(response) {
@@ -253,11 +252,11 @@ class TeamSection extends React.Component {
       // Success
       json = preprocessJSON(json);
       const deletedId = json.id;
-      const newTeam = this.state.team.filter(teamMember =>
-        teamMember.id !== deletedId
+      const newMembers = this.state.members.filter(member =>
+        member.id !== deletedId
       );
       const newState = Immutable.fromJS(this.state)
-        .set('team', newTeam);
+        .set('members', newMembers);
 
       this.setState(newState.toJS());
     })
@@ -269,10 +268,10 @@ class TeamSection extends React.Component {
   }
 
   render() {
-    const teamMembers = this.state.team.map((member, index) => {
+    const members = this.state.members.map((member, index) => {
       if (member.editing) {
         return (
-          <div className="ovc-team-card edit" key={member.id}>
+          <div className="ovc-member-card edit" key={member.id}>
             <input type="text" name="firstName" id={member.id}
                    value={member.firstName} onChange={this.updateInput}
                    placeholder="First name, e.g. John" />
@@ -291,18 +290,18 @@ class TeamSection extends React.Component {
             <i className="ion-ios-close-outline cancel" id={member.id}
                  onClick={this.cancelEdits} />
             <i className="ion-ios-checkmark-outline save" id={member.id}
-                 onClick={this.handleUpdateTeamMember} />
+                 onClick={this.handleUpdateMember} />
           </div>
         );
       }
       else {
         return (
-          <div className="ovc-team-card item" key={member.id} id={member.id}
+          <div className="ovc-member-card item" key={member.id} id={member.id}
                onClick={this._goToContactPage}>
-            <i className="ion-trash-a remove-team-member" id={member.id}
-               onClick={this.handleDeleteTeamMember} />
-            <i className="ion-edit edit-team-member" id={member.id}
-               onClick={this.editTeamMember} />
+            <i className="ion-trash-a remove-member" id={member.id}
+               onClick={this.handleDeleteMember} />
+            <i className="ion-edit edit-member" id={member.id}
+               onClick={this.editMember} />
             <img src={member.photoUrl} />
             <div>{member.firstName} {member.lastName}</div>
             <div>{member.title}</div>
@@ -313,155 +312,30 @@ class TeamSection extends React.Component {
     });
 
     return (
-      <div className="ovc-team-section">
-        {teamMembers}
-        <div className="ovc-team-card add" onClick={this.addNewTeamMember}>
+      <div className="ovc-member-section">
+        {members}
+        <div className="ovc-member-card add" onClick={this.addNewMember}>
           <i className="ion-ios-plus-empty" />
         </div>
         <CreatePersonModal visible={this.state.modalVisible}
-                           hideModal={this.cancelNewTeamMember}
-                           createEntity={this.handleCreateTeamMember} />
+                           hideModal={this.cancelNewMember}
+                           createEntity={this.handleCreateMember} />
       </div>
     );
   }
 }
 
-class BoardSection extends React.Component {
-  constructor(props) {
-    super(props);
-
-    // TODO: Load this from the server
-    this.state = {
-      'board': []
-    };
-
-    this.editCard = this.editCard.bind(this);
-    this.handleFieldChange = this.handleFieldChange.bind(this);
-    this.saveCard = this.saveCard.bind(this);
-    this.addCard = this.addCard.bind(this);
-    this.removeCard = this.removeCard.bind(this);
-
-    fetch('/data/founder/company/board.json').then(function(response) {
-      return response.json();
-    }).then(json => {
-      this.setState({ 'board': json });
-    }); // TODO: Handle errors
-  }
-
-  editCard(e) {
-    const memberIdx = Number(e.currentTarget.id);
-    const newState = Immutable.fromJS(this.state)
-      .update('board', boardMembers =>
-        boardMembers.map((boardMember, index) => {
-          if (index === memberIdx)
-            return boardMember.update('editing', value => true);
-          else
-            return boardMember.update('editing', value => false);
-        })
-      )
-    this.setState(newState.toJS());
-  }
-
-  handleFieldChange(e) {
-    const memberIdx = Number(e.currentTarget.id);
-    const fieldName = e.target.name;
-    const fieldValue = e.target.value;
-    const newState = Immutable.fromJS(this.state)
-      .updateIn(['board', memberIdx, fieldName], value => fieldValue);
-    this.setState(newState.toJS());
-  }
-
-  saveCard(e) {
-    const memberIdx = Number(e.currentTarget.id);
-    const newState = Immutable.fromJS(this.state)
-      .updateIn(['board', memberIdx, 'editing'], value => false);
-    this.setState(newState.toJS());
-  }
-
-  addCard(e) {
-    /* Get user out of edit mode for existing cards */
-    const newState = Immutable.fromJS(this.state)
-      .update('board', boardMembers =>
-        boardMembers.map((boardMember, index) => {
-          return boardMember.update('editing', value => false);
-        })
-      );
-    const appendedState = newState.update('board', boardMembers =>
-      boardMembers.push({
-        "firstName": "",
-        "lastName": "",
-        "title": "",
-        "company": "",
-        "email": "",
-        "photoUrl": "",
-        "linkedinUrl": "",
-        "editing": true
-      })
-    );
-    this.setState(appendedState.toJS());
-  }
-
-  removeCard(e) {
-    const memberIdx = Number(e.currentTarget.id);
-    const newState = Immutable.fromJS(this.state)
-      .get('board').filter((boardMembers, index) =>
-        index !== memberIdx
-      );
-    this.setState({ board: newState.toJS() });
-  }
-
+class TeamSection extends React.Component {
   render() {
-    const boardMembers = this.state.board.map((member, index) => {
-      if (member.editing) {
-        return (
-          <div className="ovc-board-card edit" key={index}>
-            <input type="text" name="firstName" id={index}
-                   value={member.firstName} onChange={this.handleFieldChange}
-                   placeholder="First name, e.g. John" />
-            <input type="text" name="lastName" id={index}
-                   value={member.lastName} onChange={this.handleFieldChange}
-                   placeholder="Last name, e.g. Doe" />
-            <input type="text" name="title" id={index}
-                   value={member.title} onChange={this.handleFieldChange}
-                   placeholder="Title, e.g. CEO" />
-            <input type="text" name="company" id={index}
-                   value={member.company} onChange={this.handleFieldChange}
-                   placeholder="Company, e.g. OpenVC" />
-            <input type="text" name="email" id={index}
-                   value={member.email} onChange={this.handleFieldChange}
-                   placeholder="Email, e.g. john.doe@gmail.com" />
-            <input type="text" name="photoUrl" id={index}
-                   value={member.photoUrl} onChange={this.handleFieldChange}
-                   placeholder="Image URL, http://..." />
-            <i className="ion-ios-close-outline cancel" id={index}
-                 onClick={this.removeCard} />
-            <i className="ion-ios-checkmark-outline save" id={index}
-                 onClick={this.saveCard} />
-          </div>
-        );
-      }
-      else {
-        return (
-          <div className="ovc-board-card item" key={index} id={index}
-               onClick={this.editCard}>
-            <img src={member.photoUrl} />
-            <div>{member.firstName} {member.lastName}</div>
-            <div>{member.title}</div>
-            <div>{member.company}</div>
-            <div>{member.email}</div>
-          </div>
-        );
-      }
-    });
+    return <MemberSection _API_URL={`${SERVER_URL}/api/v1/users/company/team`}
+                          {...this.props} />
+  }
+}
 
-    return (
-      <div className="ovc-board-section">
-        {boardMembers}
-        <div className="ovc-board-card add" onClick={this.addCard}>
-          <i className="ion-ios-plus-empty" />
-        </div>
-      </div>
-    );
+class BoardSection extends React.Component {
+  render() {
+    return <MemberSection _API_URL={`${SERVER_URL}/api/v1/users/company/board`}
+                          {...this.props} />
   }
 }
 
@@ -610,7 +484,7 @@ class FounderCompanyPage extends React.Component {
         <h3>Team</h3>
         <TeamSection _USER_TYPE={this._USER_TYPE} />
         <h3>Board</h3>
-        <BoardSection />
+        <BoardSection _USER_TYPE={this._USER_TYPE} />
         <h3>Investors</h3>
         <InvestorSection />
         <h3>Investments</h3>

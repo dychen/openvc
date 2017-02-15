@@ -10,13 +10,13 @@
   padding-bottom: 20px;
 }
 
-.ovc-team-section {
+.ovc-member-section {
   display: flex;
   justify-content: flex-start;
   align-items: center;
   flex-wrap: wrap;
 
-  .ovc-team-card {
+  .ovc-member-card {
     display: inline-block;
     height: 200px;
     width: 150px;
@@ -27,7 +27,7 @@
     @include hvr-shadow($OVC_DARK_GRAY);
   }
 
-  .ovc-team-card.item {
+  .ovc-member-card.item {
     display: flex;
     justify-content: flex-start;
     align-items: center;
@@ -40,7 +40,7 @@
       margin-bottom: 5px;
     }
 
-    i.remove-team-member {
+    i.remove-member {
       position: absolute;
       left: 10px;
       top: 5px;
@@ -48,7 +48,7 @@
 
       @include hvr-color($OVC_GRAY);
     }
-    i.edit-team-member {
+    i.edit-member {
       position: absolute;
       right: 10px;
       top: 5px;
@@ -58,7 +58,7 @@
     }
   }
 
-  .ovc-team-card.edit {
+  .ovc-member-card.edit {
     input {
       width: 130px;
       height: 25px;
@@ -96,89 +96,7 @@
     }
   }
 
-  .ovc-team-card.add {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    i {
-      font-size: 4em;
-    }
-  }
-}
-
-.ovc-board-section {
-
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  flex-wrap: wrap;
-
-  .ovc-board-card {
-    display: inline-block;
-    height: 220px;
-    width: 150px;
-    padding: 10px;
-    margin: 5px;
-    box-shadow: 0 1px 3px 0 $OVC_GRAY;
-
-    @include hvr-shadow($OVC_DARK_GRAY);
-  }
-
-  .ovc-board-card.item {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    flex-direction: column;
-
-    img {
-      width: 100px;
-      height: 100px;
-      border-radius: 50px;
-      margin-bottom: 5px;
-    }
-  }
-
-  .ovc-board-card.edit {
-    input {
-      width: 130px;
-      height: 25px;
-      color: $OVC_DARK_GRAY;
-
-      font-size: 0.8em;
-      padding: 5px;
-      margin-bottom: 2px; // This is the only value in the edit section that's
-                          // different from .ovc-team-card.edit
-      border: 1px $OVC_GRAY solid;
-      border-radius: 5px;
-    }
-    input:focus {
-      outline: none;
-    }
-
-    i {
-      font-size: 35px;
-      color: $OVC_GRAY;
-
-      @include hvr-color($OVC_DARK_GRAY);
-    }
-
-    i.cancel {
-      position: absolute;
-      left: 0;
-      bottom: 0;
-      margin-left: 10px;
-    }
-
-    i.save {
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      margin-right: 10px;
-    }
-  }
-
-  .ovc-board-card.add {
+  .ovc-member-card.add {
     display: flex;
     justify-content: center;
     align-items: center;

@@ -210,10 +210,26 @@ class Company(models.Model):
             'end_date', 'start_date', 'person_id'
         )
 
+    def get_board(self, **kwargs):
+        # Distinct on person id, sorted by end date and start date
+        return self.board_members.filter(**kwargs).order_by(
+            'person__first_name', 'person__last_name',
+            'end_date', 'start_date', 'person_id'
+        ).distinct(
+            'person__first_name', 'person__last_name',
+            'end_date', 'start_date', 'person_id'
+        )
+
     def get_api_team(self, current=True):
         return [
             employee.person.get_api_format()
             for employee in self.get_employees(current=current)
+        ]
+
+    def get_api_board(self, current=True):
+        return [
+            board_member.person.get_api_format()
+            for board_member in self.get_board()
         ]
 
 class CompanyTag(models.Model):
@@ -309,6 +325,92 @@ class Employment(models.Model):
         self.save()
         return self
 
+class BoardMember(models.Model):
+    person     = models.ForeignKey(Person, related_name='board_members')
+    company    = models.ForeignKey(Company, related_name='board_members')
+    location   = models.TextField(null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    end_date   = models.DateField(null=True, blank=True)
+    current    = models.NullBooleanField(default=True)
+    notes      = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return u'%s %s' % (self.person, self.company)
+
+    def get_api_format(self):
+        latest_employment = self.get_latest_employment()
+        if latest_employment:
+            (company, title) = (latest_employment.company.name,
+                                latest_employment.title)
+        else:
+            (company, title) = (None, None)
+
+        return {
+            'id': self.id,
+            'company': company,
+            'title': title,
+            'location': self.location,
+            'startDate': self.start_date,
+            'endDate': self.end_date,
+            'notes': self.notes,
+        }
+
+    @classmethod
+    def create_from_api(cls, person, request_json):
+        """
+        Expected request body:
+        {
+            'company': [required] [str],
+            'location': [str],
+            'startDate': [str],
+            'endDate': [str],
+            'notes': [str]
+        }
+        """
+        company, _ = Company.objects.get_or_create(
+            name=request_json.get('company')
+        )
+
+        board_member_dict = {}
+        if request_json.get('location'):
+            board_member_dict['location'] = request_json.get('location')
+        if request_json.get('startDate'):
+            board_member_dict['start_date'] = parse_date(request_json.get('startDate'))
+        if request_json.get('endDate'):
+            board_member_dict['end_date'] = parse_date(request_json.get('endDate'))
+        if request_json.get('notes'):
+            board_member_dict['notes'] = request_json.get('notes')
+        return BoardMember.objects.create(person=person, company=company,
+                                          **board_member_dict)
+
+    def update_from_api(self, request_json):
+        """
+        Expected request body:
+        {
+            'company': [str],
+            'location': [str],
+            'startDate': [str],
+            'endDate': [str],
+            'notes': [str]
+        }
+        """
+        if request_json.get('company'):
+            company, _ = Company.objects.get_or_create(
+                name=request_json.get('company')
+            )
+            self.company = company
+        if request_json.get('location'):
+            self.location = request_json.get('location')
+        if request_json.get('startDate'):
+            self.start_date = parse_date(request_json.get('startDate'))
+        if request_json.get('endDate'):
+            self.end_date = parse_date(request_json.get('endDate'))
+        if request_json.get('notes'):
+            self.notes = request_json.get('notes')
+        self.save()
+        return self
 
 class Investment(models.Model):
     company    = models.ForeignKey(Company, related_name='investments')

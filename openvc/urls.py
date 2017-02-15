@@ -35,6 +35,9 @@ urlpatterns = [
     url(r'^api/v1/users/company/team$', user_views.CompanyTeam.as_view()),
     url(r'^api/v1/users/company/team/(?P<id>[0-9]+)$',
         user_views.CompanyTeam.as_view()),
+    url(r'^api/v1/users/company/board$', user_views.CompanyBoard.as_view()),
+    url(r'^api/v1/users/company/board/(?P<id>[0-9]+)$',
+        user_views.CompanyBoard.as_view()),
 
     # Contacts API
     url(r'^api/v1/contacts/self$', contact_views.UserContacts.as_view()),

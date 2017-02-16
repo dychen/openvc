@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from users.models import User, Account, UserAccount
-from data.models import Company, Person, Employment, BoardMember
+from data.models import Company, Person, Employment, BoardMember, Investment
 from shared.auth import check_authentication
 from shared.utils import parse_date
 
@@ -401,6 +401,118 @@ class CompanyBoard(APIView):
                                                       company=company)
                                               .delete())
             return Response({ 'id': person_id }, status=status.HTTP_200_OK)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (Person.DoesNotExist, Employment.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+class CompanyInvestments(APIView):
+
+    authentication_classes = (TokenAuthentication,)
+
+    # GET /users/company/investments
+    def get(self, request, format=None):
+        try:
+            user = check_authentication(request)
+            company = user.get_active_account().company
+            return Response(company.get_api_investments(),
+                            status=status.HTTP_200_OK)
+
+        except (UserAccount.MultipleObjectsReturned,
+                UserAccount.DoesNotExist,
+                Account.DoesNotExist,
+                Company.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # POST /users/company/investments
+    def __post_create(self, request, format=None):
+        """
+        Expected request body:
+        {
+            'series': [required] [str],
+            'date': [datetime.date],
+            'preMoney': [float],
+            'raised': [float],
+            'postMoney': [float],
+            'sharePrice': [float]
+        }
+        """
+        def validate(request_json):
+            if not (request_json.get('series')):
+                raise ValidationError('Series name is required.')
+            return request_json
+
+        try:
+            user = check_authentication(request)
+            request_json = validate(json.loads(request.body))
+            company = user.get_active_account().company
+            investment = Investment.create_from_api(company, request_json)
+            return Response(investment.get_api_format(),
+                            status=status.HTTP_201_CREATED)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (UserAccount.MultipleObjectsReturned,
+                UserAccount.DoesNotExist,
+                Account.DoesNotExist,
+                Company.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # POST /users/company/investments/:id
+    def __post_update(self, request, investment_id, format=None):
+        """
+        Expected request body:
+        {
+            'series': [str],
+            'date': [datetime.date],
+            'preMoney': [float],
+            'raised': [float],
+            'postMoney': [float],
+            'sharePrice': [float]
+        }
+        """
+        try:
+            user = check_authentication(request)
+            request_json = json.loads(request.body)
+            investment = Investment.objects.get(id=investment_id)
+            print investment
+            investment = investment.update_from_api(request_json)
+            print investment_id, investment, investment.get_api_format()
+
+            return Response(investment.get_api_format(),
+                            status=status.HTTP_200_OK)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (UserAccount.MultipleObjectsReturned,
+                UserAccount.DoesNotExist,
+                Account.DoesNotExist,
+                Company.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, id=None, format=None):
+        if id:
+            return self.__post_update(request, id, format=format)
+        else:
+            return self.__post_create(request, format=format)
+
+    # DELETE /users/company/investments/:id
+    def delete(self, request, id=None, format=None):
+        try:
+            user = check_authentication(request)
+            company = user.get_active_account().company
+            investment_id = int(id)
+            investment = Investment.objects.get(id=investment_id)
+            investment.delete()
+            return Response({ 'id': investment_id }, status=status.HTTP_200_OK)
 
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },

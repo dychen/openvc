@@ -220,6 +220,11 @@ class Company(models.Model):
             'end_date', 'start_date', 'person_id'
         )
 
+    def get_investments(self, **kwargs):
+        return self.investments.filter(**kwargs).order_by(
+            'date', 'series'
+        )
+
     def get_api_team(self, current=True):
         return [
             employee.person.get_api_format()
@@ -230,6 +235,12 @@ class Company(models.Model):
         return [
             board_member.person.get_api_format()
             for board_member in self.get_board()
+        ]
+
+    def get_api_investments(self):
+        return [
+            investment.get_api_format()
+            for investment in self.get_investments()
         ]
 
 class CompanyTag(models.Model):
@@ -251,7 +262,7 @@ class Employment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'%s %s' % (self.person, self.company)
+        return u'%s %s' % (unicode(self.person), unicode(self.company))
 
     def get_api_format(self):
         return {
@@ -337,7 +348,7 @@ class BoardMember(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'%s %s' % (self.person, self.company)
+        return u'%s %s' % (unicode(self.person), unicode(self.company))
 
     def get_api_format(self):
         latest_employment = self.get_latest_employment()
@@ -422,11 +433,93 @@ class Investment(models.Model):
                                      null=True, blank=True)
     post_money = models.DecimalField(max_digits=24, decimal_places=6,
                                      null=True, blank=True)
+    share_price         = models.DecimalField(max_digits=24, decimal_places=6,
+                                              null=True, blank=True)
+    preference_multiple = models.FloatField(null=True, blank=True)
+    preference_dollars  = models.DecimalField(max_digits=24, decimal_places=6,
+                                              null=True, blank=True)
+    conversion_ratio    = models.FloatField(null=True, blank=True)
+    seniority           = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ('company', 'series')
+
+    def __unicode__(self):
+        return u'%s %s' % (unicode(self.company), self.series)
+
+    def get_api_format(self):
+        return {
+            'id': self.id,
+            'company': self.company.name,
+            'series': self.series,
+            'date': self.date,
+            'preMoney': self.pre_money,
+            'raised': self.raised,
+            'postMoney': self.post_money,
+            'sharePrice': self.share_price,
+        }
+
+    @classmethod
+    def create_from_api(cls, company, request_json):
+        """
+        Expected request body:
+        {
+            'series': [required] [str],
+            'date': [datetime.date],
+            'preMoney': [float],
+            'raised': [float],
+            'postMoney': [float],
+            'sharePrice': [float]
+        }
+        """
+        # Should not get to "No Series Name" because of validation
+        series = request_json.get('series') or 'No Series Name'
+
+        investment_dict = {}
+        if request_json.get('date'):
+            investment_dict['date'] = parse_date(request_json.get('date'))
+        if request_json.get('preMoney'):
+            investment_dict['pre_money'] = request_json.get('preMoney')
+        if request_json.get('raised'):
+            investment_dict['raised'] = request_json.get('raised')
+        if request_json.get('postMoney'):
+            investment_dict['post_money'] = request_json.get('postMoney')
+        if request_json.get('sharePrice'):
+            investment_dict['share_price'] = request_json.get('sharePrice')
+        investment, _ = Investment.objects.update_or_create(
+            company=company, series=series, defaults=investment_dict
+        )
+        return investment
+
+    def update_from_api(self, request_json):
+        """
+        Expected request body:
+        {
+            'series': [str],
+            'date': [datetime.date],
+            'preMoney': [float],
+            'raised': [float],
+            'postMoney': [float],
+            'sharePrice': [float]
+        }
+        """
+        if request_json.get('series'):
+            self.series = request_json.get('series')
+        if request_json.get('date'):
+            self.date = parse_date(request_json.get('date'))
+        if request_json.get('preMoney'):
+            self.pre_money = request_json.get('preMoney')
+        if request_json.get('raised'):
+            self.raised = request_json.get('raised')
+        if request_json.get('postMoney'):
+            self.post_money = request_json.get('postMoney')
+        if request_json.get('sharePrice'):
+            self.share_price = request_json.get('sharePrice')
+        self.save()
+        # TODO: Catch duplicate series name error
+        return self
 
 class InvestorInvestment(models.Model):
     investment = models.ForeignKey(Investment,

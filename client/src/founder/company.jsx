@@ -4,13 +4,14 @@ import {hashHistory} from 'react-router';
 import {authFetch, preprocessJSON} from '../utils/api.js';
 
 import CreatePersonModal from '../components/modals/person.jsx';
+import EditTable from '../components/edittable.jsx';
 
 import './company.scss';
 
 /*
  * props:
- *   _API_URL [string]: Backend API endpoint to hit.
- *   _USER_TYPE [string]: 'founder' or 'investor', depending on user role.
+ *   API_URL [string]: Backend API endpoint to hit.
+ *   USER_TYPE [string]: 'founder' or 'investor', depending on user role.
  */
 class MemberSection extends React.Component {
   constructor(props) {
@@ -47,7 +48,7 @@ class MemberSection extends React.Component {
   }
 
   _goToContactPage(e) {
-    const linkUrl = '/' + this.props._USER_TYPE + '/contacts/' + e.currentTarget.id;
+    const linkUrl = '/' + this.props.USER_TYPE + '/contacts/' + e.currentTarget.id;
     hashHistory.push(linkUrl);
   }
 
@@ -139,7 +140,7 @@ class MemberSection extends React.Component {
    */
 
   getMemberList() {
-    authFetch(this.props._API_URL)
+    authFetch(this.props.API_URL)
       .then(function(response) {
         if (response.ok) {
           return response.json();
@@ -162,7 +163,7 @@ class MemberSection extends React.Component {
   }
 
   createMember(member) {
-    authFetch(this.props._API_URL, {
+    authFetch(this.props.API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -197,7 +198,7 @@ class MemberSection extends React.Component {
   }
 
   updateMember(memberId, member) {
-    authFetch(`${this.props._API_URL}/${memberId}`, {
+    authFetch(`${this.props.API_URL}/${memberId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -235,7 +236,7 @@ class MemberSection extends React.Component {
   }
 
   deleteMember(memberId) {
-    authFetch(`${this.props._API_URL}/${memberId}`, {
+    authFetch(`${this.props.API_URL}/${memberId}`, {
       method: 'DELETE'
     })
     .then(function(response) {
@@ -327,144 +328,38 @@ class MemberSection extends React.Component {
 
 class TeamSection extends React.Component {
   render() {
-    return <MemberSection _API_URL={`${SERVER_URL}/api/v1/users/company/team`}
+    return <MemberSection API_URL={`${SERVER_URL}/api/v1/users/company/team`}
                           {...this.props} />
   }
 }
 
 class BoardSection extends React.Component {
   render() {
-    return <MemberSection _API_URL={`${SERVER_URL}/api/v1/users/company/board`}
+    return <MemberSection API_URL={`${SERVER_URL}/api/v1/users/company/board`}
                           {...this.props} />
   }
 }
 
-class InvestorSection extends React.Component {
+class InvestmentSection extends React.Component {
   constructor(props) {
     super(props);
 
-    // TODO: Load this from the server
-    this.state = {
-      'investors': []
+    this.FIELDS = ['series', 'date', 'preMoney', 'raised', 'postMoney',
+                   'sharePrice'];
+    this.FIELD_DISPLAY_MAP = {
+      series: 'Round',
+      date: 'Date',
+      preMoney: 'Pre Money Val',
+      raised: 'Amount Raised',
+      postMoney: 'Post Money Val',
+      sharePrice: 'Price Per Share'
     };
-
-    this.editCard = this.editCard.bind(this);
-    this.handleFieldChange = this.handleFieldChange.bind(this);
-    this.saveCard = this.saveCard.bind(this);
-    this.addCard = this.addCard.bind(this);
-    this.removeCard = this.removeCard.bind(this);
-
-    fetch('/data/founder/company/investors.json').then(function(response) {
-      return response.json();
-    }).then(json => {
-      this.setState({ 'investors': json });
-    }); // TODO: Handle errors
   }
-
-  editCard(e) {
-    const memberIdx = Number(e.currentTarget.id);
-    const newState = Immutable.fromJS(this.state)
-      .update('investors', investors =>
-        investors.map((investor, index) => {
-          if (index === memberIdx)
-            return investor.update('editing', value => true);
-          else
-            return investor.update('editing', value => false);
-        })
-      )
-    this.setState(newState.toJS());
-  }
-
-  handleFieldChange(e) {
-    const memberIdx = Number(e.currentTarget.id);
-    const fieldName = e.target.name;
-    const fieldValue = e.target.value;
-    const newState = Immutable.fromJS(this.state)
-      .updateIn(['investors', memberIdx, fieldName], value => fieldValue);
-    this.setState(newState.toJS());
-  }
-
-  saveCard(e) {
-    const memberIdx = Number(e.currentTarget.id);
-    const newState = Immutable.fromJS(this.state)
-      .updateIn(['investors', memberIdx, 'editing'], value => false);
-    this.setState(newState.toJS());
-  }
-
-  addCard(e) {
-    /* Get user out of edit mode for existing cards */
-    const newState = Immutable.fromJS(this.state)
-      .update('investors', investors =>
-        investors.map((investor, index) => {
-          return investor.update('editing', value => false);
-        })
-      );
-    const appendedState = newState.update('investors', investors =>
-      investors.push({
-        "name": "",
-        "round": "",
-        "amount": "",
-        "photoUrl": "",
-        "editing": true
-      })
-    );
-    this.setState(appendedState.toJS());
-  }
-
-  removeCard(e) {
-    const memberIdx = Number(e.currentTarget.id);
-    const newState = Immutable.fromJS(this.state)
-      .get('investors').filter((investors, index) =>
-        index !== memberIdx
-      );
-    this.setState({ investors: newState.toJS() });
-  }
-
   render() {
-    const investors = this.state.investors.map((investor, index) => {
-      if (investor.editing) {
-        return (
-          <div className="ovc-investor-card edit" key={index}>
-            <input type="text" name="name" id={index}
-                   value={investor.name} onChange={this.handleFieldChange}
-                   placeholder="Name, e.g. MyCapital" />
-            <input type="text" name="round" id={index}
-                   value={investor.round} onChange={this.handleFieldChange}
-                   placeholder="Round, e.g. Series A" />
-            <input type="text" name="amount" id={index}
-                   value={investor.amount} onChange={this.handleFieldChange}
-                   placeholder="Amount, e.g. 12000000" />
-            <input type="text" name="photoUrl" id={index}
-                   value={investor.photoUrl} onChange={this.handleFieldChange}
-                   placeholder="Image URL, http://..." />
-            <i className="ion-ios-close-outline cancel" id={index}
-                 onClick={this.removeCard} />
-            <i className="ion-ios-checkmark-outline save" id={index}
-                 onClick={this.saveCard} />
-          </div>
-        );
-      }
-      else {
-        return (
-          <div className="ovc-investor-card item" key={index} id={index}
-               onClick={this.editCard}>
-            <img src={investor.photoUrl} />
-            <div>{investor.name}</div>
-            <div>{investor.round}</div>
-            <div>{investor.amount}</div>
-          </div>
-        );
-      }
-    });
-
-    return (
-      <div className="ovc-investor-section">
-        {investors}
-        <div className="ovc-investor-card add" onClick={this.addCard}>
-          <i className="ion-ios-plus-empty" />
-        </div>
-      </div>
-    );
+    return <EditTable API_URL={`${SERVER_URL}/api/v1/users/company/investments`}
+                      FIELDS={this.FIELDS}
+                      FIELD_DISPLAY_MAP={this.FIELD_DISPLAY_MAP}
+                      {...this.props} />
   }
 }
 
@@ -473,7 +368,7 @@ class FounderCompanyPage extends React.Component {
     super(props);
 
     // TODO: Refactor this
-    this._USER_TYPE = (
+    this.USER_TYPE = (
       this.props.location.pathname.includes('investor') ? 'investor' : 'founder'
     );
   }
@@ -482,11 +377,12 @@ class FounderCompanyPage extends React.Component {
     return (
       <div className="ovc-founder-company-container">
         <h3>Team</h3>
-        <TeamSection _USER_TYPE={this._USER_TYPE} />
+        <TeamSection USER_TYPE={this.USER_TYPE} />
         <h3>Board</h3>
-        <BoardSection _USER_TYPE={this._USER_TYPE} />
+        <BoardSection USER_TYPE={this.USER_TYPE} />
+        <h3>Investments</h3>
+        <InvestmentSection />
         <h3>Investors</h3>
-        <InvestorSection />
         <h3>Investments</h3>
         <h3>Pitch Decks</h3>
         <h3>KPIs</h3>

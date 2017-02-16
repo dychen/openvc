@@ -1,0 +1,22 @@
+@import '../mixins';
+@import '../constants.scss';
+
+span.ovc-edit-field {
+  @include hvr-color($OVC_LIGHT_GRAY);
+}
+input.ovc-edit-field, textarea.ovc-edit-field {
+  border: 1px solid $OVC_GRAY;
+  border-radius: 5px;
+  padding: 5px;
+  font-size: 0.9em;
+}
+textarea.ovc-edit-field {
+  min-height: 200px;
+  min-width: 400px;
+  resize: none;
+}
+.ovc-edit-field-photo {
+  margin: 5px;
+  width: 300px;
+}
+

@@ -21,6 +21,46 @@ const preprocessJSON = function(json) {
   }
 };
 
+/*
+ * Return a new JSON object with all values converted to objects with the
+ * following format: {
+ *   value: [value],     // The original value of the field
+ *   editValue: [value], // The editing value of the field
+ *   editing: false // Whether or not the field is currently being updated
+ * }
+ * Does not update id fields in this way.
+ *
+ * Args:
+ *   json [Object]: JSON object to convert.
+ *   fieldKey [string]: [Optional] Object key in the previous level of the
+ *                                 recursion.
+ */
+const transformEditJSON = function(json, fieldKey) {
+  if (Array.isArray(json)) {
+    return json.map(v => transformEditJSON(v));
+  }
+  else if (json instanceof Object) {
+    let newJSON = {};
+    for (let key in json) {
+      newJSON[key] = transformEditJSON(json[key], key);
+    }
+    return newJSON;
+  }
+  else {
+    const value = (json === undefined || json === null) ? '' : json;
+    if (fieldKey !== 'id') {
+      return {
+        value: value,
+        editValue: value,
+        editing: false
+      };
+    }
+    else {
+      return value;
+    }
+  }
+}
+
 const authFetch = function(url, options) {
   options = options || {};
   options.headers = options.headers || {};
@@ -33,5 +73,5 @@ const authFetch = function(url, options) {
   return fetch(url, options);
 };
 
-export {authFetch, preprocessJSON};
+export {authFetch, preprocessJSON, transformEditJSON};
 

@@ -2,6 +2,7 @@ import React from 'react';
 import Immutable from 'immutable';
 import {hashHistory} from 'react-router';
 import {authFetch, preprocessJSON} from '../utils/api.js';
+import moment from 'moment';
 
 import CreatePersonModal from '../components/modals/person.jsx';
 import EditTable from '../components/edittable.jsx';
@@ -361,27 +362,33 @@ class InvestmentSection extends React.Component {
     this.FIELD_MAP = {
       series: {
         display: 'Round',
-        type: 'string'
+        type: 'string',
+        required: true
       },
       date: {
         display: 'Date',
-        type: 'date'
+        type: 'date',
+        required: false
       },
       preMoney: {
         display: 'Pre Money Val',
-        type: 'money'
+        type: 'money',
+        required: false
       },
       raised: {
         display: 'Amount Raised',
-        type: 'money'
+        type: 'money',
+        required: false
       },
       postMoney: {
         display: 'Post Money Val',
-        type: 'money'
+        type: 'money',
+        required: false
       },
       sharePrice: {
         display: 'Price Per Share',
-        type: 'money'
+        type: 'money',
+        required: false
       }
     };
   }
@@ -389,6 +396,50 @@ class InvestmentSection extends React.Component {
     return (
       <div className="ovc-edit-table-container">
         <EditTable API_URL={`${SERVER_URL}/api/v1/users/company/investments`}
+                   FIELDS={this.FIELDS}
+                   FIELD_MAP={this.FIELD_MAP}
+                   {...this.props} />
+      </div>
+    );
+  }
+}
+
+class MetricsSection extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this._NUM_QUARTERS = 9;
+    this._QUARTERS_LIST = this.getQuarterList();
+
+    this.FIELDS = ['metric'].concat(this._QUARTERS_LIST.map((quarter) =>
+      quarter.format('YYYY[-]MM[-]DD'))
+    );
+    this.FIELD_MAP = {
+      metric: {
+        display: 'Metric',
+        type: 'string',
+        required: true
+      }
+    };
+    this._QUARTERS_LIST.map((quarter) => {
+      this.FIELD_MAP[quarter.format('YYYY[-]MM[-]DD')] = {
+        display: quarter.format('[Q]Q YYYY'),
+        type: 'money',
+        required: false
+      }
+    });
+  }
+
+  getQuarterList() {
+    return Array.from(Array(this._NUM_QUARTERS).keys()).map((i) =>
+      moment().endOf('quarter').subtract(i, 'quarters')
+    ).reverse();
+  }
+
+  render() {
+    return (
+      <div className="ovc-edit-table-container">
+        <EditTable API_URL={`${SERVER_URL}/api/v1/users/company/metrics/row`}
                    FIELDS={this.FIELDS}
                    FIELD_MAP={this.FIELD_MAP}
                    {...this.props} />
@@ -417,8 +468,9 @@ class FounderCompanyPage extends React.Component {
         <h3>Investments</h3>
         <InvestmentSection />
         <h3>Investors</h3>
-        <h3>Pitch Decks</h3>
         <h3>KPIs</h3>
+        <MetricsSection />
+        <h3>Pitch Decks</h3>
         <h3>Customers</h3>
         <h3>Documents</h3>
       </div>

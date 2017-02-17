@@ -109,15 +109,19 @@ class EditTable extends React.Component {
    * Args:
    *   obj [Object]: Edit JSON object in the format:
    *   {
-   *     key: { value: [string], editValue: [string], editing: [boolean] }
+   *     key: {
+   *       value: [string/number],
+   *       editValue: [string/number],
+   *       editing: [boolean]
+   *     }
    *   }
    * Return:
-   *   [Object]: { key: editValue }
+   *   [Object]: { key: [string] editValue }
    */
   _getRowValuesObject(obj) {
     let valuesObj = { id: obj.id };
     this.props.FIELDS.forEach((field) => {
-      valuesObj[field] = obj[field].editValue;
+      valuesObj[field] = obj[field].editValue.toString().trim();
     });
     return valuesObj;
   }
@@ -149,13 +153,22 @@ class EditTable extends React.Component {
   }
 
   handleCreateEntity(field, value, entityId) {
-    const trimmedSeriesValue = this.state.newRow.series.editValue.trim();
-    if (trimmedSeriesValue !== '') {
+    // Return an array whose length is the number of required fields that are
+    // empty.
+    const missingRequiredFields = Object.keys(this.props.FIELD_MAP).filter(key => {
+      if (this.props.FIELD_MAP[key].required === true)
+        return this.state.newRow[key].editValue.trim() === '';
+      return false;
+    });
+    if (missingRequiredFields.length === 0) {
       this.createEntity(this._getRowValuesObject(this.state.newRow));
       this.setState({
         addRow: false,
         newRow: this._NEW_ROW_INITIAL
       });
+    }
+    else {
+      this._cancelEdits();
     }
   }
 

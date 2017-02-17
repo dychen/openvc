@@ -423,6 +423,82 @@ class BoardMember(models.Model):
         self.save()
         return self
 
+class Metric(models.Model):
+    company    = models.ForeignKey(Company, related_name='metrics')
+    name       = models.TextField()
+    date       = models.DateField()
+    interval   = models.TextField(default='Quarter', null=True, blank=True)
+    estimated  = models.NullBooleanField(default=False)
+    value      = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('company', 'name', 'date', 'interval', 'estimated')
+
+    def __unicode__(self):
+        return '%s %s %s' % (unicode(self.company), self.name, self.date)
+
+    def get_api_format(self):
+        return {
+            'id': self.id,
+            'company': self.company.name,
+            'name': self.series,
+            'date': self.date,
+            'interval': self.interval,
+            'estimated': self.estimated,
+            'value': self.value,
+        }
+
+    @classmethod
+    def create_from_api(cls, company, request_json):
+        """
+        Expected request body:
+        {
+            'name': [required] [str],
+            'date': [datetime.date],
+            'interval': [string],
+            'estimated': [boolean],
+            'value': [float]
+        }
+        """
+        metric_dict = { company: company }
+        if request_json.get('date'):
+            metric_dict['date'] = parse_date(request_json.get('date'))
+        if request_json.get('interval'):
+            metric_dict['interval'] = request_json.get('interval')
+        if request_json.get('estimated'):
+            metric_dict['estimated'] = request_json.get('estimated')
+        if request_json.get('value'):
+            metric_dict['value'] = request_json.get('value')
+        metric = Metric.objects.create(**metric_dict)
+        return metric
+
+    def update_from_api(self, request_json):
+        """
+        Expected request body:
+        {
+            'name': [required] [str],
+            'date': [datetime.date],
+            'interval': [string],
+            'estimated': [boolean],
+            'value': [float]
+        }
+        """
+        if request_json.get('name'):
+            self.name = request_json.get('name')
+        if request_json.get('date'):
+            self.date = parse_date(request_json.get('date'))
+        if request_json.get('interval'):
+            self.interval = request_json.get('interval')
+        if request_json.get('estimated'):
+            self.estimated = request_json.get('estimated')
+        if request_json.get('value'):
+            self.value = request_json.get('value')
+        self.save()
+        # TODO: Catch duplicate series name error
+        return self
+
 class Investment(models.Model):
     company    = models.ForeignKey(Company, related_name='investments')
     series     = models.CharField(max_length=25)

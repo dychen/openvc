@@ -35,9 +35,10 @@ class EditField extends React.Component {
     this.updateInput = this.updateInput.bind(this);
     this.saveInput = this.saveInput.bind(this);
 
-    this.filterInputValue = this.createFilter(this.props.fieldType);
-    this.unfilterInputValue = this.createReverseFilter(this.props.fieldType);
+    this.filterInputValue = this.createInputFilter(this.props.fieldType);
+    this.unfilterInputValue = this.createReverseInputFilter(this.props.fieldType);
     this.filterDisplayValue = this.createDisplayFilter(this.props.fieldType);
+    this.unfilterDisplayValue = this.createReverseDisplayFilter(this.props.fieldType);
   }
 
   _stopPropagation(e) {
@@ -52,7 +53,8 @@ class EditField extends React.Component {
 
   updateInput(e) {
     // this.props.id is passed for nested fields but is undefined for others
-    this.props.updateInput(this.props.field, e.currentTarget.value,
+    this.props.updateInput(this.props.field,
+                           this.unfilterInputValue(e.currentTarget.value),
                            this.props.id);
   }
 
@@ -63,12 +65,20 @@ class EditField extends React.Component {
     if (e.key === 'Enter' && trimmedValue !== '' && !e.shiftKey) {
       // this.props.id is passed for nested fields but is undefined for others
       this.props.saveInput(this.props.field,
-                           this.unfilterInputValue(trimmedValue),
+                           this.unfilterDisplayValue(trimmedValue),
                            this.props.id);
     }
   }
 
-  createFilter(fieldType) {
+  /*
+   * Filter logic
+   * 1. Always filter/unfilter numbers (underlying representation should never
+   *    see the numeric display format)
+   * 2. Only filter/unfilter dates when switching between input/display modes
+   *    (only try to convert dates after user is done inputting the date)
+   */
+
+  createInputFilter(fieldType) {
     switch (fieldType) {
       case 'money':
         numeral.zeroFormat('-');
@@ -81,12 +91,12 @@ class EditField extends React.Component {
     }
   }
 
-  createReverseFilter(fieldType) {
+  createReverseInputFilter(fieldType) {
     switch (fieldType) {
       case 'money':
         return ((value) => numeral(value).value());
       case 'date':
-        return ((value) => moment(value)); // Ensure it's a date
+        return ((value) => value);
       // #nofilter
       default:
         return ((value) => value);
@@ -106,6 +116,18 @@ class EditField extends React.Component {
           else
             return value; // Allow null/empty values and placeholder values
         });
+      // #nofilter
+      default:
+        return ((value) => value);
+    }
+  }
+
+  createReverseDisplayFilter(fieldType) {
+    switch (fieldType) {
+      case 'money':
+        return ((value) => numeral(value).value());
+      case 'date':
+        return ((value) => moment(value)); // Ensure it's a date
       // #nofilter
       default:
         return ((value) => value);

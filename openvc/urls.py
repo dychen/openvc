@@ -42,6 +42,8 @@ urlpatterns = [
         user_views.CompanyInvestments.as_view()),
     url(r'^api/v1/users/company/investments/(?P<id>[0-9]+)$',
         user_views.CompanyInvestments.as_view()),
+    url(r'^api/v1/users/company/metrics/row$',
+        user_views.CompanyMetricsRow.as_view()),
 
     # Contacts API
     url(r'^api/v1/contacts/self$', contact_views.UserContacts.as_view()),

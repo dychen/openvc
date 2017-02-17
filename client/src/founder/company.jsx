@@ -11,6 +11,8 @@ import './company.scss';
 /*
  * props:
  *   API_URL [string]: Backend API endpoint to hit.
+ *   CREATE_HEADLINE [string]: Modal title.
+ *   UPDATE_HEADLINE [string]: Modal "add existing member" section title.
  *   USER_TYPE [string]: 'founder' or 'investor', depending on user role.
  */
 class MemberSection extends React.Component {
@@ -30,7 +32,6 @@ class MemberSection extends React.Component {
 
     // New member modal handlers
     this.cancelNewMember = this.cancelNewMember.bind(this);
-    this.handleCreateMember = this.handleCreateMember.bind(this);
 
     // Update existing member component handlers
     this.updateInput = this.updateInput.bind(this);
@@ -67,10 +68,6 @@ class MemberSection extends React.Component {
   /*
    * New member modal handlers
    */
-
-  handleCreateMember(person) {
-    this.createMember(person);
-  }
 
   handleDeleteMember(e) {
     e.stopPropagation();
@@ -184,11 +181,10 @@ class MemberSection extends React.Component {
     .then(json => {
       // Success
       json = preprocessJSON(json);
-      const newMemberState = Immutable.fromJS(this.state)
+      const newState = Immutable.fromJS(this.state)
         .update('members', members => members.push(json));
-      const newModalState = newMemberState.set('modalVisible', false);
 
-      this.setState(newModalState.toJS());
+      this.setState(newState.toJS());
     })
     .catch(err => {
       // Failure
@@ -224,9 +220,18 @@ class MemberSection extends React.Component {
         member.id === json.id
       );
 
-      const newState = Immutable.fromJS(this.state)
-        .setIn(['members', memberIdx], json);
-      this.setState(newState.toJS());
+      // If an existing member was updated
+      if (memberIdx > -1) {
+        const newState = Immutable.fromJS(this.state)
+          .setIn(['members', memberIdx], json);
+        this.setState(newState.toJS());
+      }
+      // If an existing contact was added as a member
+      else {
+        const newState = Immutable.fromJS(this.state)
+          .update('members', members => members.push(json));
+        this.setState(newState.toJS());
+      }
     })
     .catch(err => {
       // Failure
@@ -319,8 +324,11 @@ class MemberSection extends React.Component {
           <i className="ion-ios-plus-empty" />
         </div>
         <CreatePersonModal visible={this.state.modalVisible}
+                           CREATE_HEADLINE={this.props.CREATE_HEADLINE}
+                           UPDATE_HEADLINE={this.props.UPDATE_HEADLINE}
                            hideModal={this.cancelNewMember}
-                           createEntity={this.handleCreateMember} />
+                           createEntity={this.createMember}
+                           updateEntity={this.updateMember} />
       </div>
     );
   }
@@ -329,6 +337,8 @@ class MemberSection extends React.Component {
 class TeamSection extends React.Component {
   render() {
     return <MemberSection API_URL={`${SERVER_URL}/api/v1/users/company/team`}
+                          CREATE_HEADLINE="Create a new team member"
+                          UPDATE_HEADLINE="Add existing contact as team member"
                           {...this.props} />
   }
 }
@@ -336,6 +346,8 @@ class TeamSection extends React.Component {
 class BoardSection extends React.Component {
   render() {
     return <MemberSection API_URL={`${SERVER_URL}/api/v1/users/company/board`}
+                          CREATE_HEADLINE="Create a new board member"
+                          UPDATE_HEADLINE="Add existing contact as board member"
                           {...this.props} />
   }
 }
@@ -387,7 +399,6 @@ class FounderCompanyPage extends React.Component {
         <h3>Investments</h3>
         <InvestmentSection />
         <h3>Investors</h3>
-        <h3>Investments</h3>
         <h3>Pitch Decks</h3>
         <h3>KPIs</h3>
         <h3>Customers</h3>

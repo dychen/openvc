@@ -242,14 +242,14 @@ class CompanyTeam(APIView):
             person = Person.objects.get(id=person_id)
             person = person.update_from_api(request_json)
 
-            employment = (Employment.objects
-                                    .filter(person=person, company=company,
-                                            current=True)
-                                    .order_by('end_date', 'start_date')
-                                    .last())
+            employment_dict = {}
             if request_json.get('title'):
-                employment.title = request_json.get('title')
-                employment.save()
+                employment_dict['title'] = request_json.get('title')
+            Employment.objects.update_or_create(
+                person=person, company=company, current=True,
+                defaults=employment_dict
+            )
+
             return Response(person.get_api_format(),
                             status=status.HTTP_200_OK)
 
@@ -367,8 +367,13 @@ class CompanyBoard(APIView):
         try:
             user = check_authentication(request)
             request_json = validate(json.loads(request.body))
+            company = user.get_active_account().company
             person = Person.objects.get(id=person_id)
             person = person.update_from_api(request_json)
+
+            BoardMember.objects.update_or_create(
+                person=person, company=company, current=True
+            )
 
             return Response(person.get_api_format(),
                             status=status.HTTP_200_OK)
@@ -481,9 +486,7 @@ class CompanyInvestments(APIView):
             user = check_authentication(request)
             request_json = json.loads(request.body)
             investment = Investment.objects.get(id=investment_id)
-            print investment
             investment = investment.update_from_api(request_json)
-            print investment_id, investment, investment.get_api_format()
 
             return Response(investment.get_api_format(),
                             status=status.HTTP_200_OK)

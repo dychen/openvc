@@ -61,4 +61,7 @@ urlpatterns = [
     url(r'^api/v1/data/person/(?P<person_id>[0-9]+)/experience/'
          '(?P<employment_id>[0-9]+)$',
         data_views.PersonEmployment.as_view()),
+
+    # Entity resolution API
+    url(r'^api/v1/match/person$', data_views.MatchPerson.as_view()),
 ]

@@ -70,7 +70,16 @@ const authFetch = function(url, options) {
   // Allow cookies to be sent via MDN fetch (and its polyfill).
   // https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials
   // options.credentials = 'include';
-  return fetch(url, options);
+
+  // Handle the 'params' field of options (GET parameters)
+  // From fetch API spec: https://fetch.spec.whatwg.org/#fetch-api
+  let urlObj = new URL(url);
+  if (options && options.params && options.params instanceof Object) {
+    Object.keys(options.params).forEach(key =>
+      urlObj.searchParams.append(key, options.params[key])
+    );
+  }
+  return fetch(urlObj, options);
 };
 
 export {authFetch, preprocessJSON, transformEditJSON};

@@ -2,9 +2,13 @@
 @import '../../constants.scss';
 @import '../../modal.scss';
 
-$CREATE_CONTACT_PANEL_HEIGHT: 120px;
+$FONT_SIZE_HEADER: 1.5em;
+$FONT_WEIGHT_HEADER: 900;
+$CREATE_CONTACT_PANEL_HEIGHT: 80px;
+$MATCH_LIST_HEIGHT: 200px;
 
 .ovc-modal.create-person-modal {
+  max-height: 700px;
   display: flex;
   flex-direction: column;
 
@@ -27,8 +31,8 @@ $CREATE_CONTACT_PANEL_HEIGHT: 120px;
 }
 
 .create-person-modal-header {
-  font-size: 1.5em;
-  font-weight: 900;
+  font-size: $FONT_SIZE_HEADER;
+  font-weight: $FONT_WEIGHT_HEADER;
   background-color: $OVC_SUBNAV_GRAY;
 
   display: flex;
@@ -67,7 +71,17 @@ $CREATE_CONTACT_PANEL_HEIGHT: 120px;
       justify-content: flex-start;
       align-items: flex-start;
       flex-direction: column;
+
+      .person-text-row {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        flex-direction: row;
+      }
     }
+  }
+  .create-person-display-panel.hover-panel {
+    @include hvr-shadow($OVC_DARK_GRAY);
   }
 
   .create-person-input-section {
@@ -88,6 +102,20 @@ $CREATE_CONTACT_PANEL_HEIGHT: 120px;
         border: 1px solid $OVC_GRAY;
         border-radius: 5px;
       }
+    }
+  }
+
+  .create-person-match-container {
+    .create-person-match-header {
+      width: 100%;
+      text-align: center;
+      font-size: $FONT_SIZE_HEADER;
+      font-weight: $FONT_WEIGHT_HEADER;
+    }
+    .create-person-match-list {
+      max-height: $MATCH_LIST_HEIGHT;
+      overflow-y: scroll;
+      padding: 5px;
     }
   }
 }

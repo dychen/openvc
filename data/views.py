@@ -7,8 +7,39 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from data.models import Company, Person, Employment
+from data.entity import match_person
 from shared.auth import check_authentication
 
+
+class MatchPerson(APIView):
+
+    authentication_classes = (TokenAuthentication,)
+
+    _VALID_FIELD_MAP = {
+        'firstName': 'first_name',
+        'lastName': 'last_name',
+        'company': 'company',
+        'location': 'location',
+        'email': 'email',
+        'linkedinUrl': 'linkedin_url',
+    }
+    _NUM_RESULTS = 3
+
+    def get(self, request, format=None):
+        try:
+            person_data = {
+                self._VALID_FIELD_MAP[k]: request.query_params[k]
+                if k in request.query_params else ''
+                for k in self._VALID_FIELD_MAP
+            }
+            return Response([
+                person.get_api_format()
+                for person in match_person(person_data,
+                                           count=self._NUM_RESULTS)
+            ], status=status.HTTP_200_OK)
+        except ValueError:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
 
 class PersonEmployment(APIView):
 

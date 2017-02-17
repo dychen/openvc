@@ -358,13 +358,31 @@ class InvestmentSection extends React.Component {
 
     this.FIELDS = ['series', 'date', 'preMoney', 'raised', 'postMoney',
                    'sharePrice'];
-    this.FIELD_DISPLAY_MAP = {
-      series: 'Round',
-      date: 'Date',
-      preMoney: 'Pre Money Val',
-      raised: 'Amount Raised',
-      postMoney: 'Post Money Val',
-      sharePrice: 'Price Per Share'
+    this.FIELD_MAP = {
+      series: {
+        display: 'Round',
+        type: 'string'
+      },
+      date: {
+        display: 'Date',
+        type: 'date'
+      },
+      preMoney: {
+        display: 'Pre Money Val',
+        type: 'money'
+      },
+      raised: {
+        display: 'Amount Raised',
+        type: 'money'
+      },
+      postMoney: {
+        display: 'Post Money Val',
+        type: 'money'
+      },
+      sharePrice: {
+        display: 'Price Per Share',
+        type: 'money'
+      }
     };
   }
   render() {
@@ -372,7 +390,7 @@ class InvestmentSection extends React.Component {
       <div className="ovc-edit-table-container">
         <EditTable API_URL={`${SERVER_URL}/api/v1/users/company/investments`}
                    FIELDS={this.FIELDS}
-                   FIELD_DISPLAY_MAP={this.FIELD_DISPLAY_MAP}
+                   FIELD_MAP={this.FIELD_MAP}
                    {...this.props} />
       </div>
     );

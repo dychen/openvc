@@ -10,8 +10,13 @@ import './edittable.scss';
  * props:
  *   API_URL [string]: Backend API endpoint to hit.
  *   FIELDS [Array]: List of API fields to show as table columns.
- *   FIELD_DISPLAY_MAP [Object]: Mapping between API field names and table
- *                               header display names.
+ *   FIELD_MAP [Object]: Mapping between API field names and field properties:
+ *   {
+ *     [fieldName]: {
+ *       display: [displayName],
+ *       type: [fieldType]
+ *     }
+ *   }
  */
 class EditTable extends React.Component {
   constructor(props) {
@@ -251,7 +256,6 @@ class EditTable extends React.Component {
   }
 
   updateEntity(entityId, entity) {
-    console.log(entity);
     authFetch(`${this.props.API_URL}/${entityId}`, {
       method: 'POST',
       headers: {
@@ -324,7 +328,7 @@ class EditTable extends React.Component {
 
   render() {
     const headers = this.props.FIELDS.map((field) => {
-      return (<td key={field}>{this.props.FIELD_DISPLAY_MAP[field]}</td>);
+      return (<td key={field}>{this.props.FIELD_MAP[field].display}</td>);
     });
 
     const rows = this.state.data.map((row) => {
@@ -333,6 +337,7 @@ class EditTable extends React.Component {
         return (
           <td key={uniqueKey}>
             <EditField field={field} id={row.id}
+                       fieldType={this.props.FIELD_MAP[field].type}
                        originalValue={row[field].value}
                        editingValue={row[field].editValue}
                        editing={row[field].editing}
@@ -360,6 +365,7 @@ class EditTable extends React.Component {
           return (
             <td key={field}>
               <EditField field={field}
+                         fieldType={this.props.FIELD_MAP[field].type}
                          originalValue={this.state.newRow[field].value}
                          editingValue={this.state.newRow[field].editValue}
                          editing={this.state.newRow[field].editing}

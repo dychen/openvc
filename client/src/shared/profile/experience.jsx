@@ -406,6 +406,7 @@ class ExperienceSection extends React.Component {
                        saveInput={this.handleUpdateExperience} />
             &nbsp;(
             <EditField field="startDate" id={exp.id}
+                       fieldType="date"
                        originalValue={exp.startDate}
                        editingValue={this.state.editing[index].startDate.value}
                        editing={this.state.editing[index].startDate.editing}
@@ -415,7 +416,8 @@ class ExperienceSection extends React.Component {
                        saveInput={this.handleUpdateExperience} />
             &nbsp;-&nbsp;
             <EditField field="endDate" id={exp.id}
-                       originalValue={exp.title}
+                       fieldType="date"
+                       originalValue={exp.endDate}
                        editingValue={this.state.editing[index].endDate.value}
                        editing={this.state.editing[index].endDate.editing}
                        placeholder="Present"

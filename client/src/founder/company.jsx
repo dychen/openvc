@@ -356,10 +356,14 @@ class InvestmentSection extends React.Component {
     };
   }
   render() {
-    return <EditTable API_URL={`${SERVER_URL}/api/v1/users/company/investments`}
-                      FIELDS={this.FIELDS}
-                      FIELD_DISPLAY_MAP={this.FIELD_DISPLAY_MAP}
-                      {...this.props} />
+    return (
+      <div className="ovc-edit-table-container">
+        <EditTable API_URL={`${SERVER_URL}/api/v1/users/company/investments`}
+                   FIELDS={this.FIELDS}
+                   FIELD_DISPLAY_MAP={this.FIELD_DISPLAY_MAP}
+                   {...this.props} />
+      </div>
+    );
   }
 }
 

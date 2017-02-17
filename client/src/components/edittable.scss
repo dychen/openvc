@@ -1,14 +1,23 @@
 @import '../mixins';
 @import '../constants.scss';
 
+.ovc-edit-table-container {
+  width: 100%;
+  overflow-x: scroll;
+}
+
 table.ovc-edit-table {
   width: 100%;
   thead {
     background-color: $OVC_SUBNAV_GRAY;
     cursor: default;
     td {
+      width: 100px;
       text-align: center;
       padding: 10px;
+    }
+    td.remove-entity {
+      width: 40px;
     }
   }
   tbody {
@@ -18,27 +27,30 @@ table.ovc-edit-table {
       @include hvr-fade-table($OVC_DARK_GRAY, $OVC_SUBNAV_GRAY);
 
       td {
+        width: 100px;
+        height: 40px;
         text-align: left;
 
         .ovc-edit-field {
-          display: block;
+          padding: 0px 10px 0px 10px;
           width: 100%;
           height: 100%;
-          padding: 10px;
+          display: flex;
+          align-items: center;
         }
         input.ovc-edit-field {
+          padding-top: 0px;
+          padding-bottom: 0px;
           border-radius: 0px;
           border: none;
         }
       }
       td.add-entity {
-        padding: 10px;
-        font-size: 20px;
+        font-size: 1.0em;
         text-align: center;
       }
       td.remove-entity {
         @include hvr-color($OVC_GRAY);
-        width: 40px;
         font-size: 20px;
         text-align: center;
       }

@@ -2,7 +2,7 @@ import React from 'react';
 import Immutable from 'immutable';
 import {authFetch, preprocessJSON} from '../../utils/api.js';
 
-import EditField from './edit.jsx';
+import EditField from '../../components/editfield.jsx';
 import ExperienceSection from './experience.jsx';
 
 import './profile.scss';
@@ -199,17 +199,19 @@ class ProfilePage extends React.Component {
         <div className="profile-info-section profile-basic-info-section">
           <div className="bold">
             <EditField field="firstName"
-                       value={this.state.profile.firstName}
+                       originalValue={this.state.profile.firstName}
+                       editingValue={this.state.editing.firstName.value}
+                       editing={this.state.editing.firstName.editing}
                        placeholder="Update first name"
-                       editing={this.state.editing.firstName}
                        editField={this.editField}
                        updateInput={this.updateInput}
                        saveInput={this.saveInput} />
             &nbsp;
             <EditField field="lastName"
-                       value={this.state.profile.lastName}
+                       originalValue={this.state.profile.lastName}
+                       editingValue={this.state.editing.lastName.value}
+                       editing={this.state.editing.lastName.editing}
                        placeholder="Update last name"
-                       editing={this.state.editing.lastName}
                        editField={this.editField}
                        updateInput={this.updateInput}
                        saveInput={this.saveInput} />
@@ -222,17 +224,19 @@ class ProfilePage extends React.Component {
           </div>
           <div className="light">
             <EditField field="location"
-                       value={this.state.profile.location}
+                       originalValue={this.state.profile.location}
+                       editingValue={this.state.editing.location.value}
+                       editing={this.state.editing.location.editing}
                        placeholder="Update location"
-                       editing={this.state.editing.location}
                        editField={this.editField}
                        updateInput={this.updateInput}
                        saveInput={this.saveInput} />
           </div>
           <div className="light">
             <EditField field="email"
-                       value={this.state.profile.email}
-                       editing={this.state.editing.email}
+                       originalValue={this.state.profile.email}
+                       editingValue={this.state.editing.email.value}
+                       editing={this.state.editing.email.editing}
                        placeholder="Update email"
                        editField={this.editField}
                        updateInput={this.updateInput}
@@ -240,9 +244,10 @@ class ProfilePage extends React.Component {
           </div>
           <div className="light">
             <EditField field="linkedinUrl"
-                       value={this.state.profile.linkedinUrl}
+                       originalValue={this.state.profile.linkedinUrl}
+                       editingValue={this.state.editing.linkedinUrl.value}
+                       editing={this.state.editing.linkedinUrl.editing}
                        placeholder="Update LinkedIn URL"
-                       editing={this.state.editing.linkedinUrl}
                        editField={this.editField}
                        updateInput={this.updateInput}
                        saveInput={this.saveInput} />

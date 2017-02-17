@@ -2,7 +2,7 @@ import React from 'react';
 import Immutable from 'immutable';
 import {authFetch, preprocessJSON} from '../../utils/api.js';
 
-import EditField from './edit.jsx';
+import EditField from '../../components/editfield.jsx';
 
 import './experience.scss';
 
@@ -377,53 +377,59 @@ class ExperienceSection extends React.Component {
           <i className="ion-trash-a remove-experience" id={exp.id}
              onClick={this.handleDeleteExperience} />
           <div>
-            <EditField field="title"
-                       value={exp.title} id={exp.id}
+            <EditField field="title" id={exp.id}
+                       originalValue={exp.title}
+                       editingValue={this.state.editing[index].title.value}
+                       editing={this.state.editing[index].title.editing}
                        placeholder="Update title"
-                       editing={this.state.editing[index].title}
                        editField={this.editExperienceField}
                        updateInput={this.updateExperienceInput}
                        saveInput={this.handleUpdateExperience} />
             &nbsp;at&nbsp;
-            <EditField field="company"
-                       value={exp.company} id={exp.id}
+            <EditField field="company" id={exp.id}
+                       originalValue={exp.company}
+                       editingValue={this.state.editing[index].company.value}
+                       editing={this.state.editing[index].company.editing}
                        placeholder="Update company"
-                       editing={this.state.editing[index].company}
                        editField={this.editExperienceField}
                        updateInput={this.updateExperienceInput}
                        saveInput={this.handleUpdateExperience} />
           </div>
           <div className="light italic">
-            <EditField field="location"
-                       value={exp.location} id={exp.id}
+            <EditField field="location" id={exp.id}
+                       originalValue={exp.location}
+                       editingValue={this.state.editing[index].location.value}
+                       editing={this.state.editing[index].location.editing}
                        placeholder="Update location"
-                       editing={this.state.editing[index].location}
                        editField={this.editExperienceField}
                        updateInput={this.updateExperienceInput}
                        saveInput={this.handleUpdateExperience} />
             &nbsp;(
-            <EditField field="startDate"
-                       value={exp.startDate} id={exp.id}
+            <EditField field="startDate" id={exp.id}
+                       originalValue={exp.startDate}
+                       editingValue={this.state.editing[index].startDate.value}
+                       editing={this.state.editing[index].startDate.editing}
                        placeholder="Update start date"
-                       editing={this.state.editing[index].startDate}
                        editField={this.editExperienceField}
                        updateInput={this.updateExperienceInput}
                        saveInput={this.handleUpdateExperience} />
             &nbsp;-&nbsp;
-            <EditField field="endDate"
-                       value={exp.endDate} id={exp.id}
+            <EditField field="endDate" id={exp.id}
+                       originalValue={exp.title}
+                       editingValue={this.state.editing[index].endDate.value}
+                       editing={this.state.editing[index].endDate.editing}
                        placeholder="Present"
-                       editing={this.state.editing[index].endDate}
                        editField={this.editExperienceField}
                        updateInput={this.updateExperienceInput}
                        saveInput={this.handleUpdateExperience} />
             )
           </div>
           <div className="light">
-            <EditField field="notes"
-                       value={exp.notes} id={exp.id}
+            <EditField field="notes" id={exp.id}
+                       originalValue={exp.notes}
+                       editingValue={this.state.editing[index].notes.value}
+                       editing={this.state.editing[index].notes.editing}
                        placeholder="Update notes"
-                       editing={this.state.editing[index].notes}
                        editField={this.editExperienceField}
                        updateInput={this.updateExperienceInput}
                        saveInput={this.handleUpdateExperience} />

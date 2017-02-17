@@ -18,7 +18,13 @@ class EditTable extends React.Component {
     super(props);
 
     this._NEW_ROW_INITIAL = {};
-    this.props.FIELDS.forEach((field) => { this._NEW_ROW_INITIAL[field] = '' });
+    this.props.FIELDS.forEach((field) => {
+      this._NEW_ROW_INITIAL[field] = {
+        value: '',
+        editValue: '',
+        editing: false
+      }
+    });
 
     this.state = {
       data: [],
@@ -27,9 +33,11 @@ class EditTable extends React.Component {
     };
 
     this._cancelEdits = this._cancelEdits.bind(this);
+    this._getRowValuesObject = this._getRowValuesObject.bind(this);
 
     // Add new row handlers
     this.toggleAddRow = this.toggleAddRow.bind(this);
+    this.editAddRowEntity = this.editAddRowEntity.bind(this);
     this.updateAddRowInput = this.updateAddRowInput.bind(this);
     this.handleCreateEntity = this.handleCreateEntity.bind(this);
 
@@ -59,21 +67,54 @@ class EditTable extends React.Component {
   _cancelEdits(callback) {
     console.log('DEBUG: _cancelEdits()');
     const resetData = this.state.data.map(row => {
-      let newRow = { id: row.id };
+      let resetRow = { id: row.id };
       this.props.FIELDS.forEach((field) => {
-        newRow[field] = {
+        resetRow[field] = {
           value: row[field].value,
           editValue: row[field].value,
           editing: false
-        }
+        };
       });
-      return newRow;
+      return resetRow;
+    });
+    let newRowPreserved = {};
+    this.props.FIELDS.forEach((field) => {
+      newRowPreserved[field] = {
+        value: this.state.newRow[field].editValue,
+        editValue: this.state.newRow[field].editValue, // Preserve this value
+        editing: false
+      }
     });
 
-    if (callback && typeof(callback) === 'function')
-      this.setState({ data: resetData }, callback);
-    else
-      this.setState({ data: resetData });
+    if (callback && typeof(callback) === 'function') {
+      this.setState({
+        data: resetData,
+        newRow: newRowPreserved
+      }, callback);
+    }
+    else {
+      this.setState({
+        data: resetData,
+        newRow: newRowPreserved
+      });
+    }
+  }
+
+  /*
+   * Args:
+   *   obj [Object]: Edit JSON object in the format:
+   *   {
+   *     key: { value: [string], editValue: [string], editing: [boolean] }
+   *   }
+   * Return:
+   *   [Object]: { key: editValue }
+   */
+  _getRowValuesObject(obj) {
+    let valuesObj = { id: obj.id };
+    this.props.FIELDS.forEach((field) => {
+      valuesObj[field] = obj[field].editValue;
+    });
+    return valuesObj;
   }
 
   /*
@@ -82,21 +123,30 @@ class EditTable extends React.Component {
 
   toggleAddRow(e) {
     e.stopPropagation();
-    this.setState({ addRow: !this.state.addRow });
+    this.setState({
+      addRow: !this.state.addRow,
+      newRow: this._NEW_ROW_INITIAL
+    });
   }
 
-  updateAddRowInput(e) {
-    const fieldName = e.currentTarget.name;
-    const fieldValue = e.currentTarget.value;
+  editAddRowEntity(field, entityId) {
+    this._cancelEdits(() => {
+      const newState = Immutable.fromJS(this.state)
+        .setIn(['newRow', field, 'editing'], true);
+      this.setState(newState.toJS());
+    });
+  }
+
+  updateAddRowInput(field, value, entityId) {
     const newState = Immutable.fromJS(this.state)
-      .setIn(['newRow', fieldName], fieldValue);
+      .setIn(['newRow', field, 'editValue'], value);
     this.setState(newState.toJS());
   }
 
-  handleCreateEntity(e) {
-    const trimmedSeriesValue = this.state.newRow.series.trim();
-    if (e.key === 'Enter' && trimmedSeriesValue !== '') {
-      this.createEntity(this.state.newRow);
+  handleCreateEntity(field, value, entityId) {
+    const trimmedSeriesValue = this.state.newRow.series.editValue.trim();
+    if (trimmedSeriesValue !== '') {
+      this.createEntity(this._getRowValuesObject(this.state.newRow));
       this.setState({
         addRow: false,
         newRow: this._NEW_ROW_INITIAL
@@ -303,29 +353,35 @@ class EditTable extends React.Component {
       );
     });
 
-    const newRow = this.props.FIELDS.map((field) => {
-      return (
-        <td key={field}>
-          <input className="ovc-edit-field"
-                 name={field}
-                 value={this.state.newRow[field]}
-                 onChange={this.updateAddRowInput}
-                 onKeyPress={this.handleCreateEntity} />
-        </td>
-      );
-    });
-    const addRow = (
-      <td className="add-entity" colSpan={this.props.FIELDS.length}
-          onClick={this.toggleAddRow}>
-        <i className="ion-plus" />
-      </td>
-    )
-
-    const footerRow = (
+    const newRow = (
       this.state.addRow
-      ? (<tr>{newRow}<td className="remove-entity" /></tr>)
-      : (<tr>{addRow}<td className="remove-entity" /></tr>)
+      ? (
+        <tr>{this.props.FIELDS.map((field) => {
+          return (
+            <td key={field}>
+              <EditField field={field}
+                         originalValue={this.state.newRow[field].value}
+                         editingValue={this.state.newRow[field].editValue}
+                         editing={this.state.newRow[field].editing}
+                         editField={this.editAddRowEntity}
+                         updateInput={this.updateAddRowInput}
+                         saveInput={this.handleCreateEntity} />
+            </td>
+          );
+        })}
+        <td className="remove-entity" />
+        </tr>
+      )
+      : null
     );
+    const addRow = (
+      <tr>
+        <td className="add-entity" colSpan={this.props.FIELDS.length+1}
+            onClick={this.toggleAddRow}>
+          {this.state.addRow ? <i className="ion-minus" /> : <i className="ion-plus" />}
+        </td>
+      </tr>
+    )
 
     return (
       <table className="ovc-edit-table">
@@ -337,7 +393,8 @@ class EditTable extends React.Component {
         </thead>
         <tbody>
           {rows}
-          {footerRow}
+          {newRow}
+          {addRow}
         </tbody>
       </table>
     );

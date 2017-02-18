@@ -47,7 +47,6 @@ class ContactsPage extends React.Component {
     this.removeInteraction = this.removeInteraction.bind(this);
     // All contacts view
     this.createContact = this.createContact.bind(this);
-    this.createContactandConnect = this.createContactandConnect.bind(this);
     this.addConnection = this.addConnection.bind(this);
     this.removeConnection = this.removeConnection.bind(this);
 
@@ -248,7 +247,8 @@ class ContactsPage extends React.Component {
     });
   }
 
-  createContactandConnect(contact) {
+  /* UNUSED
+  createContactAndConnect(contact) {
     authFetch(`${SERVER_URL}/api/v1/contacts/self`, {
       method: 'POST',
       headers: {
@@ -278,6 +278,7 @@ class ContactsPage extends React.Component {
       return err;
     });
   }
+  */
 
   addConnection(contactId) {
     authFetch(`${SERVER_URL}/api/v1/contacts/connect/${contactId}`, {
@@ -387,7 +388,6 @@ class ContactsPage extends React.Component {
                             groupBy={this.state.groupBy}
                             getAllContacts={this.getAllContacts}
                             createContact={this.createContact}
-                            createContactandConnect={this.createContactandConnect}
                             addConnection={this.addConnection}
                             removeConnection={this.removeConnection} />
     );

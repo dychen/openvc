@@ -1,7 +1,7 @@
 import React from 'react';
 import {hashHistory} from 'react-router';
 
-import CreateContactModal from './modal.jsx';
+import CreatePersonModal from '../../components/modals/person.jsx';
 
 import './all.scss';
 
@@ -13,12 +13,7 @@ import './all.scss';
  *
  *   getAllContacts [function]: Function to load contact data.
  *   createContact [function]: Function to write new contact to database. Gets
- *                             called in the child component
- *                             (CreateContactModal).
- *   createContactandConnect [function]: Function to write new contact to
- *                                       database as a connection. Gets called
- *                                       in the child component
- *                                       (CreateContactModal).
+ *                             called in the child modal component.
  *   addConnection [function]: Function to create a new connection in the
  *                             database.
  *   removeConnection [function]: Function to remove an existing connection
@@ -29,10 +24,11 @@ class AllContactsSection extends React.Component {
     super(props);
 
     this.state = {
-      creatingContact: false
+      modalVisible: false
     };
 
-    this.toggleCreatingContact = this.toggleCreatingContact.bind(this);
+    this.addNewContact = this.addNewContact.bind(this);
+    this.cancelNewContact = this.cancelNewContact.bind(this);
     this.addConnection = this.addConnection.bind(this);
     this.removeConnection = this.removeConnection.bind(this);
     this._goToContactPage = this._goToContactPage.bind(this);
@@ -41,8 +37,12 @@ class AllContactsSection extends React.Component {
     this.props.getAllContacts();
   }
 
-  toggleCreatingContact(e) {
-    this.setState({ 'creatingContact': !this.state.creatingContact });
+  addNewContact(e) {
+    this.setState({ modalVisible: true });
+  }
+
+  cancelNewContact(e) {
+    this.setState({ modalVisible: false });
   }
 
   addConnection(e) {
@@ -117,15 +117,17 @@ class AllContactsSection extends React.Component {
     return (
       <div className="ovc-contacts-contact-list">
         <div className="ovc-create-contact-button"
-             onClick={this.toggleCreatingContact}>
+             onClick={this.addNewContact}>
           <i className="ion-plus create-contact" />
           <span>Create a new contact</span>
         </div>
         {contactGroups}
-        <CreateContactModal creatingContact={this.state.creatingContact}
-                            toggleCreatingContact={this.toggleCreatingContact}
-                            createContact={this.props.createContact}
-                            createContactandConnect={this.props.createContactandConnect} />
+        <CreatePersonModal visible={this.state.modalVisible}
+                           CREATE_HEADLINE="Create a new contact"
+                           UPDATE_HEADLINE="Connect with an existing contact"
+                           hideModal={this.cancelNewContact}
+                           createEntity={this.props.createContact}
+                           updateEntity={this.props.addConnection} />
       </div>
     );
   }

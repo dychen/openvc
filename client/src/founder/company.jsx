@@ -392,6 +392,7 @@ class InvestmentSection extends React.Component {
       }
     };
   }
+
   render() {
     return (
       <div className="ovc-edit-table-container">

@@ -52,6 +52,10 @@
       input, textarea {
         margin: 5px;
         width: 100%;
+        border: 1px solid $OVC_GRAY;
+        border-radius: 5px;
+        padding: 5px;
+        font-size: 0.9em;
       }
     }
   }

@@ -17,7 +17,6 @@ import './editfield.scss';
  *                           a list of objects, such as for experience objects.
  *   placeholder [string]: [Optional] String to display if field value is
  *                                    empty.
- *   className [string]: Any additional CSS classes to pass to the component.
  *
  *   editField [function]: Function to enter editing mode.
  *     f([field name], [id, optional]) => null
@@ -136,40 +135,53 @@ class EditField extends React.Component {
 
   render() {
     let editComponent, fieldFilter;
-    const className = this.props.className || '' + ' ' + 'ovc-edit-field';
 
     if (this.props.editing) {
-      if (this.props.field.includes('notes')) {
-        editComponent = (
-          <textarea rows="8"
-                    className={className} autoFocus
-                    placeholder={this.props.placeholder}
-                    value={this.filterInputValue(this.props.editingValue)}
-                    onChange={this.updateInput}
-                    onKeyPress={this.saveInput}
-                    onClick={this._stopPropagation} />
-        );
-      }
-      else {
-        editComponent = (
-          <input className={className} autoFocus
-                 placeholder={this.props.placeholder}
-                 value={this.filterInputValue(this.props.editingValue)}
-                 onChange={this.updateInput}
-                 onKeyPress={this.saveInput}
-                 onClick={this._stopPropagation} />
-        );
+      switch (this.props.fieldType) {
+        case 'text':
+          editComponent = (
+            <textarea rows="8"
+                      className="ovc-edit-field" autoFocus
+                      placeholder={this.props.placeholder}
+                      value={this.filterInputValue(this.props.editingValue)}
+                      onChange={this.updateInput}
+                      onKeyPress={this.saveInput}
+                      onClick={this._stopPropagation} />
+          );
+          break;
+        default:
+          editComponent = (
+            <input className="ovc-edit-field" autoFocus
+                   placeholder={this.props.placeholder}
+                   value={this.filterInputValue(this.props.editingValue)}
+                   onChange={this.updateInput}
+                   onKeyPress={this.saveInput}
+                   onClick={this._stopPropagation} />
+          );
+          break;
       }
     }
     else {
-      editComponent = (
-        <span className={className}
-              onClick={this.editField}>
-          {this.filterDisplayValue((this.props.originalValue
-                                    ? this.props.originalValue
-                                    : this.props.placeholder))}
-        </span>
-      );
+      switch (this.props.fieldType) {
+        case 'image':
+          editComponent = (
+            <img className="ovc-edit-field"
+                 onClick={this.editField}
+                 src={this.props.originalValue}>
+            </img>
+          );
+          break;
+        default:
+          editComponent = (
+            <span className="ovc-edit-field"
+                  onClick={this.editField}>
+              {this.filterDisplayValue((this.props.originalValue
+                                        ? this.props.originalValue
+                                        : this.props.placeholder))}
+            </span>
+          );
+          break;
+      }
     }
     return editComponent;
   }

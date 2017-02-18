@@ -5,6 +5,7 @@ import {authFetch, preprocessJSON} from '../../utils/api.js';
 import SearchSection from './search.jsx';
 import UserContactsSection from './user.jsx';
 import AllContactsSection from './all.jsx';
+import ContactsTableSection from './table.jsx';
 
 import './contacts.scss';
 
@@ -17,6 +18,7 @@ class ContactsPage extends React.Component {
     );
 
     this.state = {
+      // Options: 'user', 'all', 'table'
       section: 'user',
       groupBy: 'company',
       filterInputs: {
@@ -374,23 +376,35 @@ class ContactsPage extends React.Component {
 
   render() {
     const filteredContacts = this._filterContacts(this.state.contacts);
-    const visibleSection = (
-      this.state.section === 'user'
-      ? <UserContactsSection _USER_TYPE={this._USER_TYPE}
-                             contacts={filteredContacts}
-                             groupBy={this.state.groupBy}
-                             getUserContacts={this.getUserContacts}
-                             toggleExpanded={this.toggleExpanded}
-                             addInteraction={this.addInteraction}
-                             removeInteraction={this.removeInteraction} />
-      : <AllContactsSection _USER_TYPE={this._USER_TYPE}
-                            contacts={filteredContacts}
-                            groupBy={this.state.groupBy}
-                            getAllContacts={this.getAllContacts}
-                            createContact={this.createContact}
-                            addConnection={this.addConnection}
-                            removeConnection={this.removeConnection} />
-    );
+    let visibleSection;
+    switch (this.state.section) {
+      case 'all':
+        visibleSection = (
+          <AllContactsSection _USER_TYPE={this._USER_TYPE}
+                              contacts={filteredContacts}
+                              groupBy={this.state.groupBy}
+                              getAllContacts={this.getAllContacts}
+                              createContact={this.createContact}
+                              addConnection={this.addConnection}
+                              removeConnection={this.removeConnection} />
+        );
+        break;
+      case 'table':
+        visibleSection = (<ContactsTableSection />);
+        break;
+      case 'user':
+      case 'default':
+        visibleSection = (
+          <UserContactsSection _USER_TYPE={this._USER_TYPE}
+                               contacts={filteredContacts}
+                               groupBy={this.state.groupBy}
+                               getUserContacts={this.getUserContacts}
+                               toggleExpanded={this.toggleExpanded}
+                               addInteraction={this.addInteraction}
+                               removeInteraction={this.removeInteraction} />
+        );
+        break;
+    }
 
     return (
       <div className="ovc-shared-contacts-container">

@@ -110,6 +110,8 @@ class UserContacts(APIView):
         {
             'firstName': [required] [str],
             'lastName': [required] [str],
+            'company': [str],
+            'title': [str],
             'location': [str],
             'email': [str],
             'photoUrl': [str],
@@ -123,6 +125,8 @@ class UserContacts(APIView):
             #person = user.connections.get(person__id=person_id).person
             person = Person.objects.get(id=person_id)
             person = person.update_from_api(request_json)
+            print request_json
+            print person.get_api_format()
             return Response(person.get_api_format(), status=status.HTTP_200_OK)
 
         except (TypeError, ValueError) as e:
@@ -137,6 +141,25 @@ class UserContacts(APIView):
             return self.__post_update(request, id, format=format)
         else:
             return self.__post_create(request, format=format)
+
+    # DELETE /contacts/self/:id
+    def delete(self, request, id=None, format=None):
+        try:
+            user = check_authentication(request)
+            person_id = int(id)
+            # TODO: Set restrictions to connections
+            #person = user.connections.get(person__id=person_id).person
+            person = Person.objects.get(id=person_id)
+            connection = Connection.objects.get(user=user, person=person)
+            connection.delete()
+            return Response({ 'id': person_id }, status=status.HTTP_200_OK)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (Person.DoesNotExist, Connection.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
 
 class AllContacts(APIView):
 

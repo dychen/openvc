@@ -5,7 +5,7 @@ import './search.scss';
 
 /*
  * props:
- *   section [string]: Current visible section ('user' or 'all').
+ *   section [string]: Current visible section ('user', 'all', or 'table').
  *   groupBy [string]: Field to group contacts by (e.g. 'company' or 'title').
  *   filterInputs [Object]: Object of search nav input names and their values.
  *                          { company: '', name: '', title: '', tag: '' }
@@ -86,6 +86,9 @@ class SearchSection extends React.Component {
           </NavItem>
           <NavItem className="ovc-search-tab" eventKey="all">
             All
+          </NavItem>
+          <NavItem className="ovc-search-tab" eventKey="table">
+            Table
           </NavItem>
         </Nav>
         <div className="ovc-contacts-search-dropdown">

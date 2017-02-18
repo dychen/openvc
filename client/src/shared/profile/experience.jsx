@@ -428,6 +428,7 @@ class ExperienceSection extends React.Component {
           </div>
           <div className="light">
             <EditField field="notes" id={exp.id}
+                       fieldType="text"
                        originalValue={exp.notes}
                        editingValue={this.state.editing[index].notes.value}
                        editing={this.state.editing[index].notes.editing}

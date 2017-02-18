@@ -176,14 +176,15 @@ class ProfilePage extends React.Component {
     const editPhotoComponent = (
       this.state.editing.photoUrl.editing
       ? (
-        <EditField className="info-edit-photo"
-                   field="photoUrl"
-                   value={this.state.profile.photoUrl}
-                   placeholder="Enter a photo URL (e.g. your LinkedIn photo URL)"
-                   editing={this.state.editing.photoUrl}
-                   editField={this.editField}
-                   updateInput={this.updateInput}
-                   saveInput={this.saveInput} />
+        <div className="profile-edit-photo">
+          <EditField field="photoUrl"
+                     value={this.state.profile.photoUrl}
+                     placeholder="Enter a photo URL (e.g. your LinkedIn photo URL)"
+                     editing={this.state.editing.photoUrl}
+                     editField={this.editField}
+                     updateInput={this.updateInput}
+                     saveInput={this.saveInput} />
+        </div>
       )
       : ''
     );

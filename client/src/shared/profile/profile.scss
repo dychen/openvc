@@ -32,6 +32,12 @@
       @include hvr-outline($OVC_DARK_GRAY, $OVC_LIGHT_GRAY);
     }
   }
+  .profile-edit-photo {
+    margin: 5px;
+    input.ovc-edit-field {
+      width: 300px;
+    }
+  }
 
   .profile-info-section {
     max-width: 600px;

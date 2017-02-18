@@ -1,9 +1,15 @@
 @import '../mixins';
 @import '../constants.scss';
 
+// Display components
 span.ovc-edit-field {
   @include hvr-color($OVC_LIGHT_GRAY);
 }
+img.ovc-edit-field {
+  @include hvr-grow(1.2);
+}
+
+// Edit components
 input.ovc-edit-field, textarea.ovc-edit-field {
   border: 1px solid $OVC_GRAY;
   border-radius: 5px;
@@ -14,9 +20,5 @@ textarea.ovc-edit-field {
   min-height: 200px;
   min-width: 400px;
   resize: none;
-}
-.ovc-edit-field-photo {
-  margin: 5px;
-  width: 300px;
 }
 

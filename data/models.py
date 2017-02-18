@@ -156,6 +156,8 @@ class Person(models.Model):
         {
             'firstName': [required] [str],
             'lastName': [required] [str],
+            'company': [str],
+            'title': [str],
             'location': [str],
             'email': [str],
             'photoUrl': [str],
@@ -174,6 +176,7 @@ class Person(models.Model):
             self.photo_url = request_json.get('photoUrl')
         if request_json.get('linkedinUrl'):
             self.linkedin_url = request_json.get('linkedinUrl')
+
         self.save()
         return self
 

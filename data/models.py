@@ -6,6 +6,9 @@ class Investor(models.Model):
     name       = models.TextField()
     type       = models.TextField()
 
+    def __unicode__(self):
+        return self.name or u''
+
 class Person(models.Model):
 
     def _get_full_name(self):
@@ -446,7 +449,7 @@ class Metric(models.Model):
         return {
             'id': self.id,
             'company': self.company.name,
-            'name': self.series,
+            'name': self.name,
             'date': self.date,
             'interval': self.interval,
             'estimated': self.estimated,
@@ -499,7 +502,6 @@ class Metric(models.Model):
         if request_json.get('value'):
             self.value = request_json.get('value')
         self.save()
-        # TODO: Catch duplicate series name error
         return self
 
 class Investment(models.Model):
@@ -600,6 +602,14 @@ class Investment(models.Model):
         # TODO: Catch duplicate series name error
         return self
 
+    def get_api_investors(self):
+        return [investor_investment.get_api_format()
+                for investor_investment
+                in self.investor_investments.order_by(
+                    'investment__date', 'investment__series', 'date',
+                    'investor__name'
+                )]
+
 class InvestorInvestment(models.Model):
     investment = models.ForeignKey(Investment,
                                    related_name='investor_investments',
@@ -618,5 +628,89 @@ class InvestorInvestment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = (('investment', 'investor', 'date'))
+        unique_together = (('investment', 'investor'))
+
+    def __unicode__(self):
+        return u'%s %s %s' % (unicode(self.investment), unicode(self.investor),
+                              self.date)
+
+    def get_api_format(self):
+        return {
+            'id': self.id,
+            'investmentId': self.investment.id,
+            'company': self.investment.company.name,
+            'series': self.investment.series,
+            'investor': self.investor.name,
+            'investorType': self.investor.type,
+            'date': self.investment.date,
+            'preMoney': self.investment.pre_money,
+            'raised': self.investment.raised,
+            'postMoney': self.investment.post_money,
+            'sharePrice': self.investment.share_price,
+            'invested': self.invested,
+            'ownership': self.ownership,
+            'shares': self.shares,
+        }
+
+    @classmethod
+    def create_from_api(cls, investment, request_json):
+        """
+        Expected request body:
+        {
+            'investor': [required] [str],
+            'investorType': [str],
+            'invested': [float],
+            'ownership': [float],
+            'shares': [float]
+        }
+        """
+        investor_dict = {}
+        if request_json.get('investorType'):
+            investor_dict['investor_type'] = request_json.get('investorType')
+        investor, _ = Investor.objects.get_or_create(
+            name=request_json.get('investor'),
+            defaults=investor_dict
+        )
+
+        investor_investment_dict = {}
+        if request_json.get('invested'):
+            investor_investment_dict['invested'] = request_json.get('invested')
+        if request_json.get('ownership'):
+            investor_investment_dict['ownership'] = request_json.get('ownership')
+        if request_json.get('shares'):
+            investor_investment_dict['shares'] = request_json.get('shares')
+        investor_investment, _ = InvestorInvestment.objects.update_or_create(
+            investment=investment,
+            investor=investor,
+            defaults=investor_investment_dict
+        )
+        return investor_investment
+
+    def update_from_api(self, request_json):
+        """
+        Expected request body:
+        {
+            'investor': [str],
+            'investorType': [str],
+            'invested': [float],
+            'ownership': [float],
+            'shares': [float]
+        }
+        """
+        investor_dict = {}
+        if request_json.get('investor') and request_json.get('investorType'):
+            investor, _ = Investor.objects.get_or_create(
+                name=request_json.get('investor'),
+                defaults=investor_dict
+            )
+
+        if request_json.get('invested'):
+            self.invested = request_json.get('invested')
+        if request_json.get('ownership'):
+            self.ownership = request_json.get('ownership')
+        if request_json.get('shares'):
+            self.shares = request_json.get('shares')
+        self.save()
+        return self
+
 

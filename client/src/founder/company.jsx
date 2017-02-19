@@ -405,6 +405,119 @@ class InvestmentSection extends React.Component {
   }
 }
 
+class InvestorSection extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.FIELDS = ['investor', 'investorType', 'date', 'preMoney',
+                   'raised', 'postMoney', 'sharePrice', 'invested',
+                   'ownership', 'shares'];
+    this.FIELD_MAP = {
+      investor: {
+        display: 'Investor',
+        type: 'string',
+        required: true
+      },
+      investorType: {
+        display: 'Investor Type',
+        type: 'string',
+        required: false
+      },
+      date: {
+        display: 'Date',
+        type: 'date',
+        required: false
+      },
+      preMoney: {
+        display: 'Pre Money Val',
+        type: 'money',
+        required: false
+      },
+      raised: {
+        display: 'Amount Raised',
+        type: 'money',
+        required: false
+      },
+      postMoney: {
+        display: 'Post Money Val',
+        type: 'money',
+        required: false
+      },
+      sharePrice: {
+        display: 'Price Per Share',
+        type: 'money',
+        required: false
+      },
+      invested: {
+        display: 'Invested',
+        type: 'money',
+        required: false
+      },
+      ownership: {
+        display: 'Ownership',
+        type: 'percentage',
+        required: false
+      },
+      shares: {
+        display: 'Shares',
+        type: 'number',
+        required: false
+      }
+    };
+
+    this.state = {
+      investments: []
+    };
+
+    this.getInvestmentList = this.getInvestmentList.bind(this);
+
+    this.getInvestmentList();
+  }
+
+  getInvestmentList() {
+    authFetch(`${SERVER_URL}/api/v1/users/company/investments`)
+    .then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          throw new Error(json);
+        });
+      }
+    })
+    .then(json => {
+      // Success
+      json = preprocessJSON(json);
+      this.setState({ investments: json });
+    })
+    .catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
+  }
+
+  render() {
+    const investmentTables = this.state.investments.map(investment => {
+      const API_URL = `${SERVER_URL}/api/v1/users/company/investments/` +
+                      `${investment.id}/investors`;
+      return (
+        <div key={investment.id} className="ovc-edit-table-container">
+          <h4>{investment.series}</h4>
+          <EditTable API_URL={API_URL}
+                     FIELDS={this.FIELDS}
+                     FIELD_MAP={this.FIELD_MAP}
+                     {...this.props} />
+        </div>
+      );
+    });
+    return (
+      <div>{investmentTables}</div>
+    );
+  }
+}
+
 class MetricsSection extends React.Component {
   constructor(props) {
     super(props);
@@ -469,6 +582,7 @@ class FounderCompanyPage extends React.Component {
         <h3>Investments</h3>
         <InvestmentSection />
         <h3>Investors</h3>
+        <InvestorSection />
         <h3>KPIs</h3>
         <MetricsSection />
         <h3>Pitch Decks</h3>

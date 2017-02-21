@@ -589,7 +589,7 @@ class CompanyMetrics(APIView):
             user = check_authentication(request)
             request_json = json.loads(request.body)
             company = user.get_active_account().company
-            metric = Metric.objects.get(id=metric_id)
+            metric = Metric.objects.get(id=metric_id, company=company)
 
             metric = metric.update_from_api(request_json)
             return Response(metric.get_api_list_format(),
@@ -617,7 +617,7 @@ class CompanyMetrics(APIView):
             user = check_authentication(request)
             company = user.get_active_account().company
             metric_id = int(id)
-            metric = Metric.objects.get(id=metric_id)
+            metric = Metric.objects.get(id=metric_id, company=company)
             metric.delete()
             return Response({ 'id': metric_id }, status=status.HTTP_200_OK)
 

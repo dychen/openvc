@@ -42,8 +42,8 @@ class User(AbstractBaseUser):
     ROLE_CHOICES = [(v, k) for k, v in ROLES.iteritems()]
 
     email      = models.EmailField(max_length=255, unique=True)
-    person     = models.OneToOneField(Person, unique=True, related_name='user',
-                                      null=True, blank=True)
+    person     = models.ForeignKey(Person, related_name='users',
+                                   null=True, blank=True)
     role       = models.CharField(max_length=50, choices=ROLE_CHOICES)
     is_active  = models.BooleanField(default=True)
     is_admin   = models.BooleanField(default=False)

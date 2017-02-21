@@ -1,5 +1,6 @@
 import React from 'react';
 import Immutable from 'immutable';
+import {hashHistory} from 'react-router';
 import {authFetch, preprocessJSON} from '../utils/api.js';
 
 import './portfolio.scss';
@@ -29,7 +30,7 @@ class PorfolioSection extends React.Component {
 
   _goToCompanyPage(e) {
     // TODO: Refactor this route to /company
-    const linkUrl = '/' + this.props._USER_TYPE + '/portfolio/' + e.currentTarget.id;
+    const linkUrl = '/investor/portfolio/' + e.currentTarget.id;
     hashHistory.push(linkUrl);
   }
 
@@ -62,7 +63,7 @@ class PorfolioSection extends React.Component {
       return (
         <div className="ovc-investor-portco-panel"
              id={company.id} key={company.id}
-             onClick={this._goToContactPage}>
+             onClick={this._goToCompanyPage}>
           <img className="company-logo" src={companyDisplay.logoUrl} />
           <div className="portco-text">
             <div className="portco-name">
@@ -136,7 +137,6 @@ class InvestorPorfolioPage extends React.Component {
         }
       }).then(json => {
         // Success
-        console.log(json);
         json = preprocessJSON(json);
         const newState = Immutable.fromJS(this.state).set('companies', json);
         this.setState(newState.toJS());
@@ -150,11 +150,6 @@ class InvestorPorfolioPage extends React.Component {
   render() {
     return (
       <div>
-        <div className="ovc-create-portco-button"
-             onClick={this.toggleCreatingContact}>
-          <i className="ion-plus create-portco" />
-          <span>Add a portfolio company</span>
-        </div>
         <PorfolioSection companies={this.state.companies}
                          getUserCompanies={this.getUserCompanies} />
       </div>

@@ -254,16 +254,12 @@ class Company(models.Model):
     def get_metrics(self, **kwargs):
         return self.metrics.filter(**kwargs).order_by('name')
 
-    def get_portfolio(self, **kwargs):
-        if self.investor:
-            return [
-                ii.investment.company
-                for ii in self.investor.investor_investments
-                                       .order_by('investment__company')
-                                       .distinct('investment__company')
-            ]
-        else:
-            return []
+    def get_portfolio(self):
+        # TODO: Order by name - tricky because companies won't necessarily be
+        #       distinct by name.
+        return Company.objects.filter(
+            investments__investor_investments__investor__company=self
+        ).distinct('id')
 
     # Startup API
 

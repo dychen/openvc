@@ -14,7 +14,6 @@ import {LoginForm, SignupForm, StartupForm,
 import FounderAppContainer from './founder/founder.jsx';
 import FounderSidenav from './founder/sidenav.jsx';
 import FounderTopnav from './founder/topnav.jsx';
-import FounderCompanyPage from './founder/company.jsx';
 import FounderApplyPage from './founder/apply.jsx';
 import FounderFundraisingPage from './founder/fundraising.jsx';
 
@@ -27,6 +26,7 @@ import InvestorComparePage from './investor/compare.jsx';
 import InvestorPorfolioPage from './investor/portfolio.jsx';
 
 import ContactsPage from './shared/contacts/contacts.jsx';
+import {FounderCompanyPage, InvestorCompanyPage} from './shared/company/company.jsx';
 import {UserProfilePage, ContactProfilePage} from './shared/profile/wrapper.jsx';
 
 import RoomsApp from './rooms/rooms.jsx';
@@ -90,6 +90,7 @@ class App extends React.Component {
             <Route path="contacts" component={ContactsPage} />
             <Route path="contacts/:contactId" component={ContactProfilePage} />
             <Route path="portfolio" component={InvestorPorfolioPage} />
+            <Route path="portfolio/:companyId" component={InvestorCompanyPage} />
             <Route path="rooms" component={RoomsApp} />
             <Route path="profile" component={UserProfilePage} />
           </Route>

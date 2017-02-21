@@ -34,7 +34,8 @@ urlpatterns = [
     url(r'^api/v1/users/experience$', user_views.UserExperience.as_view()),
     url(r'^api/v1/users/experience/(?P<id>[0-9]+)$',
         user_views.UserExperience.as_view()),
-    # User - Founder API
+
+    # Users - Founder API
     url(r'^api/v1/users/company/team$', founder_views.CompanyTeam.as_view()),
     url(r'^api/v1/users/company/team/(?P<id>[0-9]+)$',
         founder_views.CompanyTeam.as_view()),
@@ -55,11 +56,38 @@ urlpatterns = [
         founder_views.CompanyMetrics.as_view()),
     url(r'^api/v1/users/company/metrics/(?P<id>[0-9]+)$',
         founder_views.CompanyMetrics.as_view()),
-    # User - Investor API
+
+    # Users - Investor API
     url(r'^api/v1/users/portfolio$',
         investor_views.InvestorPortfolio.as_view()),
-    #url(r'^api/v1/users/portfolio/(?P<id>[0-9]+)$',
-    #    investor_views.InvestorPortfolio.as_view()),
+
+    url(r'^api/v1/users/portfolio/(?P<company_id>[0-9]+)/team$',
+        investor_views.CompanyTeam.as_view()),
+    url(r'^api/v1/users/portfolio/(?P<company_id>[0-9]+)/team/'
+         '(?P<person_id>[0-9]+)$',
+        investor_views.CompanyTeam.as_view()),
+    url(r'^api/v1/users/portfolio/(?P<company_id>[0-9]+)/board$',
+        investor_views.CompanyBoard.as_view()),
+    url(r'^api/v1/users/portfolio/(?P<company_id>[0-9]+)/board/'
+         '(?P<person_id>[0-9]+)$',
+        investor_views.CompanyBoard.as_view()),
+    url(r'^api/v1/users/portfolio/(?P<company_id>[0-9]+)/investments$',
+        investor_views.CompanyInvestments.as_view()),
+    url(r'^api/v1/users/portfolio/(?P<company_id>[0-9]+)/investments/'
+         '(?P<investment_id>[0-9]+)$',
+        investor_views.CompanyInvestments.as_view()),
+    url(r'^api/v1/users/portfolio/(?P<company_id>[0-9]+)/investments/'
+         '(?P<investment_id>[0-9]+)/'
+         'investors$',
+        investor_views.CompanyInvestors.as_view()),
+    url(r'^api/v1/users/portfolio/(?P<company_id>[0-9]+)/investments/'
+         '(?P<investment_id>[0-9]+)/investors/(?P<investor_investment_id>[0-9]+)$',
+        investor_views.CompanyInvestors.as_view()),
+    url(r'^api/v1/users/portfolio/(?P<company_id>[0-9]+)/metrics$',
+        investor_views.CompanyMetrics.as_view()),
+    url(r'^api/v1/users/portfolio/(?P<company_id>[0-9]+)/metrics/'
+         '(?P<metric_id>[0-9]+)$',
+        investor_views.CompanyMetrics.as_view()),
 
     # Contacts API
     url(r'^api/v1/contacts/self$', contact_views.UserContacts.as_view()),

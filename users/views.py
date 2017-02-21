@@ -488,8 +488,8 @@ class CompanyInvestments(APIView):
             user = check_authentication(request)
             request_json = json.loads(request.body)
             investment = Investment.objects.get(id=investment_id)
-            investment = investment.update_from_api(request_json)
 
+            investment = investment.update_from_api(request_json)
             return Response(investment.get_api_format(),
                             status=status.HTTP_200_OK)
 
@@ -662,34 +662,17 @@ class CompanyInvestors(APIView):
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
-class CompanyMetricsRow(APIView):
+class CompanyMetrics(APIView):
 
     authentication_classes = (TokenAuthentication,)
 
-    # GET /users/company/metrics/row
+    # GET /users/company/metrics
     def get(self, request, format=None):
         try:
             # TODO: Coordinate this with the frontend
             user = check_authentication(request)
             company = user.get_active_account().company
-            metric_names = (company.metrics.distinct('name').order_by('name')
-                                           .values_list('name', flat=True))
-            response_json = []
-            for i, metric_name in enumerate(metric_names):
-                response_dict = { 'id': i, 'metric': metric_name }
-                dates = get_quarters_until(datetime.date.today(), 9)
-                for date in dates:
-                    datestr = date.strftime('%Y-%m-%d')
-                    try:
-                        response_dict[datestr] = Metric.objects.get(
-                            company=company, name=metric_name, date=date,
-                            interval='Quarter', estimated=False
-                        ).value
-                    except Metric.DoesNotExist:
-                        response_dict[datestr] = None
-                response_json.append(response_dict)
-
-            return Response(response_json,
+            return Response(company.get_api_metrics(),
                             status=status.HTTP_200_OK)
 
         except (UserAccount.MultipleObjectsReturned,
@@ -699,12 +682,11 @@ class CompanyMetricsRow(APIView):
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
-    # POST /users/company/metrics/row
-    def post(self, request, id=None, format=None):
+    # POST /users/company/metrics
+    def __post_create(self, request, format=None):
         """
         Expected request body:
         {
-            'id': [required] [int], # Used for frontend row uniqueness
             'metric': [required] [str],
             [datestring]: [float],
             [datestring]: [float],
@@ -721,29 +703,8 @@ class CompanyMetricsRow(APIView):
             user = check_authentication(request)
             request_json = validate(json.loads(request.body))
             company = user.get_active_account().company
-            metric = request_json.get('metric')
-            response_json = {
-                'id': company.metrics.distinct('name').count() + 1,
-                'metric': metric,
-            }
-
-            for k, v in request_json.iteritems():
-                try:
-                    date = datetime.datetime.strptime(k, '%Y-%m-%d').date()
-                    if v:
-                        Metric.objects.update_or_create(
-                            company=company,
-                            name=metric,
-                            date=date,
-                            interval='Quarter',
-                            estimated=False,
-                            defaults={ 'value': v }
-                        )
-                    response_json[k] = v
-                except ValueError:
-                    continue
-
-            return Response(response_json,
+            metric = Metric.create_from_api(company, request_json)
+            return Response(metric.get_api_list_format(),
                             status=status.HTTP_201_CREATED)
 
         except (TypeError, ValueError) as e:
@@ -753,6 +714,61 @@ class CompanyMetricsRow(APIView):
                 UserAccount.DoesNotExist,
                 Account.DoesNotExist,
                 Company.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # POST /users/company/metrics/:id
+    def __post_update(self, request, metric_id, format=None):
+        """
+        Expected request body:
+        {
+            'metric': [str],
+            [datestring]: [float],
+            [datestring]: [float],
+            [datestring]: [float],
+            ...
+        }
+        """
+        try:
+            user = check_authentication(request)
+            request_json = json.loads(request.body)
+            company = user.get_active_account().company
+            metric = Metric.objects.get(id=metric_id)
+
+            metric = metric.update_from_api(request_json)
+            return Response(metric.get_api_list_format(),
+                            status=status.HTTP_201_CREATED)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (UserAccount.MultipleObjectsReturned,
+                UserAccount.DoesNotExist,
+                Account.DoesNotExist,
+                Company.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, id=None, format=None):
+        if id:
+            return self.__post_update(request, id, format=format)
+        else:
+            return self.__post_create(request, format=format)
+
+    # DELETE /users/company/metrics/:id
+    def delete(self, request, id=None, format=None):
+        try:
+            user = check_authentication(request)
+            company = user.get_active_account().company
+            metric_id = int(id)
+            metric = Metric.objects.get(id=metric_id)
+            metric.delete()
+            return Response({ 'id': metric_id }, status=status.HTTP_200_OK)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (Person.DoesNotExist, Employment.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 

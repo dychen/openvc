@@ -48,8 +48,10 @@ urlpatterns = [
     url(r'^api/v1/users/company/investments/(?P<investment_id>[0-9]+)/'
          'investors/(?P<investor_investment_id>[0-9]+)$',
         user_views.CompanyInvestors.as_view()),
-    url(r'^api/v1/users/company/metrics/row$',
-        user_views.CompanyMetricsRow.as_view()),
+    url(r'^api/v1/users/company/metrics$',
+        user_views.CompanyMetrics.as_view()),
+    url(r'^api/v1/users/company/metrics/(?P<id>[0-9]+)$',
+        user_views.CompanyMetrics.as_view()),
 
     # Contacts API
     url(r'^api/v1/contacts/self$', contact_views.UserContacts.as_view()),

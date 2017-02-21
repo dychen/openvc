@@ -1,3 +1,4 @@
+import datetime
 import json
 from django.db import models
 from shared.utils import parse_date
@@ -227,9 +228,10 @@ class Company(models.Model):
         )
 
     def get_investments(self, **kwargs):
-        return self.investments.filter(**kwargs).order_by(
-            'date', 'series'
-        )
+        return self.investments.filter(**kwargs).order_by('date', 'series')
+
+    def get_metrics(self, **kwargs):
+        return self.metrics.filter(**kwargs).order_by('name')
 
     def get_api_team(self, current=True):
         return [
@@ -247,6 +249,12 @@ class Company(models.Model):
         return [
             investment.get_api_format()
             for investment in self.get_investments()
+        ]
+
+    def get_api_metrics(self):
+        return [
+            metric.get_api_list_format()
+            for metric in self.get_metrics()
         ]
 
 class CompanyTag(models.Model):
@@ -432,77 +440,116 @@ class BoardMember(models.Model):
 class Metric(models.Model):
     company    = models.ForeignKey(Company, related_name='metrics')
     name       = models.TextField()
-    date       = models.DateField()
+    description = models.TextField(null=True, blank=True)
     interval   = models.TextField(default='Quarter', null=True, blank=True)
     estimated  = models.NullBooleanField(default=False)
-    value      = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('company', 'name', 'date', 'interval', 'estimated')
+        unique_together = ('company', 'name', 'interval', 'estimated')
 
     def __unicode__(self):
-        return '%s %s %s' % (unicode(self.company), self.name, self.date)
+        return '%s %s %s %s' % (unicode(self.company), self.name,
+                                self.interval, self.estimated)
 
     def get_api_format(self):
-        return {
+        return [
+            metric_value.get_api_format()
+            for metric_value in self.metric_values.order_by('date')
+        ]
+
+    def get_api_list_format(self):
+        metric_dict = {
             'id': self.id,
             'company': self.company.name,
-            'name': self.name,
-            'date': self.date,
-            'interval': self.interval,
-            'estimated': self.estimated,
-            'value': self.value,
+            'metric': self.name,
         }
+        for metric_value in self.metric_values.order_by('date'):
+            metric_dict[metric_value.date.strftime('%Y-%m-%d')] = metric_value.value
+        return metric_dict
 
     @classmethod
     def create_from_api(cls, company, request_json):
         """
         Expected request body:
         {
-            'name': [required] [str],
-            'date': [datetime.date],
-            'interval': [string],
-            'estimated': [boolean],
-            'value': [float]
+            'metric': [required] [str],
+            [datestring]: [float],
+            [datestring]: [float],
+            [datestring]: [float],
+            ...
         }
         """
-        metric_dict = { company: company }
-        if request_json.get('date'):
-            metric_dict['date'] = parse_date(request_json.get('date'))
-        if request_json.get('interval'):
-            metric_dict['interval'] = request_json.get('interval')
-        if request_json.get('estimated'):
-            metric_dict['estimated'] = request_json.get('estimated')
-        if request_json.get('value'):
-            metric_dict['value'] = request_json.get('value')
-        metric = Metric.objects.create(**metric_dict)
+        metric_name = request_json.get('metric')
+        metric, _ = Metric.objects.update_or_create(
+            company=company,
+            name=metric_name,
+            estimated=False,
+            interval='Quarter',
+        )
+        for k, v in request_json.iteritems():
+            try:
+                date = datetime.datetime.strptime(k, '%Y-%m-%d').date()
+                if date and v:
+                    MetricValue.objects.update_or_create(
+                        metric=metric,
+                        date=date,
+                        defaults={ 'value': v }
+                    )
+            except ValueError:
+                continue
+
         return metric
 
     def update_from_api(self, request_json):
         """
         Expected request body:
         {
-            'name': [required] [str],
-            'date': [datetime.date],
-            'interval': [string],
-            'estimated': [boolean],
-            'value': [float]
+            'metric': [required] [str],
+            [datestring]: [float],
+            [datestring]: [float],
+            [datestring]: [float],
+            ...
         }
         """
-        if request_json.get('name'):
-            self.name = request_json.get('name')
-        if request_json.get('date'):
-            self.date = parse_date(request_json.get('date'))
-        if request_json.get('interval'):
-            self.interval = request_json.get('interval')
-        if request_json.get('estimated'):
-            self.estimated = request_json.get('estimated')
-        if request_json.get('value'):
-            self.value = request_json.get('value')
-        self.save()
+        for k, v in request_json.iteritems():
+            try:
+                date = datetime.datetime.strptime(k, '%Y-%m-%d').date()
+                if date and v:
+                    MetricValue.objects.update_or_create(
+                        metric=self,
+                        date=date,
+                        defaults={ 'value': v }
+                    )
+            except ValueError:
+                continue
+
         return self
+
+class MetricValue(models.Model):
+    metric     = models.ForeignKey(Metric, related_name='metric_values')
+    date       = models.DateField()
+    value      = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('metric', 'date')
+
+    def __unicode__(self):
+        return '%s %s' % (unicode(self.metric), self.date)
+
+    def get_api_format(self):
+        return {
+            'id': self.id,
+            'company': self.metric.company.name,
+            'name': self.metric.name,
+            'date': self.date,
+            'interval': self.metric.interval,
+            'estimated': self.metric.estimated,
+            'value': self.value,
+        }
 
 class Investment(models.Model):
     company    = models.ForeignKey(Company, related_name='investments')

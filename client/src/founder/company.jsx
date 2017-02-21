@@ -553,7 +553,7 @@ class MetricsSection extends React.Component {
   render() {
     return (
       <div className="ovc-edit-table-container">
-        <EditTable API_URL={`${SERVER_URL}/api/v1/users/company/metrics/row`}
+        <EditTable API_URL={`${SERVER_URL}/api/v1/users/company/metrics`}
                    FIELDS={this.FIELDS}
                    FIELD_MAP={this.FIELD_MAP}
                    {...this.props} />

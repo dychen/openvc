@@ -22,6 +22,31 @@ const preprocessJSON = function(json) {
 };
 
 /*
+ * Formats an object or a list of objects to contain exactly the fields
+ * provided by the @fieldList parameter.
+ *
+ * Args:
+ *   json [Object]: JSON object to convert - must be either the target object
+ *                  represented by fieldList or a list of those objects.
+ *   fieldList [Array]: List of valid fields to filter or add.
+ */
+const formatAPIJSON = function(json, fieldList) {
+  if (Array.isArray(json)) {
+    return json.map(v => formatAPIJSON(v, fieldList));
+  }
+  else if (json instanceof Object) {
+    let newJSON = { id: json.id || undefined };
+    fieldList.forEach(field => {
+      newJSON[field] = json[field] || undefined;
+    })
+    return newJSON;
+  }
+  else {
+    return json; // Could not convert json
+  }
+};
+
+/*
  * Return a new JSON object with all values converted to objects with the
  * following format: {
  *   value: [value],     // The original value of the field
@@ -59,7 +84,7 @@ const transformEditJSON = function(json, fieldKey) {
       return value;
     }
   }
-}
+};
 
 const authFetch = function(url, options) {
   options = options || {};
@@ -82,5 +107,5 @@ const authFetch = function(url, options) {
   return fetch(urlObj, options);
 };
 
-export {authFetch, preprocessJSON, transformEditJSON};
+export {authFetch, preprocessJSON, formatAPIJSON, transformEditJSON};
 

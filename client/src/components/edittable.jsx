@@ -1,6 +1,7 @@
 import React from 'react';
 import Immutable from 'immutable';
-import {authFetch, preprocessJSON, transformEditJSON} from '../utils/api.js';
+import {authFetch, formatAPIJSON, preprocessJSON,
+        transformEditJSON} from '../utils/api.js';
 
 import EditField from './editfield.jsx';
 
@@ -224,7 +225,8 @@ class EditTable extends React.Component {
     })
     .then(json => {
       // Success
-      json = transformEditJSON(preprocessJSON(json));
+      json = transformEditJSON(formatAPIJSON(preprocessJSON(json),
+                                             this.props.FIELDS));
       this.setState({ data: json });
     })
     .catch(err => {
@@ -255,7 +257,8 @@ class EditTable extends React.Component {
     })
     .then(json => {
       // Success
-      json = transformEditJSON(preprocessJSON(json));
+      json = transformEditJSON(formatAPIJSON(preprocessJSON(json),
+                                             this.props.FIELDS));
       const newState = Immutable.fromJS(this.state)
         .update('data', data => data.push(json));
 
@@ -290,7 +293,8 @@ class EditTable extends React.Component {
     })
     .then(json => {
       // Success
-      json = transformEditJSON(preprocessJSON(json));
+      json = transformEditJSON(formatAPIJSON(preprocessJSON(json),
+                                             this.props.FIELDS));
       const entityIdx = this.state.data.findIndex(entity =>
         entity.id === json.id
       );

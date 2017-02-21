@@ -16,7 +16,9 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from rest_framework.authtoken import views as authoken_views
-from users import views as user_views
+from users.views import user as user_views
+from users.views import founder as founder_views
+from users.views import investor as investor_views
 from contacts import views as contact_views
 from data import views as data_views
 
@@ -32,26 +34,32 @@ urlpatterns = [
     url(r'^api/v1/users/experience$', user_views.UserExperience.as_view()),
     url(r'^api/v1/users/experience/(?P<id>[0-9]+)$',
         user_views.UserExperience.as_view()),
-    url(r'^api/v1/users/company/team$', user_views.CompanyTeam.as_view()),
+    # User - Founder API
+    url(r'^api/v1/users/company/team$', founder_views.CompanyTeam.as_view()),
     url(r'^api/v1/users/company/team/(?P<id>[0-9]+)$',
-        user_views.CompanyTeam.as_view()),
-    url(r'^api/v1/users/company/board$', user_views.CompanyBoard.as_view()),
+        founder_views.CompanyTeam.as_view()),
+    url(r'^api/v1/users/company/board$', founder_views.CompanyBoard.as_view()),
     url(r'^api/v1/users/company/board/(?P<id>[0-9]+)$',
-        user_views.CompanyBoard.as_view()),
+        founder_views.CompanyBoard.as_view()),
     url(r'^api/v1/users/company/investments$',
-        user_views.CompanyInvestments.as_view()),
+        founder_views.CompanyInvestments.as_view()),
     url(r'^api/v1/users/company/investments/(?P<id>[0-9]+)$',
-        user_views.CompanyInvestments.as_view()),
+        founder_views.CompanyInvestments.as_view()),
     url(r'^api/v1/users/company/investments/(?P<investment_id>[0-9]+)/'
          'investors$',
-        user_views.CompanyInvestors.as_view()),
+        founder_views.CompanyInvestors.as_view()),
     url(r'^api/v1/users/company/investments/(?P<investment_id>[0-9]+)/'
          'investors/(?P<investor_investment_id>[0-9]+)$',
-        user_views.CompanyInvestors.as_view()),
+        founder_views.CompanyInvestors.as_view()),
     url(r'^api/v1/users/company/metrics$',
-        user_views.CompanyMetrics.as_view()),
+        founder_views.CompanyMetrics.as_view()),
     url(r'^api/v1/users/company/metrics/(?P<id>[0-9]+)$',
-        user_views.CompanyMetrics.as_view()),
+        founder_views.CompanyMetrics.as_view()),
+    # User - Investor API
+    url(r'^api/v1/users/portfolio$',
+        investor_views.InvestorPortfolio.as_view()),
+    #url(r'^api/v1/users/portfolio/(?P<id>[0-9]+)$',
+    #    investor_views.InvestorPortfolio.as_view()),
 
     # Contacts API
     url(r'^api/v1/contacts/self$', contact_views.UserContacts.as_view()),

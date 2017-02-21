@@ -1,0 +1,64 @@
+@import '../mixins';
+@import '../constants.scss';
+
+$PORTCO_PANEL_HEIGHT: 100px;
+
+.ovc-create-portco-button {
+  width: 200px;
+  height: 40px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid $OVC_DARK_GRAY;
+  border-radius: 5px;
+
+  @include hvr-fade($OVC_LIGHT_GRAY, $OVC_DARK_GRAY);
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  i.create-portco {
+    position: absolute;
+    left: 10px;
+    font-size: 20px;
+  }
+}
+
+.ovc-investor-portco-list {
+  .ovc-investor-portco-panel {
+    height: $PORTCO_PANEL_HEIGHT;
+    width: 100%;
+    box-shadow: 0 1px 3px 0 $OVC_GRAY;
+
+    margin-bottom: 5px;
+
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    @include hvr-shadow($OVC_DARK_GRAY);
+
+    // Left icon
+    img.company-logo {
+      height: $PORTCO_PANEL_HEIGHT;
+      flex: 0 0 $PORTCO_PANEL_HEIGHT;
+      border-right: 1px solid $OVC_LIGHT_GRAY;
+    }
+
+    // Middle info
+    .portco-text {
+      width: 100%;
+      margin-left: 10px;
+      margin-right: 5px;
+
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+
+  .ovc-no-data {
+    color: $OVC_GRAY;
+  }
+}

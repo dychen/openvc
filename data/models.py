@@ -1,5 +1,6 @@
 import datetime
 import json
+from decimal import Decimal
 from django.db import models
 from shared.utils import parse_date
 
@@ -9,6 +10,23 @@ class Investor(models.Model):
 
     def __unicode__(self):
         return self.name or u''
+
+    def get_total_investment(self, company, **kwargs):
+        args = { 'investor': self, 'investment__company': company }
+        args.update(kwargs)
+        return (InvestorInvestment.objects.filter(**args)
+                                  .aggregate(total=models.Sum('invested'))['total']
+                or Decimal(0))
+
+    def get_current_ownership(self, company, **kwargs):
+        args = { 'investor': self, 'investment__company': company }
+        args.update(kwargs)
+
+        # Get the most recent ownership % (each round has current total own %)
+        for ii in InvestorInvestment.objects.filter(**args).order_by('-date'):
+            if ii.ownership:
+                return ii.ownership
+        return None
 
 class Person(models.Model):
 
@@ -230,8 +248,24 @@ class Company(models.Model):
     def get_investments(self, **kwargs):
         return self.investments.filter(**kwargs).order_by('date', 'series')
 
+    def get_latest_investment(self):
+        return self.get_investments().last()
+
     def get_metrics(self, **kwargs):
         return self.metrics.filter(**kwargs).order_by('name')
+
+    def get_portfolio(self, **kwargs):
+        if self.investor:
+            return [
+                ii.investment.company
+                for ii in self.investor.investor_investments
+                                       .order_by('investment__company')
+                                       .distinct('investment__company')
+            ]
+        else:
+            return []
+
+    # Startup API
 
     def get_api_team(self, current=True):
         return [
@@ -256,6 +290,49 @@ class Company(models.Model):
             metric.get_api_list_format()
             for metric in self.get_metrics()
         ]
+
+    # Investor API
+
+    def get_api_portco_format(self, investor):
+        latest_investment = self.get_latest_investment()
+        if latest_investment:
+            (latest_series, latest_date, latest_raised, latest_post) = \
+                (latest_investment.series, latest_investment.date,
+                 latest_investment.raised, latest_investment.post_money)
+        else:
+            (latest_series, latest_date, latest_raised, latest_post) = \
+                (None, None, None, None)
+
+        return {
+            'id': self.id,
+            'name': self.name,
+            'location': self.location,
+            'website': self.website,
+            'logoUrl': self.logo_url,
+            'totalRaised': self.get_total_raised(),
+            'latestRoundSeries': latest_series,
+            'latestRoundDate': latest_date,
+            'latestRoundRaised': latest_raised,
+            'latestRoundPostMoneyVal': latest_post,
+            'invested': investor.get_total_investment(self),
+            'ownership': investor.get_current_ownership(self),
+        }
+
+    def get_api_portfolio(self):
+        if self.investor:
+            return [
+                company.get_api_portco_format(self.investor)
+                for company in self.get_portfolio()
+            ]
+        else:
+            return []
+
+    # Startup data
+
+    def get_total_raised(self, **kwargs):
+        return (self.investments.filter(**kwargs)
+                                .aggregate(total=models.Sum('raised'))['total']
+                or Decimal(0))
 
 class CompanyTag(models.Model):
     company    = models.ForeignKey(Company, related_name='tags')

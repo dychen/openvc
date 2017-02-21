@@ -110,7 +110,7 @@ class UserAccount(models.Model):
     user       = models.ForeignKey(settings.AUTH_USER_MODEL,
                                    related_name='user_accounts')
     account    = models.ForeignKey(Account, related_name='account_users')
-    active     = models.BooleanField(default=False)
+    active     = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -119,4 +119,4 @@ class UserAccount(models.Model):
 
     def __unicode__(self):
         return u'%s %s %s' % (unicode(self.user), unicode(self.account),
-                              account.active)
+                              self.active)

@@ -504,7 +504,7 @@ class InvestorSection extends React.Component {
                       `${investment.id}/investors`;
       return (
         <div key={investment.id} className="ovc-edit-table-container">
-          <h4>{investment.series}</h4>
+          <h5>{investment.series}</h5>
           <EditTable API_URL={API_URL}
                      FIELDS={this.FIELDS}
                      FIELD_MAP={this.FIELD_MAP}

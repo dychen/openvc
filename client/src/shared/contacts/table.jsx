@@ -1,8 +1,6 @@
 import React from 'react';
 import EditTable from '../../components/edittable.jsx';
 
-import './table.scss';
-
 class ContactsTableSection extends React.Component {
   constructor(props) {
     super(props);
@@ -18,8 +16,7 @@ class ContactsTableSection extends React.Component {
       lastName: {
         display: 'Last Name',
         type: 'string',
-        required: true,
-        editable: true
+        required: true
       },
       company: {
         display: 'Company',
@@ -29,8 +26,7 @@ class ContactsTableSection extends React.Component {
       title: {
         display: 'Title',
         type: 'string',
-        required: false,
-        editable: true
+        required: false
       },
       email: {
         display: 'Email',
@@ -45,8 +41,7 @@ class ContactsTableSection extends React.Component {
       linkedinUrl: {
         display: 'LinkedIn',
         type: 'string',
-        required: false,
-        editable: true
+        required: false
       },
       photoUrl: {
         display: 'Photo',

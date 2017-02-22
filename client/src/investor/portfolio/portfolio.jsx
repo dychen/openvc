@@ -5,6 +5,7 @@ import {authFetch, preprocessJSON} from '../../utils/api.js';
 
 import SearchSection from './search.jsx';
 import UserPortfolioSection from './user.jsx';
+import PortfolioTableSection from './table.jsx';
 
 import './portfolio.scss';
 
@@ -261,6 +262,24 @@ class InvestorPorfolioPage extends React.Component {
   }
 
   render() {
+    const filteredCompanies = this._filterCompanies(this.state.companies);
+    let visibleSection;
+    switch (this.state.section) {
+      case 'table':
+        visibleSection = (<PortfolioTableSection />);
+        break;
+      case 'user':
+      case 'default':
+        visibleSection = (
+          <UserPortfolioSection companies={filteredCompanies}
+                                groupBy={this.state.groupBy}
+                                createPortfolioCompany={this.createPortfolioCompany}
+                                updatePortfolioCompany={this.updatePortfolioCompany}
+                                deletePortfolioCompany={this.deletePortfolioCompany} />
+        );
+        break;
+    }
+
     return (
       <div className="ovc-investor-portfolio-container">
         <SearchSection section={this.state.section}
@@ -272,11 +291,7 @@ class InvestorPorfolioPage extends React.Component {
                        updateFilter={this.updateFilter}
                        addFilterTag={this.addFilterTag}
                        removeFilterTag={this.removeFilterTag} />
-        <UserPortfolioSection companies={this._filterCompanies(this.state.companies)}
-                              groupBy={this.state.groupBy}
-                              createPortfolioCompany={this.createPortfolioCompany}
-                              updatePortfolioCompany={this.updatePortfolioCompany}
-                              deletePortfolioCompany={this.deletePortfolioCompany} />
+        {visibleSection}
       </div>
     );
   }

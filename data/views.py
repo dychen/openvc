@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 
 from data.models import Company, Person, Employment
-from data.entity import match_person
+from data.entity import match_person, match_company
 from shared.auth import check_authentication
 
 
@@ -36,6 +36,34 @@ class MatchPerson(APIView):
                 person.get_api_format()
                 for person in match_person(person_data,
                                            count=self._NUM_RESULTS)
+            ], status=status.HTTP_200_OK)
+        except ValueError:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+class MatchCompany(APIView):
+
+    authentication_classes = (TokenAuthentication,)
+
+    _VALID_FIELD_MAP = {
+        'name': 'name',
+        'segment': 'segment',
+        'sector': 'sector',
+        'location': 'location',
+    }
+    _NUM_RESULTS = 3
+
+    def get(self, request, format=None):
+        try:
+            company_data = {
+                self._VALID_FIELD_MAP[k]: request.query_params[k]
+                if k in request.query_params else ''
+                for k in self._VALID_FIELD_MAP
+            }
+            return Response([
+                company.get_api_format()
+                for company in match_company(company_data,
+                                             count=self._NUM_RESULTS)
             ], status=status.HTTP_200_OK)
         except ValueError:
             return Response({ 'error': str(e) },

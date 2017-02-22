@@ -57,6 +57,16 @@ $PORTCO_PANEL_HEIGHT: 100px;
       align-items: flex-start;
       flex-direction: column;
     }
+
+    position: relative;
+    i.remove-portco {
+      font-size: 20px;
+      position: absolute;
+      right: 5px;
+      top: 0px;
+
+      @include hvr-color($OVC_GRAY);
+    }
   }
 
   .ovc-no-data {

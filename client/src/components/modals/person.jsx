@@ -200,6 +200,7 @@ class CreatePersonModal extends React.Component {
                 <input className="person-input" name="lastName"
                        value={this.state.data.lastName}
                        placeholder="Last name (e.g. Gates)"
+                       onBlur={this.matchPerson}
                        onChange={this.updateInput} />
                 <input className="person-input" name="company"
                        value={this.state.data.company}
@@ -209,6 +210,7 @@ class CreatePersonModal extends React.Component {
                 <input className="person-input" name="title"
                        value={this.state.data.title}
                        placeholder="Title (e.g. Co-chair)"
+                       onBlur={this.matchPerson}
                        onChange={this.updateInput} />
               </div>
               <div className="create-person-input-group">

@@ -97,6 +97,9 @@ class User(AbstractBaseUser):
         # TODO
         return self.is_admin
 
+    def get_portfolio_company(self, company_id):
+        return self.get_active_account().get_portfolio_company(company_id)
+
 class Account(models.Model):
     company    = models.OneToOneField(Company, unique=True,
                                       related_name='account')
@@ -105,6 +108,23 @@ class Account(models.Model):
 
     def __unicode__(self):
         return unicode(self.company)
+
+    def get_portfolio_company(self, company_id):
+        return self.account_portfolio.get(company__id=company_id).company
+
+    def get_portfolio(self, **kwargs):
+        args = { 'account_portfolio__account': self }
+        args.update(kwargs)
+        return Company.objects.filter(**args).order_by('name')
+
+    def get_api_portfolio(self):
+        if self.company.investor:
+            return [
+                company.get_api_portco_format(self.company.investor)
+                for company in self.get_portfolio()
+            ]
+        else:
+            return []
 
 class UserAccount(models.Model):
     user       = models.ForeignKey(settings.AUTH_USER_MODEL,
@@ -120,3 +140,18 @@ class UserAccount(models.Model):
     def __unicode__(self):
         return u'%s %s %s' % (unicode(self.user), unicode(self.account),
                               self.active)
+
+class AccountPortfolio(models.Model):
+    account    = models.ForeignKey(Account, related_name='account_portfolio')
+    company    = models.ForeignKey(Company, related_name='account_portfolio')
+    active     = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('account', 'company')
+
+    def __unicode__(self):
+        return u'%s %s %s' % (unicode(self.account), unicode(self.company),
+                              self.active)
+

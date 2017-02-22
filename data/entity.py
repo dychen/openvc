@@ -1,5 +1,5 @@
 from django.db import connection
-from data.models import Person
+from data.models import Person, Company
 
 def levenshtein(s1, s2, limit=100):
     # Compare s2 (comparator, possible match) against s1 (target, string being
@@ -98,6 +98,77 @@ JOIN data_company c on c.id=e.company_id
             'email': email,
             'company': company,
             'linkedin_url': linkedin_url,
+        }
+        if threshold(target_data, comp_data):
+            matches.append((calculate_similarity(target_data, comp_data),
+                           comp_data))
+
+    # Sort matches in ascending order (best matches have smaller scores)
+    return get_records(sorted(matches, key=lambda x: x[0]), count)
+
+def match_company(data, count=1):
+    """
+    Args:
+        data [dict]: {
+            'name': [str],
+            'segment': [str],
+            'sector': [str],
+            'location': [str],
+        }
+        count [int]: Number of results to return.
+
+    Returns:
+        [list]: Up to @count company objects that are the closest matches to
+                the input @data: [<Company>, <Company>, ...].
+    """
+
+    def threshold(data, comp_data):
+        """Filters dataset to only attempt to match most relevant ones"""
+        return True
+
+    def calculate_similarity(target_data, comp_data):
+        return (
+            levenshtein(target_data['name'], comp_data['name'])
+            + levenshtein(target_data['segment'], comp_data['segment'])
+            + levenshtein(target_data['sector'], comp_data['sector'])
+            + levenshtein(target_data['location'], comp_data['location'])
+        )
+
+    def get_records(score_tuples, count):
+        results = []
+        company_ids = set([])
+        for score, score_tuple in score_tuples:
+            if len(results) >= count:
+                break
+            if score_tuple['id'] not in company_ids:
+                results.append(Company.objects.get(id=score_tuple['id']))
+                company_ids.add(score_tuple['id'])
+        return results
+
+    matches = []
+    # Raw SQL for performance
+    # TODO: Cache this query in a materialized view
+    RAW_SQL = '''
+SELECT c.id, c.name, c.segment, c.sector, c.location FROM data_company c
+'''
+    cursor = connection.cursor()
+    cursor.execute(RAW_SQL)
+
+    target_data = {
+        'name': data['name'],
+        'segment': data['segment'],
+        'sector': data['sector'],
+        'location': data['location'],
+    }
+
+    for row in cursor.fetchall():
+        company_id, name, segment, sector, location, = row
+        comp_data = {
+            'id': company_id,
+            'name': name,
+            'segment': segment,
+            'sector': sector,
+            'location': location,
         }
         if threshold(target_data, comp_data):
             matches.append((calculate_similarity(target_data, comp_data),

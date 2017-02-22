@@ -60,6 +60,8 @@ urlpatterns = [
     # Users - Investor API
     url(r'^api/v1/users/portfolio$',
         investor_views.InvestorPortfolio.as_view()),
+    url(r'^api/v1/users/portfolio/(?P<id>[0-9]+)$',
+        investor_views.InvestorPortfolio.as_view()),
 
     url(r'^api/v1/users/portfolio/(?P<company_id>[0-9]+)/team$',
         investor_views.CompanyTeam.as_view()),
@@ -110,4 +112,5 @@ urlpatterns = [
 
     # Entity resolution API
     url(r'^api/v1/match/person$', data_views.MatchPerson.as_view()),
+    url(r'^api/v1/match/company$', data_views.MatchCompany.as_view()),
 ]

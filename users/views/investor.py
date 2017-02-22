@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 
-from users.models import User, Account, UserAccount
+from users.models import User, Account, UserAccount, AccountPortfolio
 from data.models import (Company, Person, Employment, BoardMember, Investment,
                          InvestorInvestment, Metric)
 from shared.auth import check_authentication
@@ -22,14 +22,112 @@ class InvestorPortfolio(APIView):
         try:
             user = check_authentication(request)
             person = user.person
-            company = user.get_active_account().company
-            return Response(company.get_api_portfolio(),
+            return Response(user.get_active_account().get_api_portfolio(),
                             status=status.HTTP_200_OK)
 
         except (UserAccount.MultipleObjectsReturned,
                 UserAccount.DoesNotExist,
                 Account.DoesNotExist,
                 Company.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # POST /users/portfolio
+    def __post_create(self, request, format=None):
+        """
+        Expected request body:
+        {
+            'name': [required] [str],
+            'segment': [str],
+            'sector': [str],
+            'location': [str],
+            'logoUrl': [str],
+            'website': [str]
+        }
+        """
+        def validate(request_json):
+            if not (request_json.get('name')):
+                raise ValidationError('Company name is required.')
+            return request_json
+
+        try:
+            user = check_authentication(request)
+            request_json = validate(json.loads(request.body))
+            account = user.get_active_account()
+            company = Company.create_from_api(request_json)
+            AccountPortfolio.objects.create(account=account, company=company,
+                                            active=True)
+            return Response(company.get_api_format(),
+                            status=status.HTTP_201_CREATED)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (UserAccount.MultipleObjectsReturned,
+                UserAccount.DoesNotExist,
+                Account.DoesNotExist,
+                Company.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # POST /users/portfolio/:company_id
+    def __post_update(self, request, company_id, format=None):
+        """
+        Expected request body:
+        {
+            'name': [str],
+            'segment': [str],
+            'sector': [str],
+            'location': [str],
+            'logoUrl': [str],
+            'website': [str]
+        }
+        """
+        try:
+            user = check_authentication(request)
+            request_json = json.loads(request.body)
+            account = user.get_active_account()
+            company = Company.objects.get(id=company_id)
+            company = company.update_from_api(request_json)
+            AccountPortfolio.objects.update_or_create(
+                account=account, company=company, active=True
+            )
+            return Response(company.get_api_format(),
+                            status=status.HTTP_201_CREATED)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (UserAccount.MultipleObjectsReturned,
+                UserAccount.DoesNotExist,
+                Account.DoesNotExist,
+                Company.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, id=None, format=None):
+        if id:
+            return self.__post_update(request, id, format=format)
+        else:
+            return self.__post_create(request, format=format)
+
+    # DELETE /users/portfolio/:company_id
+    def delete(self, request, id=None, format=None):
+        try:
+            user = check_authentication(request)
+            account = user.get_active_account()
+            company_id = int(id)
+            company = user.get_portfolio_company(company_id)
+            account_portfolio = AccountPortfolio.objects.get(
+                account=account, company=company
+            )
+            account_portfolio.delete()
+            return Response({ 'id': company_id }, status=status.HTTP_200_OK)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (Person.DoesNotExist, Employment.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -41,8 +139,7 @@ class CompanyTeam(APIView):
     def get(self, request, company_id, format=None):
         try:
             user = check_authentication(request)
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             return Response(company.get_api_team(), status=status.HTTP_200_OK)
 
         except (UserAccount.MultipleObjectsReturned,
@@ -75,8 +172,7 @@ class CompanyTeam(APIView):
         try:
             user = check_authentication(request)
             request_json = validate(json.loads(request.body))
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             person = Person.create_from_api(request_json)
             Employment.objects.create(
                 person=person,
@@ -118,8 +214,7 @@ class CompanyTeam(APIView):
         try:
             user = check_authentication(request)
             request_json = validate(json.loads(request.body))
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             person = Person.objects.get(id=person_id)
             person = person.update_from_api(request_json)
 
@@ -153,11 +248,10 @@ class CompanyTeam(APIView):
             return self.__post_create(request, company_id, format=format)
 
     # DELETE /users/portfolio/:company_id/team/:person_id
-    def delete(self, request, id=None, format=None):
+    def delete(self, request, company_id, person_id=None, format=None):
         try:
             user = check_authentication(request)
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             person_id = int(person_id)
             person = Person.objects.get(id=person_id)
             employment = person.employment.filter(person=person,
@@ -181,8 +275,7 @@ class CompanyBoard(APIView):
     def get(self, request, company_id, format=None):
         try:
             user = check_authentication(request)
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             return Response(company.get_api_board(), status=status.HTTP_200_OK)
 
         except (UserAccount.MultipleObjectsReturned,
@@ -214,8 +307,7 @@ class CompanyBoard(APIView):
         try:
             user = check_authentication(request)
             request_json = validate(json.loads(request.body))
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             person = Person.create_from_api(request_json)
             BoardMember.objects.create(person=person, company=company,
                                        current=True)
@@ -252,8 +344,7 @@ class CompanyBoard(APIView):
         try:
             user = check_authentication(request)
             request_json = validate(json.loads(request.body))
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             person = Person.objects.get(id=person_id)
             person = person.update_from_api(request_json)
 
@@ -286,8 +377,7 @@ class CompanyBoard(APIView):
     def delete(self, request, company_id, person_id=None, format=None):
         try:
             user = check_authentication(request)
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             person_id = int(person_id)
             person = Person.objects.get(id=person_id)
             employment = (person.board_members.filter(person=person,
@@ -310,8 +400,7 @@ class CompanyInvestments(APIView):
     def get(self, request, company_id, format=None):
         try:
             user = check_authentication(request)
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             return Response(company.get_api_investments(),
                             status=status.HTTP_200_OK)
 
@@ -343,8 +432,7 @@ class CompanyInvestments(APIView):
         try:
             user = check_authentication(request)
             request_json = validate(json.loads(request.body))
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             investment = Investment.create_from_api(company, request_json)
             return Response(investment.get_api_format(),
                             status=status.HTTP_201_CREATED)
@@ -375,8 +463,7 @@ class CompanyInvestments(APIView):
         try:
             user = check_authentication(request)
             request_json = json.loads(request.body)
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             investment = Investment.objects.get(id=investment_id,
                                                 company=company)
 
@@ -405,8 +492,7 @@ class CompanyInvestments(APIView):
     def delete(self, request, company_id, investment_id=None, format=None):
         try:
             user = check_authentication(request)
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             investment_id = int(investment_id)
             investment = Investment.objects.get(id=investment_id,
                                                 company=company)
@@ -428,8 +514,7 @@ class CompanyInvestors(APIView):
     def get(self, request, company_id, investment_id, format=None):
         try:
             user = check_authentication(request)
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
 
             investment = (user.get_active_account().company
                               .investments.get(id=investment_id,
@@ -466,8 +551,7 @@ class CompanyInvestors(APIView):
         try:
             user = check_authentication(request)
             request_json = validate(json.loads(request.body))
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
 
             investment = (user.get_active_account().company
                               .investments.get(id=investment_id,
@@ -508,8 +592,7 @@ class CompanyInvestors(APIView):
         try:
             user = check_authentication(request)
             request_json = json.loads(request.body)
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             investment = (user.get_active_account().company
                               .investments.get(id=investment_id,
                                                company=company))
@@ -551,8 +634,7 @@ class CompanyInvestors(APIView):
                investor_investment_id=None, format=None):
         try:
             user = check_authentication(request)
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             investment = (user.get_active_account().company
                               .investments.get(id=investment_id,
                                                company=company))
@@ -580,8 +662,7 @@ class CompanyMetrics(APIView):
         try:
             # TODO: Coordinate this with the frontend
             user = check_authentication(request)
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             return Response(company.get_api_metrics(),
                             status=status.HTTP_200_OK)
 
@@ -612,8 +693,7 @@ class CompanyMetrics(APIView):
         try:
             user = check_authentication(request)
             request_json = validate(json.loads(request.body))
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             metric = Metric.create_from_api(company, request_json)
             return Response(metric.get_api_list_format(),
                             status=status.HTTP_201_CREATED)
@@ -643,8 +723,7 @@ class CompanyMetrics(APIView):
         try:
             user = check_authentication(request)
             request_json = json.loads(request.body)
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             metric = Metric.objects.get(id=metric_id, company=company)
 
             metric = metric.update_from_api(request_json)
@@ -672,8 +751,7 @@ class CompanyMetrics(APIView):
     def delete(self, request, company_id, metric_id=None, format=None):
         try:
             user = check_authentication(request)
-            user_company = user.get_active_account().company
-            company = user_company.get_portfolio().get(id=company_id)
+            company = user.get_portfolio_company(company_id)
             metric_id = int(metric_id)
             metric = Metric.objects.get(id=metric_id, company=company)
             metric.delete()

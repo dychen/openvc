@@ -216,6 +216,8 @@ class Company(models.Model):
     name       = models.TextField(null=True, blank=True)
     location   = models.TextField(null=True, blank=True)
     website    = models.TextField(null=True, blank=True)
+    segment    = models.TextField(null=True, blank=True)
+    sector     = models.TextField(null=True, blank=True)
     logo_url   = models.TextField(null=True, blank=True)
     investor   = models.OneToOneField(Investor, unique=True, null=True,
                                       blank=True, on_delete=models.SET_NULL)
@@ -260,6 +262,75 @@ class Company(models.Model):
         return Company.objects.filter(
             investments__investor_investments__investor__company=self
         ).distinct('id')
+
+    # Company API
+
+    def get_api_format(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'segment': self.segment,
+            'sector': self.sector,
+            'location': self.location,
+            'website': self.website,
+            'logoUrl': self.logo_url,
+        }
+
+    @classmethod
+    def create_from_api(cls, request_json):
+        """
+        Expected request body:
+        {
+            'name': [required] [str],
+            'segment': [str],
+            'sector': [str],
+            'location': [str],
+            'logoUrl': [str],
+            'website': [str]
+        }
+        """
+        company_dict = {}
+        if request_json.get('name'):
+            company_dict['name'] = request_json.get('name')
+        if request_json.get('segment'):
+            company_dict['segment'] = request_json.get('segment')
+        if request_json.get('sector'):
+            company_dict['sector'] = request_json.get('sector')
+        if request_json.get('location'):
+            company_dict['location'] = request_json.get('location')
+        if request_json.get('logoUrl'):
+            company_dict['logo_url'] = request_json.get('logoUrl')
+        if request_json.get('website'):
+            company_dict['website'] = request_json.get('website')
+        return Company.objects.create(**company_dict)
+
+    def update_from_api(self, request_json):
+        """
+        Expected request body:
+        {
+            'name': [str],
+            'segment': [str],
+            'sector': [str],
+            'location': [str],
+            'logoUrl': [str],
+            'website': [str]
+        }
+        """
+        if request_json.get('name'):
+            self.name = request_json.get('name')
+        if request_json.get('segment'):
+            self.segment = request_json.get('segment')
+        if request_json.get('sector'):
+            self.sector = request_json.get('sector')
+        if request_json.get('location'):
+            self.location = request_json.get('location')
+        if request_json.get('logoUrl'):
+            self.logo_url = request_json.get('logoUrl')
+        if request_json.get('website'):
+            self.website = request_json.get('website')
+
+        self.save()
+        return self
 
     # Startup API
 

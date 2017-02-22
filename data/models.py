@@ -373,6 +373,8 @@ class Company(models.Model):
         return {
             'id': self.id,
             'name': self.name,
+            'segment': self.segment,
+            'sector': self.sector,
             'location': self.location,
             'website': self.website,
             'logoUrl': self.logo_url,
@@ -384,15 +386,6 @@ class Company(models.Model):
             'invested': investor.get_total_investment(self),
             'ownership': investor.get_current_ownership(self),
         }
-
-    def get_api_portfolio(self):
-        if self.investor:
-            return [
-                company.get_api_portco_format(self.investor)
-                for company in self.get_portfolio()
-            ]
-        else:
-            return []
 
     # Startup data
 

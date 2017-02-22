@@ -1,26 +1,52 @@
-@import '../mixins';
-@import '../constants.scss';
+@import '../../mixins';
+@import '../../constants.scss';
+@import './constants.scss';
 
-$PORTCO_PANEL_HEIGHT: 100px;
+.ovc-investor-portfolio-container {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: hidden;
 
-.ovc-create-portco-button {
-  width: 200px;
-  height: 40px;
-  margin-bottom: 10px;
-  padding: 10px;
-  border: 1px solid $OVC_DARK_GRAY;
-  border-radius: 5px;
-
-  @include hvr-fade($OVC_LIGHT_GRAY, $OVC_DARK_GRAY);
-
-  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  i.create-portco {
-    position: absolute;
-    left: 10px;
-    font-size: 20px;
+
+  .ovc-portco-search-menu {
+    flex: 0 0 $PORTCO_SEARCH_WIDTH;
+    height: 100%;
+    background-color: $OVC_SUBNAV_GRAY;
+    border-right: 1px solid $OVC_LIGHT_GRAY;
+
+    overflow-y: scroll;
+  }
+
+  .ovc-investor-portco-list {
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+
+    padding-left: 25px;
+    padding-right: 25px;
+    padding-bottom: 25px;
+  }
+}
+
+.ovc-investor-portco-list {
+  margin: 20px;
+  padding: 10px;
+
+  h3 {
+    padding-top: 0px;
+    margin-top: 0px;
+  }
+
+  .ovc-investor-portco-sublist {
+    width: 100%;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
   }
 }
 

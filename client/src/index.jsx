@@ -23,7 +23,7 @@ import InvestorTopnav from './investor/topnav.jsx';
 import InvestorDealPage from './investor/deals.jsx';
 import InvestorLandscapePage from './investor/landscape.jsx';
 import InvestorComparePage from './investor/compare.jsx';
-import InvestorPorfolioPage from './investor/portfolio.jsx';
+import InvestorPorfolioPage from './investor/portfolio/portfolio.jsx';
 
 import ContactsPage from './shared/contacts/contacts.jsx';
 import {FounderCompanyPage, InvestorCompanyPage} from './shared/company/company.jsx';

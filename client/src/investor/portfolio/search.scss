@@ -1,0 +1,87 @@
+@import '../../mixins';
+@import '../../constants.scss';
+@import './constants.scss';
+
+.ovc-portco-search-menu {
+  display: flex;
+  flex-direction: column;
+
+  .ovc-portco-search-section-tabs {
+    display: flex;
+    .ovc-search-tab {
+      width: 100%;
+      background-color: $OVC_SUBNAV_GRAY;
+      text-align: center;
+    }
+    a {
+      // Remove link formatting (underline and color)
+      text-decoration: none;
+      color: inherit;
+    }
+  }
+
+  .ovc-portco-search-dropdown {
+    padding: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid $OVC_LIGHT_GRAY;
+
+    display: flex;
+    flex-direction: column;
+
+    .dropdown-button {
+      width: 100%;
+      border-color: $OVC_GRAY;
+    }
+  }
+
+  .ovc-portco-search-inputs {
+    padding: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid $OVC_LIGHT_GRAY;
+
+    @include ovc-nav-input($PORTCO_SEARCH_WIDTH - 40px, 30px,
+                           $OVC_GRAY, $OVC_DARK_GRAY);
+  }
+
+  .ovc-portco-search-tags {
+    padding: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+
+    .filter-tag {
+      width: auto;
+      height: 30px;
+      border: 1px solid $OVC_LIGHT_GRAY;
+      border-radius: 5px;
+      padding-right: 10px;
+      margin: 1px;
+
+      display: inline-flex; // inline to make width size to element
+      justify-content: center;
+      align-items: center;
+
+      @include hvr-color($OVC_GRAY);
+
+      .filter-close {
+        width: 30px;
+        height: 30px;
+        margin-right: 5px;
+        border-right: 1px solid $OVC_LIGHT_GRAY;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        i {
+          font-size: 20px;
+        }
+      }
+      .light {
+        color: $OVC_GRAY;
+      }
+    }
+  }
+}
+

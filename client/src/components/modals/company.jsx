@@ -16,18 +16,18 @@ class CompanyPanel extends React.Component {
     );
     const className = (
       this.props.handleClick
-      ? 'create-person-display-panel hover-panel'
-      : 'create-person-display-panel'
+      ? 'create-entity-display-panel hover-panel'
+      : 'create-entity-display-panel'
     );
 
     return (
       <div className={className}
            id={this.props.data.id}
            onClick={this.props.handleClick}>
-        <img className="person-photo"
+        <img className="entity-photo"
              src={this.props.data.logoUrl} />
-        <div className="person-text">
-          <span className="person-text-row">
+        <div className="entity-text">
+          <span className="entity-text-row">
             <span className="left">
               {this.props.data.name}
             </span>
@@ -35,7 +35,7 @@ class CompanyPanel extends React.Component {
               {this.props.data.location}
             </span>
           </span>
-          <span className="person-text-row">
+          <span className="entity-text-row">
             <span className="left">
               {sectorStr}
             </span>
@@ -43,7 +43,7 @@ class CompanyPanel extends React.Component {
               {this.props.data.email}
             </span>
           </span>
-          <span className="person-text-row">
+          <span className="entity-text-row">
             <a href={this.props.data.website} target="_blank">
               {this.props.data.website}
             </a>
@@ -85,11 +85,11 @@ class CreateCompanyModalBase extends React.Component {
     const matchSection = (
       this.props.matches.length > 0
       ? (
-        <div className="create-person-match-container">
-          <div className="create-person-match-header">
+        <div className="create-entity-match-container">
+          <div className="create-entity-match-header">
             {this.props.UPDATE_HEADLINE}
           </div>
-          <div className="create-person-match-list">
+          <div className="create-entity-match-list">
             {matchPanels}
           </div>
         </div>
@@ -99,43 +99,43 @@ class CreateCompanyModalBase extends React.Component {
 
     return (
       <div className={modalShowClass} onClick={this.props.closeModal}>
-        <div className="ovc-modal create-person-modal"
+        <div className="ovc-modal create-entity-modal"
              onClick={this.props.preventModalClose}>
-          <div className="create-person-modal-header">
+          <div className="create-entity-modal-header">
             {this.props.CREATE_HEADLINE}
           </div>
-          <div className="create-person-modal-body">
+          <div className="create-entity-modal-body">
             <CompanyPanel data={this.props.data} />
-            <div className="create-person-input-section">
-              <div className="create-person-input-group">
-                <input className="person-input" name="name"
+            <div className="create-entity-input-section">
+              <div className="create-entity-input-group">
+                <input className="entity-input" name="name"
                        value={this.props.data.name}
                        placeholder="Company name (e.g. Google)"
                        onBlur={this.props.matchEntity}
                        onChange={this.props.updateInput} />
-                <input className="person-input" name="segment"
+                <input className="entity-input" name="segment"
                        value={this.props.data.segment}
                        placeholder="Segment (Consumer or Enterprise)"
                        onBlur={this.props.matchEntity}
                        onChange={this.props.updateInput} />
-                <input className="person-input" name="sector"
+                <input className="entity-input" name="sector"
                        value={this.props.data.sector}
                        placeholder="Sector (e.g. Search)"
                        onBlur={this.props.matchEntity}
                        onChange={this.props.updateInput} />
               </div>
-              <div className="create-person-input-group">
-                <input className="person-input" name="location"
+              <div className="create-entity-input-group">
+                <input className="entity-input" name="location"
                        value={this.props.data.location}
                        placeholder="Location (e.g. Mountain View, CA)"
                        onBlur={this.props.matchEntity}
                        onChange={this.props.updateInput} />
-                <input className="person-input" name="logoUrl"
+                <input className="entity-input" name="logoUrl"
                        value={this.props.data.logoUrl}
                        placeholder="Logo URL (e.g. https://media.licdn.com/...)"
                        onBlur={this.props.matchEntity}
                        onChange={this.props.updateInput} />
-                <input className="person-input" name="website"
+                <input className="entity-input" name="website"
                        value={this.props.data.website}
                        placeholder="Website URL (e.g. https://www.google.com)"
                        onBlur={this.props.matchEntity}
@@ -144,7 +144,7 @@ class CreateCompanyModalBase extends React.Component {
             </div>
             {matchSection}
           </div>
-          <div className="create-person-modal-footer">
+          <div className="create-entity-modal-footer">
             <div className="modal-footer-button left"
                  onClick={this.props.closeModal}>
               <i className="ion-close" />

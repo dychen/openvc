@@ -1,7 +1,7 @@
 import React from 'react';
 import {hashHistory} from 'react-router';
 
-import CreatePersonModal from '../../components/modals/person.jsx';
+import {CreateContactModal} from '../../components/modals/person.jsx';
 
 import './all.scss';
 
@@ -122,12 +122,10 @@ class AllContactsSection extends React.Component {
           <span>Create a new contact</span>
         </div>
         {contactGroups}
-        <CreatePersonModal visible={this.state.modalVisible}
-                           CREATE_HEADLINE="Create a new contact"
-                           UPDATE_HEADLINE="Connect with an existing contact"
-                           hideModal={this.cancelNewContact}
-                           createEntity={this.props.createContact}
-                           updateEntity={this.props.addConnection} />
+        <CreateContactModal visible={this.state.modalVisible}
+                            hideModal={this.cancelNewContact}
+                            createEntity={this.props.createContact}
+                            updateEntity={this.props.addConnection} />
       </div>
     );
   }

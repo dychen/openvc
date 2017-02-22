@@ -4,7 +4,8 @@ import {hashHistory} from 'react-router';
 import {authFetch, preprocessJSON} from '../../utils/api.js';
 import moment from 'moment';
 
-import CreatePersonModal from '../../components/modals/person.jsx';
+import {CreateTeamMemberModal,
+        CreateBoardMemberModal} from '../../components/modals/person.jsx';
 import EditTable from '../../components/edittable.jsx';
 
 import './company.scss';
@@ -275,6 +276,8 @@ class MemberSection extends React.Component {
   }
 
   render() {
+    const CreateMemberModal = this.props.createMemberModal;
+
     const members = this.state.members.map((member, index) => {
       if (member.editing) {
         return (
@@ -324,9 +327,7 @@ class MemberSection extends React.Component {
         <div className="ovc-member-card add" onClick={this.addNewMember}>
           <i className="ion-ios-plus-empty" />
         </div>
-        <CreatePersonModal visible={this.state.modalVisible}
-                           CREATE_HEADLINE={this.props.CREATE_HEADLINE}
-                           UPDATE_HEADLINE={this.props.UPDATE_HEADLINE}
+        <CreateMemberModal visible={this.state.modalVisible}
                            hideModal={this.cancelNewMember}
                            createEntity={this.createMember}
                            updateEntity={this.updateMember} />
@@ -338,8 +339,7 @@ class MemberSection extends React.Component {
 class TeamSection extends React.Component {
   render() {
     return <MemberSection API_URL={`${this.props.API_URL_BASE}/team`}
-                          CREATE_HEADLINE="Create a new team member"
-                          UPDATE_HEADLINE="Add existing contact as team member"
+                          createMemberModal={CreateTeamMemberModal}
                           {...this.props} />
   }
 }
@@ -347,8 +347,7 @@ class TeamSection extends React.Component {
 class BoardSection extends React.Component {
   render() {
     return <MemberSection API_URL={`${this.props.API_URL_BASE}/board`}
-                          CREATE_HEADLINE="Create a new board member"
-                          UPDATE_HEADLINE="Add existing contact as board member"
+                          createMemberModal={CreateBoardMemberModal}
                           {...this.props} />
   }
 }

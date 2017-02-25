@@ -82,8 +82,8 @@ class AllContactsSection extends React.Component {
                onClick={this.addConnection} />
         );
         return (
-          <div className="ovc-contacts-contact-panel-container" key={contact.id}>
-            <div className="ovc-contacts-contact-panel" id={contact.id}
+          <div className="ovc-all-contacts-panel-container" key={contact.id}>
+            <div className="ovc-all-contacts-contact-panel" id={contact.id}
                  onClick={this._goToContactPage}>
               <img className="contact-photo" src={contact.photoUrl} />
               <div className="contact-text">

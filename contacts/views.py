@@ -231,7 +231,8 @@ class ContactConnect(APIView):
             Connection.objects.create(
                 user=user, person=person, date=datetime.date.today()
             )
-            return Response({ 'id': person_id }, status=status.HTTP_200_OK)
+            return Response(format_contact_dict(person, user, connected=True),
+                            status=status.HTTP_200_OK)
 
         except Person.DoesNotExist as e:
             return Response({ 'error': str(e) },
@@ -284,6 +285,8 @@ class ContactInteractions(APIView):
             return Response(interaction.get_api_format(),
                             status=status.HTTP_201_CREATED)
 
+        except Exception as e:
+            print e
         except (Person.DoesNotExist, Connection.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)

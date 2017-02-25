@@ -2,6 +2,67 @@
 @import '../../constants.scss';
 @import './constants.scss';
 
+.ovc-all-contacts-panel-container {
+    width: $CONTACTS_PANEL_WIDTH;
+    box-shadow: 0 1px 3px 0 $OVC_GRAY;
+
+    margin: 5px;
+
+    @include hvr-shadow($OVC_DARK_GRAY);
+
+  .ovc-all-contacts-contact-panel {
+    height: $CONTACTS_PANEL_HEIGHT;
+
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    // Left icon
+    img.contact-photo {
+      height: $CONTACTS_PANEL_HEIGHT;
+      flex: 0 0 $CONTACTS_PANEL_HEIGHT;
+      border-right: 1px solid $OVC_LIGHT_GRAY;
+    }
+
+    // Middle info
+    .contact-text {
+      width: 100%;
+      margin-left: 10px;
+      margin-right: 5px;
+
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-direction: column;
+
+      .contact-name {
+        font-weight: 900;
+      }
+      .contact-tags {
+        color: $OVC_GRAY;
+      }
+    }
+
+    // Right icons are in user.scss and all.scss
+    position: relative;
+    i {
+      font-size: 20px;
+
+      @include hvr-color($OVC_GRAY);
+    }
+    i.add-contact {
+      position: absolute;
+      right: 5px;
+      top: 0px;
+    }
+    i.remove-contact {
+      position: absolute;
+      right: 5px;
+      top: 0px;
+    }
+  }
+}
+
 .ovc-create-contact-button {
   width: 200px;
   height: 40px;
@@ -20,28 +81,6 @@
     position: absolute;
     left: 10px;
     font-size: 20px;
-  }
-}
-
-.ovc-contacts-contact-panel-container {
-  .ovc-contacts-contact-panel {
-    // Right icons
-    position: relative;
-    i {
-      font-size: 20px;
-
-      @include hvr-color($OVC_GRAY);
-    }
-    i.add-contact {
-      position: absolute;
-      right: 5px;
-      top: 0px;
-    }
-    i.remove-contact {
-      position: absolute;
-      right: 5px;
-      top: 0px;
-    }
   }
 }
 

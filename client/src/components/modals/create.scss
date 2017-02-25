@@ -102,6 +102,13 @@ $MATCH_LIST_HEIGHT: 200px;
         border: 1px solid $OVC_GRAY;
         border-radius: 5px;
       }
+      textarea.entity-input {
+        width: 100%;
+        padding: 5px;
+        margin: 5px;
+        border: 1px solid $OVC_GRAY;
+        border-radius: 5px;
+      }
     }
   }
 

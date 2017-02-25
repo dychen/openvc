@@ -31,10 +31,6 @@ class ContactsPage extends React.Component {
       contacts: []
     };
 
-    // Load data
-    this.getUserContacts = this.getUserContacts.bind(this);
-    this.getAllContacts = this.getAllContacts.bind(this);
-
     // Search section
     this.changeSection = this.changeSection.bind(this);
     this.selectGroupBy = this.selectGroupBy.bind(this);
@@ -44,62 +40,21 @@ class ContactsPage extends React.Component {
 
     // Contact actions
     // User contacts view
+    this.getUserContacts = this.getUserContacts.bind(this);
     this.toggleExpanded = this.toggleExpanded.bind(this);
-    this.addInteraction = this.addInteraction.bind(this);
-    this.removeInteraction = this.removeInteraction.bind(this);
+    this.createContactAndConnect = this.createContactAndConnect.bind(this);
+    this.addUserConnection = this.addUserConnection.bind(this);
+    this.removeUserConnection = this.removeUserConnection.bind(this);
+    this.createInteraction = this.createInteraction.bind(this);
+    this.deleteInteraction = this.deleteInteraction.bind(this);
+
     // All contacts view
+    this.getAllContacts = this.getAllContacts.bind(this);
     this.createContact = this.createContact.bind(this);
     this.addConnection = this.addConnection.bind(this);
     this.removeConnection = this.removeConnection.bind(this);
 
     this._filterContacts = this._filterContacts.bind(this);
-  }
-
-  /* Load data */
-  getUserContacts() {
-    authFetch(`${SERVER_URL}/api/v1/contacts/self`)
-      .then(function(response) {
-        if (response.ok) {
-          return response.json();
-        }
-        else {
-          return response.json().then(json => {
-            throw new Error(json);
-          });
-        }
-      }).then(json => {
-        // Success
-        json = preprocessJSON(json);
-        const newState = Immutable.fromJS(this.state).set('contacts', json);
-        this.setState(newState.toJS());
-      }).catch(err => {
-        // Failure
-        console.log(err);
-        return err;
-      });
-  }
-
-  getAllContacts() {
-    authFetch(`${SERVER_URL}/api/v1/contacts/all`)
-      .then(function(response) {
-        if (response.ok) {
-          return response.json();
-        }
-        else {
-          return response.json().then(json => {
-            throw new Error(json);
-          });
-        }
-      }).then(json => {
-        // Success
-        json = preprocessJSON(json);
-        const newState = Immutable.fromJS(this.state).set('contacts', json);
-        this.setState(newState.toJS());
-      }).catch(err => {
-        // Failure
-        console.log(err);
-        return err;
-      });
   }
 
   /* Search section */
@@ -137,7 +92,113 @@ class ContactsPage extends React.Component {
     this.setState(newState.toJS());
   }
 
-  /* Contact actions */
+  /* User Contact API */
+
+  getUserContacts() {
+    authFetch(`${SERVER_URL}/api/v1/contacts/self`)
+      .then(function(response) {
+        if (response.ok) {
+          return response.json();
+        }
+        else {
+          return response.json().then(json => {
+            throw new Error(json);
+          });
+        }
+      }).then(json => {
+        // Success
+        json = preprocessJSON(json);
+        const newState = Immutable.fromJS(this.state).set('contacts', json);
+        this.setState(newState.toJS());
+      }).catch(err => {
+        // Failure
+        console.log(err);
+        return err;
+      });
+  }
+
+  createContactAndConnect(contact) {
+    authFetch(`${SERVER_URL}/api/v1/contacts/self`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(contact)
+    }).then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          // TODO: Handle error responses
+          throw new Error(json);
+        });
+      }
+    }).then(json => {
+      // Success
+      json = preprocessJSON(json);
+      const newState = Immutable.fromJS(this.state)
+        .update('contacts', contacts => contacts.unshift(json));
+      this.setState(newState.toJS());
+    }).catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
+  }
+
+  addUserConnection(contactId) {
+    authFetch(`${SERVER_URL}/api/v1/contacts/connect/${contactId}`, {
+      method: 'POST'
+    }).then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          throw new Error(json);
+        });
+      }
+    }).then(json => {
+      // Success
+      json = preprocessJSON(json);
+      const newState = Immutable.fromJS(this.state)
+        .update('contacts', contacts => contacts.unshift(json));
+      this.setState(newState.toJS());
+    }).catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
+  }
+
+  removeUserConnection(contactId) {
+    authFetch(`${SERVER_URL}/api/v1/contacts/connect/${contactId}`, {
+      method: 'DELETE'
+    }).then(function(response) {
+      if (response.ok) {
+        return response.json();
+      }
+      else {
+        return response.json().then(json => {
+          throw new Error(json);
+        });
+      }
+    }).then(json => {
+      // Success
+      json = preprocessJSON(json);
+      const newState = Immutable.fromJS(this.state)
+        .update('contacts', contacts =>
+          contacts.filter(contact => contact.toJS().id !== json.id)
+        );
+      this.setState(newState.toJS());
+    }).catch(err => {
+      // Failure
+      console.log(err);
+      return err;
+    });
+  }
 
   toggleExpanded(contactId) {
     const contactIdx = this.state.contacts.findIndex(contact =>
@@ -148,7 +209,7 @@ class ContactsPage extends React.Component {
     this.setState(newState.toJS());
   }
 
-  addInteraction(interaction, contactId) {
+  createInteraction(interaction, contactId) {
     let jsonBody = Immutable.fromJS(interaction)
       .set('personId', contactId).toJS();
     authFetch(`${SERVER_URL}/api/v1/contacts/interactions`, {
@@ -186,7 +247,7 @@ class ContactsPage extends React.Component {
     });
   }
 
-  removeInteraction(interactionId, contactId) {
+  deleteInteraction(interactionId, contactId) {
     authFetch(`${SERVER_URL}/api/v1/contacts/interactions/${interactionId}`, {
       method: 'DELETE'
     }).then(function(response) {
@@ -216,7 +277,31 @@ class ContactsPage extends React.Component {
       console.log(err);
       return err;
     });
+  }
 
+  /* All Contact API */
+
+  getAllContacts() {
+    authFetch(`${SERVER_URL}/api/v1/contacts/all`)
+      .then(function(response) {
+        if (response.ok) {
+          return response.json();
+        }
+        else {
+          return response.json().then(json => {
+            throw new Error(json);
+          });
+        }
+      }).then(json => {
+        // Success
+        json = preprocessJSON(json);
+        const newState = Immutable.fromJS(this.state).set('contacts', json);
+        this.setState(newState.toJS());
+      }).catch(err => {
+        // Failure
+        console.log(err);
+        return err;
+      });
   }
 
   createContact(contact) {
@@ -248,39 +333,6 @@ class ContactsPage extends React.Component {
       return err;
     });
   }
-
-  /* UNUSED
-  createContactAndConnect(contact) {
-    authFetch(`${SERVER_URL}/api/v1/contacts/self`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(contact)
-    }).then(function(response) {
-      if (response.ok) {
-        return response.json();
-      }
-      else {
-        return response.json().then(json => {
-          // TODO: Handle error responses
-          throw new Error(json);
-        });
-      }
-    }).then(json => {
-      // Success
-      json = preprocessJSON(json);
-      const newState = Immutable.fromJS(this.state)
-        .update('contacts', contacts => contacts.unshift(json));
-      this.setState(newState.toJS());
-    }).catch(err => {
-      // Failure
-      console.log(err);
-      return err;
-    });
-  }
-  */
 
   addConnection(contactId) {
     authFetch(`${SERVER_URL}/api/v1/contacts/connect/${contactId}`, {
@@ -337,6 +389,8 @@ class ContactsPage extends React.Component {
       return err;
     });
   }
+
+  /* Helpers */
 
   _filterContacts(contacts) {
     const filterAttribute = function(contact, attr) {
@@ -399,9 +453,12 @@ class ContactsPage extends React.Component {
                                contacts={filteredContacts}
                                groupBy={this.state.groupBy}
                                getUserContacts={this.getUserContacts}
+                               createContact={this.createContact}
+                               addConnection={this.addUserConnection}
+                               removeConnection={this.removeUserConnection}
                                toggleExpanded={this.toggleExpanded}
-                               addInteraction={this.addInteraction}
-                               removeInteraction={this.removeInteraction} />
+                               createInteraction={this.createInteraction}
+                               deleteInteraction={this.deleteInteraction} />
         );
         break;
     }

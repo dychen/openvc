@@ -20,7 +20,8 @@ class ContactsPage extends React.Component {
     this.state = {
       // Options: 'user', 'all', 'table'
       section: 'user',
-      groupBy: 'company',
+      groupBy: 'none',
+      orderBy: 'name',
       filterInputs: {
         company: '',
         name: '',
@@ -34,6 +35,7 @@ class ContactsPage extends React.Component {
     // Search section
     this.changeSection = this.changeSection.bind(this);
     this.selectGroupBy = this.selectGroupBy.bind(this);
+    this.selectOrderBy = this.selectOrderBy.bind(this);
     this.updateFilter = this.updateFilter.bind(this);
     this.addFilterTag = this.addFilterTag.bind(this);
     this.removeFilterTag = this.removeFilterTag.bind(this);
@@ -66,6 +68,10 @@ class ContactsPage extends React.Component {
 
   selectGroupBy(field) {
     this.setState({ groupBy: field });
+  }
+
+  selectOrderBy(field) {
+    this.setState({ orderBy: field });
   }
 
   updateFilter(filterName, filterValue) {
@@ -455,6 +461,7 @@ class ContactsPage extends React.Component {
           <UserContactsSection _USER_TYPE={this._USER_TYPE}
                                contacts={filteredContacts}
                                groupBy={this.state.groupBy}
+                               orderBy={this.state.orderBy}
                                getUserContacts={this.getUserContacts}
                                createContact={this.createContact}
                                addConnection={this.addUserConnection}
@@ -468,10 +475,12 @@ class ContactsPage extends React.Component {
       <div className="ovc-shared-contacts-container">
         <SearchSection section={this.state.section}
                        groupBy={this.state.groupBy}
+                       orderBy={this.state.orderBy}
                        filterInputs={this.state.filterInputs}
                        filterTags={this.state.filterTags}
                        changeSection={this.changeSection}
                        selectGroupBy={this.selectGroupBy}
+                       selectOrderBy={this.selectOrderBy}
                        updateFilter={this.updateFilter}
                        addFilterTag={this.addFilterTag}
                        removeFilterTag={this.removeFilterTag} />

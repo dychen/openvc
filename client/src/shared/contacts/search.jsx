@@ -7,12 +7,14 @@ import './search.scss';
  * props:
  *   section [string]: Current visible section ('user', 'all', or 'table').
  *   groupBy [string]: Field to group contacts by (e.g. 'company' or 'title').
+ *   orderBy [string]: Field to group contacts by (e.g. 'lastInteraction').
  *   filterInputs [Object]: Object of search nav input names and their values.
  *                          { company: '', name: '', title: '', tag: '' }
  *   filterTags [Array]: List of filter tags.
  *
  *   changeSection [function]: Function to change the visible section.
  *   selectGroupBy [function]: Function to change the groupBy field.
+ *   selectOrderBy [function]: Function to change the orderBy field.
  *   updateFilter [function]: Function to update filter input text.
  *   addFilterTag [function]: Function to add a filter tag.
  *   removeFilterTag [function]: Function to remove a filter tag.
@@ -22,8 +24,17 @@ class SearchSection extends React.Component {
     super(props);
 
     this._GROUP_BY_DISPLAY_MAP = {
-      title: 'Title',
-      company: 'Company'
+      none: 'None',
+      company: 'Company',
+      title: 'Title'
+    };
+
+    this._ORDER_BY_DISPLAY_MAP = {
+      name: 'Name',
+      lastInteraction: 'Last Interaction',
+      quarterDuration: 'Quarter Activity',
+      yearDuration: 'Year Activity',
+      totalDuration: 'Total Activity',
     };
 
     this.changeSection = this.changeSection.bind(this);
@@ -31,6 +42,7 @@ class SearchSection extends React.Component {
     this.addFilterTag = this.addFilterTag.bind(this);
     this.removeFilterTag = this.removeFilterTag.bind(this);
     this.selectGroupBy = this.selectGroupBy.bind(this);
+    this.selectOrderBy = this.selectOrderBy.bind(this);
   }
 
   // React-Bootstrap component event
@@ -60,6 +72,11 @@ class SearchSection extends React.Component {
   // React-Bootstrap component event
   selectGroupBy(eventKey, e) {
     this.props.selectGroupBy(eventKey);
+  }
+
+  // React-Bootstrap component event
+  selectOrderBy(eventKey, e) {
+    this.props.selectOrderBy(eventKey);
   }
 
   render() {
@@ -96,11 +113,34 @@ class SearchSection extends React.Component {
           <DropdownButton className="dropdown-button"
                           title={this._GROUP_BY_DISPLAY_MAP[this.props.groupBy]}
                           id="ovc-contacts-search-dropdown">
+            <MenuItem eventKey="none" onSelect={this.selectGroupBy}>
+              {this._GROUP_BY_DISPLAY_MAP.none}
+            </MenuItem>
             <MenuItem eventKey="company" onSelect={this.selectGroupBy}>
               {this._GROUP_BY_DISPLAY_MAP.company}
             </MenuItem>
             <MenuItem eventKey="title" onSelect={this.selectGroupBy}>
               {this._GROUP_BY_DISPLAY_MAP.title}
+            </MenuItem>
+          </DropdownButton>
+          <label>Order by</label>
+          <DropdownButton className="dropdown-button"
+                          title={this._ORDER_BY_DISPLAY_MAP[this.props.orderBy]}
+                          id="ovc-contacts-search-dropdown">
+            <MenuItem eventKey="name" onSelect={this.selectOrderBy}>
+              {this._ORDER_BY_DISPLAY_MAP.name}
+            </MenuItem>
+            <MenuItem eventKey="lastInteraction" onSelect={this.selectOrderBy}>
+              {this._ORDER_BY_DISPLAY_MAP.lastInteraction}
+            </MenuItem>
+            <MenuItem eventKey="quarterDuration" onSelect={this.selectOrderBy}>
+              {this._ORDER_BY_DISPLAY_MAP.quarterDuration}
+            </MenuItem>
+            <MenuItem eventKey="yearDuration" onSelect={this.selectOrderBy}>
+              {this._ORDER_BY_DISPLAY_MAP.yearDuration}
+            </MenuItem>
+            <MenuItem eventKey="totalDuration" onSelect={this.selectOrderBy}>
+              {this._ORDER_BY_DISPLAY_MAP.totalDuration}
             </MenuItem>
           </DropdownButton>
         </div>

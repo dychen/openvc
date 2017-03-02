@@ -12,15 +12,18 @@ import './user.scss';
 /*
  * props:
  *   title [string]: Title of subpanel.
- *   data [Object]: {
- *     number [number]: Number of interactions,
- *     duration [number]: Duration of interactions
+ *   interaction [Object]: {
+ *     type [string]: Interaction type (e.g. 'Meeting'),
+ *     date [Date]: Interaction date,
+ *     label [string]: Interaction label,
+ *     duration [number]: Duration of interaction
  *   }
  */
 class InteractionLastSubpanel extends React.Component {
   render() {
     let interactionIcon;
-    const interactionType = this.props.data.type ? this.props.data.type : '';
+    const interactionType = (this.props.interaction.type
+                             ? this.props.interaction.type : '');
     switch (interactionType.toLowerCase()) {
       case 'meeting':
         interactionIcon = <i className="ion-ios-people icon-main" />;
@@ -36,12 +39,12 @@ class InteractionLastSubpanel extends React.Component {
         break;
     }
     const subpanelText = {
-      type: this.props.data.type ? this.props.data.type : '',
-      date: (this.props.data.date ?
-             ` on ${moment(this.props.data.date).format('ll')}` : ''),
-      label: this.props.data.type ? this.props.data.label : '',
-      duration: (this.props.data.duration ?
-                 ` (${this.props.data.duration} min)` : '')
+      type: this.props.interaction.type ? this.props.interaction.type : '',
+      date: (this.props.interaction.date ?
+             ` on ${moment(this.props.interaction.date).format('ll')}` : ''),
+      label: this.props.interaction.type ? this.props.interaction.label : '',
+      duration: (this.props.interaction.duration ?
+                 ` (${this.props.interaction.duration} min)` : '')
     };
     return (
       <div className="ovc-user-contacts-overview-subpanel">
@@ -164,6 +167,7 @@ class InteractionsTableSection extends React.Component {
  *   _USER_TYPE [string]: 'founder' or 'investor', depending on user role.
  *   contacts [list]: List of contact objects.
  *   groupBy [string]: Field to group contacts by (e.g. 'company' or 'title').
+ *   orderBy [string]: Field to group contacts by (e.g. 'lastInteraction').
  *
  *   Contact functions:
  *   getUserContacts [function]: Function to load contact data.
@@ -197,6 +201,8 @@ class UserContactsSection extends React.Component {
     this._filterLastQuarterInteractions = this._filterLastQuarterInteractions.bind(this);
     this._filterLastYearInteractions = this._filterLastYearInteractions.bind(this);
     this._sumInteractions = this._sumInteractions.bind(this);
+    this._getInteractionStats = this._getInteractionStats.bind(this);
+    this._createContactPanel = this._createContactPanel.bind(this);
 
     // Fetch data
     this.props.getUserContacts();
@@ -251,111 +257,164 @@ class UserContactsSection extends React.Component {
     return interactions.reduce((accum, next) => accum + next[field], 0);
   }
 
-  render() {
-    const contactGroupLabels = Array.from(
-      new Set(this.props.contacts.map(contact => contact[this.props.groupBy]))
-    );
-    contactGroupLabels.sort((a, b) =>
-      a.toLowerCase().localeCompare(b.toLowerCase())
+  _getInteractionStats(contact) {
+    return {
+      total: {
+        duration: this._sumInteractions(contact.interactions, 'duration'),
+        number: contact.interactions.length,
+      },
+      lastQuarter: {
+        duration: this._sumInteractions(
+          this._filterLastQuarterInteractions(contact.interactions),
+          'duration'
+        ),
+        number: this._filterLastQuarterInteractions(contact.interactions).length,
+      },
+      lastYear: {
+        duration: this._sumInteractions(
+          this._filterLastYearInteractions(contact.interactions),
+          'duration'
+        ),
+        number: this._filterLastYearInteractions(contact.interactions).length,
+      },
+      lastInteraction: contact.interactions.length > 0 ? contact.interactions[0] : {}
+    };
+  }
+
+  _createContactPanel(contact) {
+    const interactionStats = this._getInteractionStats(contact);
+
+    const expandedSection = (
+      contact.expanded
+      ? (
+        <div>
+          <div className="ovc-contacts-contact-toggle-interactions"
+               id={contact.id}
+               onClick={this.toggleExpanded}>
+            <i className="ion-chevron-up" />
+          </div>
+          <InteractionsTableSection contact={contact} />
+        </div>
+      )
+      : (
+        <div className="ovc-contacts-contact-toggle-interactions"
+             id={contact.id}
+             onClick={this.toggleExpanded}>
+          <i className="ion-chevron-down" />
+        </div>
+      )
     );
 
-    const contactGroups = contactGroupLabels.map(label => {
-      const contacts = this.props.contacts.filter(contact =>
-        contact[this.props.groupBy] === label
-      ).map(contact => {
-        const interactionStats = {
-          total: {
-            duration: this._sumInteractions(contact.interactions, 'duration'),
-            number: contact.interactions.length,
-          },
-          lastQuarter: {
-            duration: this._sumInteractions(
-              this._filterLastQuarterInteractions(contact.interactions),
-              'duration'
-            ),
-            number: this._filterLastQuarterInteractions(contact.interactions).length,
-          },
-          lastYear: {
-            duration: this._sumInteractions(
-              this._filterLastYearInteractions(contact.interactions),
-              'duration'
-            ),
-            number: this._filterLastYearInteractions(contact.interactions).length,
-          },
-          lastInteraction: contact.interactions.length > 0 ? contact.interactions[0] : {}
-        };
-
-        const expandedSection = (
-          contact.expanded
-          ? (
-            <div>
-              <div className="ovc-contacts-contact-toggle-interactions"
-                   id={contact.id}
-                   onClick={this.toggleExpanded}>
-                <i className="ion-chevron-up" />
+    return (
+      <div className="ovc-user-contacts-panel-container" key={contact.id}>
+        <div className="ovc-user-contacts-contact-panel" id={contact.id}
+             onClick={this._goToContactPage}>
+          <div className="ovc-user-contacts-left-subpanel">
+            <img className="contact-photo" src={contact.photoUrl} />
+            <div className="contact-text">
+              <div className="contact-name">
+                {contact.name}
               </div>
-              <InteractionsTableSection contact={contact} />
+              <div className="contact-occupation">
+                {contact.title}, {contact.company}
+              </div>
+              <div className="contact-tags">
+                {contact.tags.join(', ')}
+              </div>
             </div>
-          )
-          : (
-            <div className="ovc-contacts-contact-toggle-interactions"
-                 id={contact.id}
-                 onClick={this.toggleExpanded}>
-              <i className="ion-chevron-down" />
-            </div>
-          )
+          </div>
+          <div className="ovc-user-contacts-subpanel-container">
+            <InteractionLastSubpanel title="Last"
+                                     interaction={interactionStats.lastInteraction} />
+            <InteractionStatsSubpanel title="Total"
+                                      data={interactionStats.total} />
+            <InteractionStatsSubpanel title="Last Year"
+                                      data={interactionStats.lastYear} />
+            <InteractionStatsSubpanel title="Last Quarter"
+                                      data={interactionStats.lastQuarter} />
+          </div>
+          <div className="contact-icons">
+            <i className="ion-ios-email send-mail" />
+            <i className="ion-ios-close remove-contact"
+               id={contact.id}
+               onClick={this.removeConnection} />
+          </div>
+        </div>
+        <div className="ovc-contacts-contact-interactions">
+          {expandedSection}
+        </div>
+      </div>
+    );
+  }
+
+  _sortContacts(contacts) {
+    switch (this.props.orderBy) {
+      case 'name':
+        contacts.sort((a, b) =>
+          a.name.toLowerCase().localeCompare(b.name.toLowerCase())
         );
+        break;
+      case 'lastInteraction':
+        contacts.sort((a, b) =>
+          (new Date(this._getInteractionStats(b).lastInteraction.date || 0)
+           - new Date(this._getInteractionStats(a).lastInteraction.date || 0))
+        );
+        break;
+      case 'quarterDuration':
+        contacts.sort((a, b) =>
+          (this._getInteractionStats(b).lastQuarter.duration
+           - this._getInteractionStats(a).lastQuarter.duration)
+        );
+        break;
+      case 'yearDuration':
+        contacts.sort((a, b) =>
+          (this._getInteractionStats(b).lastYear.duration
+           - this._getInteractionStats(a).lastYear.duration)
+        );
+        break;
+      case 'totalDuration':
+        contacts.sort((a, b) =>
+          (this._getInteractionStats(b).total.duration
+           - this._getInteractionStats(a).total.duration)
+        );
+        break;
+      default:
+        break;
+    }
+  }
 
+  render() {
+    let contacts;
+    if (this.props.groupBy === 'none') {
+      this._sortContacts(this.props.contacts);
+      contacts = this.props.contacts.map(contact =>
+        this._createContactPanel(contact)
+      );
+    }
+    else {
+      this._sortContacts(this.props.contacts);
+      const contactGroupLabels = Array.from(
+        new Set(this.props.contacts.map(contact => contact[this.props.groupBy]))
+      );
+      contactGroupLabels.sort((a, b) =>
+        a.toLowerCase().localeCompare(b.toLowerCase())
+      );
+      contacts = contactGroupLabels.map(label => {
+        const contactGroup = this.props.contacts.filter(contact =>
+          contact[this.props.groupBy] === label
+        ).map(contact =>
+          this._createContactPanel(contact)
+        );
         return (
-          <div className="ovc-user-contacts-panel-container" key={contact.id}>
-            <div className="ovc-user-contacts-contact-panel" id={contact.id}
-                 onClick={this._goToContactPage}>
-              <div className="ovc-user-contacts-left-subpanel">
-                <img className="contact-photo" src={contact.photoUrl} />
-                <div className="contact-text">
-                  <div className="contact-name">
-                    {contact.name}
-                  </div>
-                  <div className="contact-occupation">
-                    {contact.title}, {contact.company}
-                  </div>
-                  <div className="contact-tags">
-                    {contact.tags.join(', ')}
-                  </div>
-                </div>
-              </div>
-              <div className="ovc-user-contacts-subpanel-container">
-                <InteractionLastSubpanel title="Last"
-                                         data={interactionStats.lastInteraction} />
-                <InteractionStatsSubpanel title="Total"
-                                          data={interactionStats.total} />
-                <InteractionStatsSubpanel title="Last Year"
-                                          data={interactionStats.lastYear} />
-                <InteractionStatsSubpanel title="Last Quarter"
-                                          data={interactionStats.lastQuarter} />
-              </div>
-              <div className="contact-icons">
-                <i className="ion-ios-email send-mail" />
-                <i className="ion-ios-close remove-contact"
-                   id={contact.id}
-                   onClick={this.removeConnection} />
-              </div>
-            </div>
-            <div className="ovc-contacts-contact-interactions">
-              {expandedSection}
+          <div key={label}>
+            <h3>{label}</h3>
+            <div className="ovc-contacts-contact-sublist">
+              {contactGroup}
             </div>
           </div>
         );
       });
-      return (
-        <div key={label}>
-          <h3>{label}</h3>
-          <div className="ovc-contacts-contact-sublist">
-            {contacts}
-          </div>
-        </div>
-      );
-    });
+    }
 
     return (
       <div className="ovc-contacts-contact-list">
@@ -364,7 +423,7 @@ class UserContactsSection extends React.Component {
           <i className="ion-plus create-contact" />
           <span>Create a new contact</span>
         </div>
-        {contactGroups}
+        {contacts}
         <CreateContactModal visible={this.state.contactModalVisible}
                             hideModal={this.cancelNewContact}
                             createEntity={this.props.createContact}

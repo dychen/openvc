@@ -30,6 +30,8 @@ class UserPortfolioSection extends React.Component {
     this.addPortfolioCompany = this.addPortfolioCompany.bind(this);
     this.cancelPortfolioCompany = this.cancelPortfolioCompany.bind(this);
     this.handleDeletePortfolioCompany = this.handleDeletePortfolioCompany.bind(this);
+
+    this._createCompanyPanel = this._createCompanyPanel.bind(this);
   }
 
   _goToCompanyPage(e) {

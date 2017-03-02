@@ -5,6 +5,9 @@ import moment from 'moment';
 import {createEntityModalWrapper} from './create.jsx';
 
 /*
+ * NOTE: Currently UNUSED due to refactoring of the contact interactions table
+ *       in shared/contacts/user.jsx.
+ *
  * props:
  *   data [Object]: Entity object to create or update.
  *   CREATE_HEADLINE [string]: Modal title.

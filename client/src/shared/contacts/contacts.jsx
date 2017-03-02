@@ -45,8 +45,9 @@ class ContactsPage extends React.Component {
     this.createContactAndConnect = this.createContactAndConnect.bind(this);
     this.addUserConnection = this.addUserConnection.bind(this);
     this.removeUserConnection = this.removeUserConnection.bind(this);
-    this.createInteraction = this.createInteraction.bind(this);
-    this.deleteInteraction = this.deleteInteraction.bind(this);
+    // TODO: Refactor EditTable API to use these to update contacts state
+    //this.createInteraction = this.createInteraction.bind(this);
+    //this.deleteInteraction = this.deleteInteraction.bind(this);
 
     // All contacts view
     this.getAllContacts = this.getAllContacts.bind(this);
@@ -209,6 +210,7 @@ class ContactsPage extends React.Component {
     this.setState(newState.toJS());
   }
 
+  /* TODO: Refactor EditTable API to use these to update contacts state
   createInteraction(interaction, contactId) {
     let jsonBody = Immutable.fromJS(interaction)
       .set('personId', contactId).toJS();
@@ -278,6 +280,7 @@ class ContactsPage extends React.Component {
       return err;
     });
   }
+  */
 
   /* All Contact API */
 
@@ -456,9 +459,7 @@ class ContactsPage extends React.Component {
                                createContact={this.createContact}
                                addConnection={this.addUserConnection}
                                removeConnection={this.removeUserConnection}
-                               toggleExpanded={this.toggleExpanded}
-                               createInteraction={this.createInteraction}
-                               deleteInteraction={this.deleteInteraction} />
+                               toggleExpanded={this.toggleExpanded} />
         );
         break;
     }

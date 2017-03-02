@@ -4,8 +4,8 @@ import moment from 'moment';
 import {getStartOfQuarter, getEndOfQuarter, getStartOfYear,
         getEndOfYear} from '../../utils/datetime.js';
 
+import EditTable from '../../components/edittable.jsx';
 import {CreateContactModal} from '../../components/modals/person.jsx';
-import CreateInteractionModal from '../../components/modals/interaction.jsx';
 
 import './user.scss';
 
@@ -110,53 +110,52 @@ class InteractionStatsSubpanel extends React.Component {
 
 /*
  * props:
- *   contact [Object]: Contact object related to the interactions.
- *   addNewInteraction [function]: Function to open the add interaction modal.
- *   deleteInteraction [function]: Function to remove an existing interaction
- *                                 from the database.
+ *   contact [string]: Target contact object.
  */
-class InteractionsSection extends React.Component {
+class InteractionsTableSection extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.FIELDS = ['date', 'type', 'label', 'duration', 'notes'];
+    this.FIELD_MAP = {
+      date: {
+        display: 'Date',
+        type: 'date',
+        required: false
+      },
+      type: {
+        display: 'Type',
+        type: 'string',
+        required: false
+      },
+      label: {
+        display: 'Label',
+        type: 'string',
+        required: false
+      },
+      duration: {
+        display: 'Duration',
+        type: 'string',
+        required: false
+      },
+      notes: {
+        display: 'Notes',
+        type: 'text truncated',
+        required: false
+      }
+    };
+  }
+
   render() {
-    const interactions = this.props.contact.interactions.map(interaction =>
-      (
-        <tr key={interaction.id}>
-          <td>{interaction.date}</td>
-          <td>{interaction.type}</td>
-          <td>{interaction.label}</td>
-          <td>{interaction.duration}</td>
-          <td>
-            <i className="ion-ios-close remove-interaction"
-               onClick={() => this.props.deleteInteraction(interaction.id,
-                                                           this.props.contact.id)} />
-          </td>
-        </tr>
-      )
-    );
-
+    const API_URL = `${SERVER_URL}/api/v1/contacts/${this.props.contact.id}/interactions`;
     return (
-      <table>
-        <thead>
-          <tr>
-            <td>Date</td>
-            <td>Type</td>
-            <td>Label</td>
-            <td>Duration (min)</td>
-            <td></td>
-          </tr>
-        </thead>
-        <tbody>
-          {interactions}
-          <tr>
-            <td className="add-interaction" colSpan="5"
-                id={this.props.contact.id}
-                onClick={this.props.addNewInteraction}>
-              <i className="ion-plus" />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div className="ovc-edit-table-container">
+        <EditTable API_URL={API_URL}
+                   FIELDS={this.FIELDS}
+                   FIELD_MAP={this.FIELD_MAP}
+                   {...this.props} />
+      </div>
     );
-
   }
 }
 
@@ -176,34 +175,22 @@ class InteractionsSection extends React.Component {
  *                                from the database.
  *   Interaction functions:
  *   toggleExpanded [function]: Function to toggle interaction list visibility.
- *   createInteraction [function]: Function to write new interaction to
- *                                 database.
- *   deleteInteraction [function]: Function to remove an existing interaction
- *                                 from the database.
  */
 class UserContactsSection extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      contactModalVisible: false,
-      interactionModalVisible: false,
-      interactionModalContactId: null
+      contactModalVisible: false
     };
 
     // Create contact modal
     this.addNewContact = this.addNewContact.bind(this);
     this.cancelNewContact = this.cancelNewContact.bind(this);
 
-    // Create interaction modal
-    this.addNewInteraction = this.addNewInteraction.bind(this);
-    this.cancelNewInteraction = this.cancelNewInteraction.bind(this);
-
     this.removeConnection = this.removeConnection.bind(this);
 
     this.toggleExpanded = this.toggleExpanded.bind(this);
-    this.createInteraction = this.createInteraction.bind(this);
-    this.deleteInteraction = this.deleteInteraction.bind(this);
 
     // Helpers
     this._goToContactPage = this._goToContactPage.bind(this);
@@ -225,22 +212,6 @@ class UserContactsSection extends React.Component {
     this.setState({ contactModalVisible: false });
   }
 
-  /* Create interaction modal */
-
-  addNewInteraction(e) {
-    this.setState({
-      interactionModalVisible: true,
-      interactionModalContactId: Number(e.currentTarget.id)
-    });
-  }
-
-  cancelNewInteraction(e) {
-    this.setState({
-      interactionModalVisible: false,
-      interactionModalContactId: null
-    });
-  }
-
   /* Interaction API */
 
   toggleExpanded(e) {
@@ -251,15 +222,6 @@ class UserContactsSection extends React.Component {
   removeConnection(e) {
     e.stopPropagation();
     this.props.removeConnection(e.currentTarget.id);
-  }
-
-  createInteraction(interaction) {
-    this.props.createInteraction(interaction, this.state.interactionModalContactId);
-  }
-
-  deleteInteraction(interactionId, contactId) {
-    // This is redundant, but we have this function for symmetry.
-    this.props.deleteInteraction(Number(interactionId), Number(contactId));
   }
 
   /* Helpers */
@@ -332,9 +294,7 @@ class UserContactsSection extends React.Component {
                    onClick={this.toggleExpanded}>
                 <i className="ion-chevron-up" />
               </div>
-              <InteractionsSection contact={contact}
-                                   addNewInteraction={this.addNewInteraction}
-                                   deleteInteraction={this.deleteInteraction} />
+              <InteractionsTableSection contact={contact} />
             </div>
           )
           : (
@@ -409,9 +369,6 @@ class UserContactsSection extends React.Component {
                             hideModal={this.cancelNewContact}
                             createEntity={this.props.createContact}
                             updateEntity={this.props.addConnection} />
-        <CreateInteractionModal visible={this.state.interactionModalVisible}
-                                hideModal={this.cancelNewInteraction}
-                                createEntity={this.createInteraction} />
       </div>
     );
   }

@@ -132,21 +132,21 @@ $USER_CONTACTS_IMG_HEIGHT: 150px;
 
     // Right icons
     position: relative;
-    i {
-      font-size: 20px;
-
-      @include hvr-color($OVC_GRAY);
-    }
     i.send-mail {
       font-size: 25px;
       position: absolute;
       right: 30px;
       top: -3px;
+
+      @include hvr-color($OVC_GRAY);
     }
     i.remove-contact {
       position: absolute;
       right: 5px;
       top: 0px;
+
+      font-size: 20px;
+      @include hvr-color($OVC_GRAY);
     }
   }
 }

@@ -173,30 +173,20 @@ class ProfilePage extends React.Component {
       ? this.state.profile.title
       : 'No title - add a company below'
     );
-    const editPhotoComponent = (
-      this.state.editing.photoUrl.editing
-      ? (
-        <div className="profile-edit-photo">
-          <EditField field="photoUrl"
-                     value={this.state.profile.photoUrl}
-                     placeholder="Enter a photo URL (e.g. LinkedIn photo URL)"
-                     editing={this.state.editing.photoUrl}
-                     editField={this.editField}
-                     updateInput={this.updateInput}
-                     saveInput={this.saveInput} />
-        </div>
-      )
-      : ''
-    );
-
     return (
       <div className="ovc-shared-profile-container"
            onClick={this._cancelEdits}>
         <div className="profile-picture-container">
-          <img src={this.state.profile.photoUrl}
-               onClick={() => this.editField('photoUrl')} />
+          <EditField field="photoUrl"
+                     fieldType="image"
+                     originalValue={this.state.profile.photoUrl}
+                     editingValue={this.state.editing.photoUrl.value}
+                     editing={this.state.editing.photoUrl.editing}
+                     placeholder="Enter a photo URL (e.g. LinkedIn photo URL)"
+                     editField={this.editField}
+                     updateInput={this.updateInput}
+                     saveInput={this.saveInput} />
         </div>
-        {editPhotoComponent}
         <div className="profile-info-section profile-basic-info-section">
           <div className="bold">
             <EditField field="firstName"

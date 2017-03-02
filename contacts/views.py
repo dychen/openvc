@@ -16,13 +16,7 @@ from shared.auth import check_authentication
 def format_contact_dict(person, user, connected=True):
     person_dict = person.get_api_format()
     person_dict['tags'] = [] # TODO
-    person_dict['interactions'] = [
-        interaction.get_api_format()
-        for interaction in (person.interactions.filter(user=user)
-                                  .order_by('-date', 'label',
-                                            'user__person__first_name',
-                                            'user__person__last_name'))
-    ]
+    person_dict['interactions'] = user.get_interactions(person)
     person_dict['connected'] = connected
     return person_dict
 
@@ -125,8 +119,6 @@ class UserContacts(APIView):
             #person = user.connections.get(person__id=person_id).person
             person = Person.objects.get(id=person_id)
             person = person.update_from_api(request_json)
-            print request_json
-            print person.get_api_format()
             return Response(person.get_api_format(), status=status.HTTP_200_OK)
 
         except (TypeError, ValueError) as e:
@@ -258,10 +250,20 @@ class ContactInteractions(APIView):
 
     authentication_classes = (TokenAuthentication,)
 
-    # GET /contacts/interactions
+    # GET /contacts/:person_id/interactions
+    def get(self, request, person_id, format=None):
+        try:
+            user = check_authentication(request)
+            # Restrict to user's connections
+            person = user.connections.get(person__id=person_id).person
+            return Response(user.get_interactions(person),
+                            status=status.HTTP_200_OK)
+        except (Person.DoesNotExist, Connection.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
 
-    # POST /contacts/interactions
-    def __post_create(self, request, format=None):
+    # POST /contacts/:person_id/interactions
+    def __post_create(self, request, person_id, format=None):
         """
         Expected request body:
         {
@@ -276,9 +278,7 @@ class ContactInteractions(APIView):
             request_json = json.loads(request.body)
             interactions_dict = {}
             # Restrict to user's connections
-            person = user.connections.get(
-                person__id=request_json.get('personId')
-            ).person
+            person = user.connections.get(person__id=person_id).person
             interaction = Interaction.create_from_api(user, person,
                                                       request_json)
 
@@ -294,8 +294,8 @@ class ContactInteractions(APIView):
             return Response({ 'error': 'Connection already exists' },
                             status=status.HTTP_400_BAD_REQUEST)
 
-    # POST /contacts/interactions/:id
-    def __post_update(self, request, interaction_id, format=None):
+    # POST /contacts/:person_id/interactions/:interaction_id
+    def __post_update(self, request, person_id, interaction_id, format=None):
         """
         Expected request body:
         {
@@ -308,7 +308,8 @@ class ContactInteractions(APIView):
         try:
             user = check_authentication(request)
             request_json = json.loads(request.body)
-            interaction = user.interactions.get(id=interaction_id)
+            interaction = user.interactions.get(person__id=person_id,
+                                                id=interaction_id)
             interaction = interaction.update_from_api(request_json)
             return Response(interaction.get_api_format(),
                             status=status.HTTP_200_OK)
@@ -321,18 +322,20 @@ class ContactInteractions(APIView):
             return Response({ 'error': 'Connection already exists' },
                             status=status.HTTP_400_BAD_REQUEST)
 
-    def post(self, request, id=None, format=None):
-        if id:
-            return self.__post_update(request, id, format=format)
+    def post(self, request, person_id, interaction_id=None, format=None):
+        if interaction_id:
+            return self.__post_update(request, person_id, interaction_id,
+                                      format=format)
         else:
-            return self.__post_create(request, format=format)
+            return self.__post_create(request, person_id, format=format)
 
-    # DELETE /contacts/interactions/:id
-    def delete(self, request, id=None, format=None):
+    # DELETE /contacts/:person_id/interactions/:interaction_id
+    def delete(self, request, person_id, interaction_id=None, format=None):
         try:
             user = check_authentication(request)
-            interaction_id = int(id)
-            interaction = user.interactions.get(id=interaction_id)
+            interaction_id = int(interaction_id)
+            interaction = user.interactions.get(person__id=person_id,
+                                                id=interaction_id)
             interaction.delete()
             return Response({ 'id': interaction_id }, status=status.HTTP_200_OK)
 

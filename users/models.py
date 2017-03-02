@@ -100,6 +100,13 @@ class User(AbstractBaseUser):
     def get_portfolio_company(self, company_id):
         return self.get_active_account().get_portfolio_company(company_id)
 
+    def get_interactions(self, person):
+        return [
+            interaction.get_api_format()
+            for interaction in (self.interactions.filter(person=person)
+                                    .order_by('-date', 'label'))
+        ]
+
 class Account(models.Model):
     company    = models.OneToOneField(Company, unique=True,
                                       related_name='account')

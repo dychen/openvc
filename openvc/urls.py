@@ -98,9 +98,10 @@ urlpatterns = [
     url(r'^api/v1/contacts/all$', contact_views.AllContacts.as_view()),
     url(r'^api/v1/contacts/connect/(?P<id>[0-9]+)$',
         contact_views.ContactConnect.as_view()),
-    url(r'^api/v1/contacts/interactions$',
+    url(r'^api/v1/contacts/(?P<person_id>[0-9]+)/interactions$',
         contact_views.ContactInteractions.as_view()),
-    url(r'^api/v1/contacts/interactions/(?P<id>[0-9]+)$',
+    url(r'^api/v1/contacts/(?P<person_id>[0-9]+)/interactions/'
+         '(?P<interaction_id>[0-9]+)$',
         contact_views.ContactInteractions.as_view()),
 
     # Data API

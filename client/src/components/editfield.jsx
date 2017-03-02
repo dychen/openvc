@@ -1,6 +1,7 @@
 import React from 'react';
 import numeral from 'numeral';
 import moment from 'moment';
+import {truncateString} from '../utils/format.js';
 
 import './editfield.scss';
 
@@ -139,6 +140,7 @@ class EditField extends React.Component {
     if (this.props.editing) {
       switch (this.props.fieldType) {
         case 'text':
+        case 'text truncated':
           editComponent = (
             <textarea rows="8"
                       className="ovc-edit-field" autoFocus
@@ -169,6 +171,18 @@ class EditField extends React.Component {
                  onClick={this.editField}
                  src={this.props.originalValue}>
             </img>
+          );
+          break;
+        case 'text truncated':
+          editComponent = (
+            <span className="ovc-edit-field"
+                  onClick={this.editField}>
+              {this.filterDisplayValue(
+                 truncateString(this.props.originalValue
+                                ? this.props.originalValue
+                                : this.props.placeholder), 30
+               )}
+            </span>
           );
           break;
         default:

@@ -515,13 +515,13 @@ class CompanyInvestors(APIView):
         try:
             user = check_authentication(request)
             company = user.get_portfolio_company(company_id)
+            investment = company.investments.get(id=investment_id)
 
-            investment = (user.get_active_account().company
-                              .investments.get(id=investment_id,
-                                               company=company))
             return Response(investment.get_api_investors(),
                             status=status.HTTP_200_OK)
 
+        except Exception as e:
+            print e
         except (UserAccount.MultipleObjectsReturned,
                 UserAccount.DoesNotExist,
                 Account.DoesNotExist,
@@ -552,10 +552,7 @@ class CompanyInvestors(APIView):
             user = check_authentication(request)
             request_json = validate(json.loads(request.body))
             company = user.get_portfolio_company(company_id)
-
-            investment = (user.get_active_account().company
-                              .investments.get(id=investment_id,
-                                               company=company))
+            investment = company.investments.get(id=investment_id)
 
             investor_investment = InvestorInvestment.create_from_api(
                 investment, request_json
@@ -593,9 +590,7 @@ class CompanyInvestors(APIView):
             user = check_authentication(request)
             request_json = json.loads(request.body)
             company = user.get_portfolio_company(company_id)
-            investment = (user.get_active_account().company
-                              .investments.get(id=investment_id,
-                                               company=company))
+            investment = company.investments.get(id=investment_id)
 
             investor_investment = InvestorInvestment.objects.get(
                 investment=investment,
@@ -635,9 +630,7 @@ class CompanyInvestors(APIView):
         try:
             user = check_authentication(request)
             company = user.get_portfolio_company(company_id)
-            investment = (user.get_active_account().company
-                              .investments.get(id=investment_id,
-                                               company=company))
+            investment = company.investments.get(id=investment_id)
 
             investor_investment_id = int(investor_investment_id)
             Investor_investment.objects.get(id=investor_investment_id,

@@ -2,6 +2,10 @@
 @import '../../constants.scss';
 @import './constants.scss';
 
+$INVESTOR_PORTCO_PANEL_WIDTH: 700px;
+$INVESTOR_PORTCO_PANEL_HEIGHT: 250px;
+$INVESTOR_PORTCO_IMG_HEIGHT: 150px;
+
 .ovc-create-portco-button {
   width: 200px;
   height: 40px;
@@ -20,5 +24,147 @@
     position: absolute;
     left: 10px;
     font-size: 20px;
+  }
+}
+
+.ovc-investor-portco-list {
+  margin: 10px;
+
+  .ovc-investor-portco-panel {
+    height: $INVESTOR_PORTCO_PANEL_HEIGHT;
+    width: $INVESTOR_PORTCO_PANEL_WIDTH;
+    margin: 5px;
+    box-shadow: 0 1px 3px 0 $OVC_GRAY;
+
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    @include hvr-shadow($OVC_DARK_GRAY);
+
+    .ovc-investor-portco-left-subpanel {
+      flex: 0 0 $INVESTOR_PORTCO_IMG_HEIGHT;
+      height: 100%;
+      width: $INVESTOR_PORTCO_IMG_HEIGHT;
+      border-right: 1px solid $OVC_LIGHT_GRAY;
+
+      img.company-logo {
+        height: $INVESTOR_PORTCO_IMG_HEIGHT;
+        flex: 0 0 $INVESTOR_PORTCO_IMG_HEIGHT;
+      }
+
+      .company-text {
+        width: 100%;
+        padding: 10px;
+
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        flex-direction: column;
+        text-align: center;
+
+        div {
+          width: 100%;
+        }
+        .company-name {
+          font-weight: 900;
+        }
+        .company-location {
+          color: $OVC_GRAY;
+        }
+      }
+    }
+
+    .ovc-investor-portco-subpanel-container {
+      height: 100%;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-direction: row;
+
+      .ovc-investor-portco-overview-subpanel {
+        margin: 5px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        height: 100%;
+
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        flex-direction: column;
+
+        .overview-subpanel-title {
+          font-size: 1.5em;
+          font-weight: 900;
+        }
+
+        .overview-subpanel-subsection.short {
+          width: 90px;
+        }
+
+        .overview-subpanel-subsection.long {
+          width: 120px;
+        }
+
+        .overview-subpanel-subsection {
+          margin: 5px;
+          padding: 10px;
+          box-shadow: 0 1px 3px 0 $OVC_GRAY;
+          height: 100%;
+          //height: 90px;
+
+          display: flex;
+          justify-content: space-around;
+          align-items: center;
+          flex-direction: column;
+
+          .overview-label {
+            width: 100%;
+            height: 100%;
+            font-size: 0.9em;
+            text-align: center;
+          }
+          .overview-value {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+
+            position: relative;
+            i.icon-main {
+              font-size: 40px;
+              font-weight: 900;
+            }
+            i.icon-left {
+              position: absolute;
+              left: 0px;
+              bottom: 5px;
+            }
+            span.value-small {
+              font-size: 0.9em;
+              font-weight: 900;
+            }
+            span.value-large {
+              font-size: 2.0em;
+              font-weight: 900;
+            }
+
+            div.value-label {
+              font-weight: 900;
+              color: $OVC_GRAY;
+            }
+          }
+        }
+      }
+    }
+
+    position: relative;
+    i.remove-portco {
+      position: absolute;
+      right: 5px;
+      top: 0px;
+
+      font-size: 20px;
+      @include hvr-color($OVC_GRAY);
+    }
   }
 }

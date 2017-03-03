@@ -250,8 +250,15 @@ class Company(models.Model):
     def get_investments(self, **kwargs):
         return self.investments.filter(**kwargs).order_by('date', 'series')
 
-    def get_latest_investment(self):
-        return self.get_investments().last()
+    def get_first_investment(self, investor=None):
+        kwargs = ({} if investor is None else
+                  { 'investor_investments__investor': investor })
+        return self.get_investments(**kwargs).first()
+
+    def get_latest_investment(self, investor=None):
+        kwargs = ({} if investor is None else
+                  { 'investor_investments__investor': investor })
+        return self.get_investments(**kwargs).last()
 
     def get_metrics(self, **kwargs):
         return self.metrics.filter(**kwargs).order_by('name')
@@ -360,15 +367,42 @@ class Company(models.Model):
 
     # Investor API
 
+    def get_last_metric(self, metric_name):
+        try:
+            return (self.metrics.get(name=metric_name, interval='Quarter',
+                                     estimated=False)
+                                .metric_values
+                                .order_by('date').last())
+        except Metric.DoesNotExist:
+            return None
+
     def get_api_portco_format(self, investor):
-        latest_investment = self.get_latest_investment()
-        if latest_investment:
-            (latest_series, latest_date, latest_raised, latest_post) = \
-                (latest_investment.series, latest_investment.date,
-                 latest_investment.raised, latest_investment.post_money)
+        first_investment = self.get_latest_investment(investor)
+        if first_investment:
+            (first_series, first_date, first_raised, first_post) = \
+                (first_investment.series, first_investment.date,
+                 first_investment.raised, first_investment.post_money)
         else:
-            (latest_series, latest_date, latest_raised, latest_post) = \
+            (first_series, first_date, first_raised, first_post) = \
                 (None, None, None, None)
+
+        last_investment = self.get_latest_investment()
+        if last_investment:
+            (last_series, last_date, last_raised, last_post) = \
+                (last_investment.series, last_investment.date,
+                 last_investment.raised, last_investment.post_money)
+        else:
+            (last_series, last_date, last_raised, last_post) = \
+                (None, None, None, None)
+
+        revenue = self.get_last_metric('Revenue')
+        revenue = revenue.get_api_format() if revenue else {}
+        burn = self.get_last_metric('Burn')
+        burn = burn.get_api_format() if burn else {}
+        cash = self.get_last_metric('Cash')
+        cash = cash.get_api_format() if cash else {}
+        headcount = self.get_last_metric('Headcount')
+        headcount = headcount.get_api_format() if headcount else {}
 
         return {
             'id': self.id,
@@ -379,12 +413,29 @@ class Company(models.Model):
             'website': self.website,
             'logoUrl': self.logo_url,
             'totalRaised': self.get_total_raised(),
-            'latestRoundSeries': latest_series,
-            'latestRoundDate': latest_date,
-            'latestRoundRaised': latest_raised,
-            'latestRoundPostMoneyVal': latest_post,
             'invested': investor.get_total_investment(self),
             'ownership': investor.get_current_ownership(self),
+            'latestRoundSeries': last_series,
+            'lastRound': {
+                'series': last_series,
+                'date': last_date,
+                'raised': last_raised,
+                'postMoney': last_post,
+            },
+            'firstRound': {
+                'series': first_series,
+                'date': first_date,
+                'raised': first_raised,
+                'postMoney': first_post,
+            },
+            'lastMetrics': {
+                'revenue': revenue,
+                'burn': burn,
+                'cash': cash,
+                'headcount': headcount,
+            },
+            'board': self.get_api_board(),
+            'interactions': investor.company.account.get_company_interactions(self),
         }
 
     # Startup data

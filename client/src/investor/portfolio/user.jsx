@@ -1,9 +1,154 @@
 import React from 'react';
 import {hashHistory} from 'react-router';
+import numeral from 'numeral';
+import moment from 'moment';
 
 import CreateCompanyModal from '../../components/modals/company.jsx';
 
 import './user.scss';
+
+/*
+ * props:
+ *   title [string]: Title of subpanel.
+ *   icon [string]: Icon class name.
+ *   investment [Object]: {
+ *     series [string]: Round of investment (e.g. 'Series A'),
+ *     date [Date]: Round date,
+ *     raised [number]: Amount raised,
+ *     postMoney [number]: Post money valuation
+ *   }
+ */
+class PortcoInvestmentSubpanel extends React.Component {
+  render() {
+    const investment = this.props.investment;
+    const subpanelText = {
+      series: investment.series ? investment.series : '',
+      date: (investment.date ?
+             ` on ${moment(investment.date).format('ll')}` : ''),
+      raised: (investment.raised ?
+               numeral(investment.raised).format('($0,0)') : ''),
+      postMoney: (investment.postMoney ?
+                  numeral(investment.postMoney).format('($0,0)') : '')
+    };
+    return (
+      <div className="ovc-investor-portco-overview-subpanel">
+        <div className="overview-subpanel-title">
+          {this.props.title}
+        </div>
+        <div className="overview-subpanel-subsection long">
+          <span className="overview-value">
+            <i className={`${this.props.icon} icon-main`} />
+          </span>
+          <span className="overview-value">
+            <div>{subpanelText.series}</div>
+            <div>{subpanelText.date}</div>
+          </span>
+          <span className="overview-value">
+            <div className="value-label">Raised:</div>
+            <div>{subpanelText.raised}</div>
+            <div className="value-label">Post:</div>
+            <div>{subpanelText.postMoney}</div>
+          </span>
+        </div>
+      </div>
+    );
+  }
+}
+
+/*
+ * props:
+ *   title [string]: Title of subpanel.
+ *   company [Object]: {
+ *     ...
+ *     totalRaised [number]: Total raised to date,
+ *     invested [number]: Total investment to date,
+ *     ownership [number]: Ownership
+ *   }
+ */
+class PortcoTotalSubpanel extends React.Component {
+  render() {
+    const company = this.props.company;
+    const subpanelText = {
+      totalRaised: (company.totalRaised ?
+                    numeral(company.totalRaised).format('($0,0)') : ''),
+      invested: (company.invested ?
+                 numeral(company.invested).format('($0,0)') : ''),
+      ownership: (company.ownership ?
+                  numeral(company.ownership).format('(0.0%)') : '')
+    };
+    return (
+      <div className="ovc-investor-portco-overview-subpanel">
+        <div className="overview-subpanel-title">
+          {this.props.title}
+        </div>
+        <div className="overview-subpanel-subsection long">
+          <span className="overview-value">
+            <i className="ion-arrow-graph-up-right icon-main" />
+          </span>
+          <span className="overview-value">
+            <div className="value-label">Total Raised:</div>
+            <div>{subpanelText.totalRaised}</div>
+            <div className="value-label">Invested:</div>
+            <div>{subpanelText.invested}</div>
+            <div className="value-label">Ownership:</div>
+            <div>{subpanelText.ownership}</div>
+          </span>
+        </div>
+      </div>
+    );
+  }
+}
+
+/*
+ * props:
+ *   title [string]: Title of subpanel.
+ *   metrics [Object]: {
+ *     revenue [Object]: { date: [Date], value: [number] },
+ *     burn [Object]: { date: [Date], value: [number] },
+ *     cash [Object]: { date: [Date], value: [number] },
+ *     headcount [Object]: { date: [Date], value: [number] }
+ *   }
+ */
+class PortcoMetricSubpanel extends React.Component {
+  render() {
+    const metrics = this.props.metrics;
+    const subpanelText = {
+      revenue: (metrics.revenue.value ?
+                numeral(metrics.revenue.value).format('($0,0)') : ''),
+      burn: (metrics.burn.value ?
+             numeral(metrics.burn.value).format('($0,0)') : ''),
+      cash: (metrics.cash.value ?
+             numeral(metrics.cash.value).format('($0,0)') : ''),
+      headcount: (metrics.headcount.value ?
+                  numeral(metrics.headcount.value).format('(0,0)') : '')
+    };
+    return (
+      <div className="ovc-investor-portco-overview-subpanel">
+        <div className="overview-subpanel-title">
+          {this.props.title}
+        </div>
+        <div className="overview-subpanel-subsection short">
+          <span className="overview-value">
+            <div className="value-label">Revenue:</div>
+            <div>{subpanelText.revenue}</div>
+          </span>
+          <span className="overview-value">
+            <div className="value-label">Burn:</div>
+            <div>{subpanelText.burn}</div>
+          </span>
+          <span className="overview-value">
+            <div className="value-label">Cash:</div>
+            <div>{subpanelText.cash}</div>
+          </span>
+          <span className="overview-value">
+            <div className="value-label">Headcount:</div>
+            <div>{subpanelText.headcount}</div>
+          </span>
+        </div>
+      </div>
+    );
+  }
+}
 
 /*
  * props:
@@ -69,47 +214,41 @@ class UserPortfolioSection extends React.Component {
       location: company.location
         || <span className="ovc-no-data">Location unknown</span>,
       website: company.website
-        || <span className="ovc-no-data">Website unknown</span>,
-      invested: company.invested
-        || <span className="ovc-no-data">Investment unknown</span>,
-      ownership: company.ownership
-        || <span className="ovc-no-data">Ownership unknown</span>,
-      totalRaised: company.totalRaised
-        || <span className="ovc-no-data">Total Raised unknown</span>,
-      latestRoundSeries: company.latestRoundSeries
-        || <span className="ovc-no-data">Series unknown</span>,
-      latestRoundDate: company.latestRoundDate
-        || <span className="ovc-no-data">Date unknown</span>,
-      latestRoundRaised: company.latestRoundRaised
-        || <span className="ovc-no-data">Amount unknown</span>,
-      latestRoundPostMoneyVal: company.latestRoundPostMoneyVal
-        || <span className="ovc-no-data">Post money unknown</span>
+        || <span className="ovc-no-data">Website unknown</span>
     };
 
     return (
       <div className="ovc-investor-portco-panel"
            id={company.id} key={company.id}
            onClick={this._goToCompanyPage}>
-        <img className="company-logo" src={companyDisplay.logoUrl} />
-        <div className="portco-text">
-          <div className="portco-name">
-            {companyDisplay.name}
+        <div className="ovc-investor-portco-left-subpanel">
+          <img className="company-logo" src={companyDisplay.logoUrl} />
+          <div className="company-text">
+            <div className="company-name">
+              {companyDisplay.name}
+            </div>
+            <div className="company-segment">
+              {companyDisplay.segment}, {companyDisplay.sector}
+            </div>
+            <div className="company-location">
+              {companyDisplay.location}
+            </div>
           </div>
-          <div className="portco-metadata">
-            {companyDisplay.segment} {companyDisplay.sector} {companyDisplay.location}
-          </div>
-          <div className="portco-fundraising">
-            {companyDisplay.invested} {companyDisplay.ownership} {companyDisplay.totalRaised}
-          </div>
-          <div className="portco-last-round">
-            Last Round: {companyDisplay.latestRoundSeries}
-              &nbsp;({companyDisplay.latestRoundDate}):
-              &nbsp;{companyDisplay.latestRoundRaised}
-              &nbsp;at {companyDisplay.latestRoundPostMoneyVal}
-          </div>
-          <i className="ion-ios-close remove-portco" id={company.id}
-             onClick={this.handleDeletePortfolioCompany} />
         </div>
+        <div className="ovc-investor-portco-subpanel-container">
+          <PortcoInvestmentSubpanel title="Last Round"
+                                    icon="ion-calendar"
+                                    investment={company.lastRound} />
+          <PortcoInvestmentSubpanel title="Initial Round"
+                                    icon="ion-cash"
+                                    investment={company.firstRound} />
+          <PortcoTotalSubpanel title="To Date"
+                               company={company} />
+          <PortcoMetricSubpanel title="KPIs"
+                                metrics={company.lastMetrics} />
+        </div>
+        <i className="ion-ios-close remove-portco" id={company.id}
+           onClick={this.handleDeletePortfolioCompany} />
       </div>
     );
   }

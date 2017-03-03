@@ -85,22 +85,6 @@ class InvestorPorfolioPage extends React.Component {
   /*
    * CRUD API
    */
-  /*
-   * Expected response: [{
-   *   id: [number],
-   *   location: [string],
-   *   website: [string],
-   *   logoUrl: [string],
-   *   invested: [number],
-   *   ownership: [number],
-   *   totalRaised: [number],
-   *   latestRoundSeries: [string],
-   *   latestRoundDate: [Date string],
-   *   latestRoundRaised: [number],
-   *   latestRoundPostMoneyVal: [number]
-   * }, ...]
-   *
-   */
   getPortfolioCompanyList() {
     authFetch(`${SERVER_URL}/api/v1/users/portfolio`)
       .then(function(response) {

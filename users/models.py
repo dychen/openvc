@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from data.models import Person, Company
+from contacts.models import Interaction
 
 class CusomUserManager(BaseUserManager):
     def create_user(self, email, role, password=None):
@@ -107,6 +108,14 @@ class User(AbstractBaseUser):
                                     .order_by('-date', 'label'))
         ]
 
+    def get_company_interactions(self, company):
+        # TODO: Filter for people currently employed at the company
+        return [
+            interaction.get_api_format() for interaction in
+            (self.interactions.filter(person__employment__company=company)
+                              .order_by('-date', 'label'))
+        ]
+
 class Account(models.Model):
     company    = models.OneToOneField(Company, unique=True,
                                       related_name='account')
@@ -132,6 +141,16 @@ class Account(models.Model):
             ]
         else:
             return []
+
+    def get_company_interactions(self, company):
+        # TODO: Filter for people currently employed at the company
+        return [
+            interaction.get_api_format() for interaction in
+            Interaction.objects.filter(
+                user__user_accounts__account=self,
+                person__employment__company=company
+            ).order_by('-date', 'label')
+        ]
 
 class UserAccount(models.Model):
     user       = models.ForeignKey(settings.AUTH_USER_MODEL,

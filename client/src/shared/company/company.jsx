@@ -475,7 +475,7 @@ class InvestorSection extends React.Component {
   }
 
   getInvestmentList() {
-    authFetch(`${SERVER_URL}/api/v1/users/company/investments`)
+    authFetch(`${this.props.API_URL_BASE}/investments`)
     .then(function(response) {
       if (response.ok) {
         return response.json();
@@ -489,6 +489,7 @@ class InvestorSection extends React.Component {
     .then(json => {
       // Success
       json = preprocessJSON(json);
+      console.log(json);
       this.setState({ investments: json });
     })
     .catch(err => {

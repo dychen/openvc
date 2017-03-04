@@ -40,14 +40,14 @@ class PortcoInvestmentSubpanel extends React.Component {
             <i className={`${this.props.icon} icon-main`} />
           </span>
           <span className="overview-value">
-            <div>{subpanelText.series}</div>
-            <div>{subpanelText.date}</div>
+            <div className="value-bold">{subpanelText.series}</div>
+            <div className="value-bold">{subpanelText.date}</div>
           </span>
           <span className="overview-value">
             <div className="value-label">Raised:</div>
-            <div>{subpanelText.raised}</div>
+            <div className="value-bold">{subpanelText.raised}</div>
             <div className="value-label">Post:</div>
-            <div>{subpanelText.postMoney}</div>
+            <div className="value-bold">{subpanelText.postMoney}</div>
           </span>
         </div>
       </div>
@@ -87,11 +87,11 @@ class PortcoTotalSubpanel extends React.Component {
           </span>
           <span className="overview-value">
             <div className="value-label">Total Raised:</div>
-            <div>{subpanelText.totalRaised}</div>
+            <div className="value-bold">{subpanelText.totalRaised}</div>
             <div className="value-label">Invested:</div>
-            <div>{subpanelText.invested}</div>
+            <div className="value-bold">{subpanelText.invested}</div>
             <div className="value-label">Ownership:</div>
-            <div>{subpanelText.ownership}</div>
+            <div className="value-bold">{subpanelText.ownership}</div>
           </span>
         </div>
       </div>
@@ -102,48 +102,75 @@ class PortcoTotalSubpanel extends React.Component {
 /*
  * props:
  *   title [string]: Title of subpanel.
- *   metrics [Object]: {
- *     revenue [Object]: { date: [Date], value: [number] },
- *     burn [Object]: { date: [Date], value: [number] },
- *     cash [Object]: { date: [Date], value: [number] },
- *     headcount [Object]: { date: [Date], value: [number] }
- *   }
+ *   topMetricTitle [string]: Title of metric.
+ *   topMetricIcon [string]: Metric icon class name.
+ *   topMetric [Object]: { date: [Date], value: [number] }
+ *   bottomMetricTitle [string]: Title of metric.
+ *   bottomMetricIcon [string]: Metric icon class name.
+ *   bottomMetric [Object]: { date: [Date], value: [number] }
  */
 class PortcoMetricSubpanel extends React.Component {
   render() {
-    const metrics = this.props.metrics;
     const subpanelText = {
-      revenue: (metrics.revenue.value ?
-                numeral(metrics.revenue.value).format('($0,0)') : ''),
-      burn: (metrics.burn.value ?
-             numeral(metrics.burn.value).format('($0,0)') : ''),
-      cash: (metrics.cash.value ?
-             numeral(metrics.cash.value).format('($0,0)') : ''),
-      headcount: (metrics.headcount.value ?
-                  numeral(metrics.headcount.value).format('(0,0)') : '')
+      topMetric: {
+        value: (this.props.topMetric.value ?
+                numeral(this.props.topMetric.value).format('($0,0)') : ''),
+        date: (this.props.topMetric.date ?
+               `As of ${moment(this.props.topMetric.date).format('ll')}` : '')
+      },
+      bottomMetric: {
+        value: (this.props.bottomMetric.value ?
+                numeral(this.props.bottomMetric.value).format('($0,0)') : ''),
+        date: (this.props.bottomMetric.date ?
+               `As of ${moment(this.props.bottomMetric.date).format('ll')}` : '')
+      }
     };
     return (
       <div className="ovc-investor-portco-overview-subpanel">
         <div className="overview-subpanel-title">
           {this.props.title}
         </div>
-        <div className="overview-subpanel-subsection short">
+        <div className="overview-subpanel-subsection long">
           <span className="overview-value">
-            <div className="value-label">Revenue:</div>
-            <div>{subpanelText.revenue}</div>
+            <div><i className={`${this.props.topMetricIcon} icon-main-small`} /></div>
+            <div className="value-label">{this.props.topMetricTitle}</div>
+            <div className="value-bold">{subpanelText.topMetric.value}</div>
+            <div className="value-subtext">{subpanelText.topMetric.date}</div>
           </span>
           <span className="overview-value">
-            <div className="value-label">Burn:</div>
-            <div>{subpanelText.burn}</div>
+            <div><i className={`${this.props.bottomMetricIcon} icon-main-small`} /></div>
+            <div className="value-label">{this.props.bottomMetricTitle}</div>
+            <div className="value-bold">{subpanelText.bottomMetric.value}</div>
+            <div className="value-subtext">{subpanelText.bottomMetric.date}</div>
           </span>
-          <span className="overview-value">
-            <div className="value-label">Cash:</div>
-            <div>{subpanelText.cash}</div>
-          </span>
-          <span className="overview-value">
-            <div className="value-label">Headcount:</div>
-            <div>{subpanelText.headcount}</div>
-          </span>
+        </div>
+      </div>
+    );
+  }
+}
+
+/*
+ * props:
+ *   title [string]: Title of subpanel.
+ *   board [Object]: [{ [Board Member] }]
+ */
+class PortcoBoardSubpanel extends React.Component {
+  render() {
+    const boardMembers = this.props.board.map((boardMember) =>
+      <span className="overview-value" key={boardMember.id}>
+        <img className="value-img" src={boardMember.photoUrl} />
+        <div className="value-subtext">{boardMember.name}</div>
+        <div className="value-subtext">{boardMember.company}</div>
+        <div className="value-subtext">{boardMember.title}</div>
+      </span>
+    )
+    return (
+      <div className="ovc-investor-portco-overview-subpanel">
+        <div className="overview-subpanel-title">
+          {this.props.title}
+        </div>
+        <div className="overview-subpanel-subsection row">
+          {boardMembers}
         </div>
       </div>
     );
@@ -235,17 +262,35 @@ class UserPortfolioSection extends React.Component {
             </div>
           </div>
         </div>
-        <div className="ovc-investor-portco-subpanel-container">
-          <PortcoInvestmentSubpanel title="Last Round"
-                                    icon="ion-calendar"
-                                    investment={company.lastRound} />
-          <PortcoInvestmentSubpanel title="Initial Round"
-                                    icon="ion-cash"
-                                    investment={company.firstRound} />
-          <PortcoTotalSubpanel title="To Date"
-                               company={company} />
-          <PortcoMetricSubpanel title="KPIs"
-                                metrics={company.lastMetrics} />
+        <div className="ovc-investor-portco-right-subpanel">
+          <div className="ovc-investor-portco-subpanel-container overview">
+            <PortcoInvestmentSubpanel title="Last Round"
+                                      icon="ion-calendar"
+                                      investment={company.lastRound} />
+            <PortcoInvestmentSubpanel title="Initial Round"
+                                      icon="ion-cash"
+                                      investment={company.firstRound} />
+            <PortcoTotalSubpanel title="To Date"
+                                 company={company} />
+            <PortcoMetricSubpanel title="Rev/HC"
+                                  topMetricTitle="Revenue (Q)"
+                                  topMetricIcon="ion-social-usd"
+                                  topMetric={company.lastMetrics.revenue}
+                                  bottomMetricTitle="Headcount"
+                                  bottomMetricIcon="ion-ios-people"
+                                  bottomMetric={company.lastMetrics.headcount} />
+            <PortcoMetricSubpanel title="Cash/Burn"
+                                  topMetricTitle="Cash"
+                                  topMetricIcon="ion-cash"
+                                  topMetric={company.lastMetrics.cash}
+                                  bottomMetricTitle="Burn"
+                                  bottomMetricIcon="ion-flame"
+                                  bottomMetric={company.lastMetrics.burn} />
+          </div>
+          <div className="ovc-investor-portco-subpanel-container board">
+            <PortcoBoardSubpanel title="Board"
+                                 board={company.board} />
+          </div>
         </div>
         <i className="ion-ios-close remove-portco" id={company.id}
            onClick={this.handleDeletePortfolioCompany} />

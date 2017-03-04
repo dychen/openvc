@@ -2,8 +2,8 @@
 @import '../../constants.scss';
 @import './constants.scss';
 
-$INVESTOR_PORTCO_PANEL_WIDTH: 700px;
-$INVESTOR_PORTCO_PANEL_HEIGHT: 250px;
+$INVESTOR_PORTCO_PANEL_WIDTH: 850px;
+$INVESTOR_PORTCO_PANEL_HEIGHT: 450px;
 $INVESTOR_PORTCO_IMG_HEIGHT: 150px;
 
 .ovc-create-portco-button {
@@ -54,11 +54,12 @@ $INVESTOR_PORTCO_IMG_HEIGHT: 150px;
       }
 
       .company-text {
+        height: 100%;
         width: 100%;
         padding: 10px;
 
         display: flex;
-        justify-content: center;
+        justify-content: flex-start;
         align-items: flex-start;
         flex-direction: column;
         text-align: center;
@@ -75,8 +76,26 @@ $INVESTOR_PORTCO_IMG_HEIGHT: 150px;
       }
     }
 
+    .ovc-investor-portco-right-subpanel {
+      height: 100%;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .ovc-investor-portco-subpanel-container.overview {
+      height: 250px;
+    }
+    .ovc-investor-portco-subpanel-container.board {
+      height: 200px;
+    }
+
+    // These are inside .ovc-investor-portco-right-subpanel
     .ovc-investor-portco-subpanel-container {
       height: 100%;
+      width: 100%;
       display: flex;
       justify-content: space-around;
       align-items: center;
@@ -87,6 +106,7 @@ $INVESTOR_PORTCO_IMG_HEIGHT: 150px;
         padding-top: 5px;
         padding-bottom: 5px;
         height: 100%;
+        width: 100%;
 
         display: flex;
         justify-content: space-around;
@@ -98,12 +118,27 @@ $INVESTOR_PORTCO_IMG_HEIGHT: 150px;
           font-weight: 900;
         }
 
+        .overview-subpanel-subsection {
+          display: flex;
+          justify-content: space-around;
+          align-items: center;
+          flex-direction: column;
+        }
+
         .overview-subpanel-subsection.short {
           width: 90px;
         }
 
         .overview-subpanel-subsection.long {
           width: 120px;
+        }
+
+        .overview-subpanel-subsection.row {
+          width: 100%;
+          justify-content: center;
+          align-items: center;
+          flex-direction: row;
+          //flex-wrap: wrap;
         }
 
         .overview-subpanel-subsection {
@@ -113,11 +148,6 @@ $INVESTOR_PORTCO_IMG_HEIGHT: 150px;
           height: 100%;
           //height: 90px;
 
-          display: flex;
-          justify-content: space-around;
-          align-items: center;
-          flex-direction: column;
-
           .overview-label {
             width: 100%;
             height: 100%;
@@ -125,13 +155,19 @@ $INVESTOR_PORTCO_IMG_HEIGHT: 150px;
             text-align: center;
           }
           .overview-value {
-            width: 100%;
+            //width: 100%;
             height: 100%;
             text-align: center;
+            padding: 2px;
+            margin: 3px;
 
             position: relative;
             i.icon-main {
               font-size: 40px;
+              font-weight: 900;
+            }
+            i.icon-main-small {
+              font-size: 25px;
               font-weight: 900;
             }
             i.icon-left {
@@ -149,8 +185,20 @@ $INVESTOR_PORTCO_IMG_HEIGHT: 150px;
             }
 
             div.value-label {
-              font-weight: 900;
+              font-weight: 100;
               color: $OVC_GRAY;
+            }
+            div.value-subtext {
+              font-size: 0.8em;
+              color: $OVC_GRAY;
+            }
+            div.value-bold {
+              font-weight: 900;
+            }
+            img.value-img {
+              width: 80px;
+              height: 80px;
+              border-radius: 40px;
             }
           }
         }

@@ -4,9 +4,42 @@ from decimal import Decimal
 from django.db import models
 from shared.utils import parse_date
 
+def create_defaults_hash(api_response, api_field_map):
+    """
+    Creates a formatted dictionary from the API response that is mapped to the
+    expected API fields. Only includes non-null API response values.
+    Args:
+        api_response [dict]: {
+            [API field name]: [API field value],
+            ...
+        },
+        api_field_map [dict]: {
+            [Internal model field name]: [API field name],
+            ...
+        }
+    Returns:
+        [dict]: {
+            [Internal model field name]: [API field value]
+        }
+    """
+    def is_null(value):
+        return value is None or value == '' or value == 'None'
+
+    return {
+        internal_field: api_response[api_field]
+        for internal_field, api_field in api_field_map.iteritems()
+        if api_field in api_response and not is_null(api_response[api_field])
+    }
+
 class Investor(models.Model):
+    TYPES = {
+        'Company': 'COMPANY',
+        'Person': 'PERSON',
+    }
+    TYPE_CHOICES = [(v, k) for k, v in TYPES.iteritems()]
+
     name       = models.TextField()
-    type       = models.TextField()
+    type       = models.TextField(choices=TYPE_CHOICES, default='COMPANY')
 
     def __unicode__(self):
         return self.name or u''
@@ -219,8 +252,11 @@ class Company(models.Model):
     segment    = models.TextField(null=True, blank=True)
     sector     = models.TextField(null=True, blank=True)
     logo_url   = models.TextField(null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
     investor   = models.OneToOneField(Investor, unique=True, null=True,
                                       blank=True, on_delete=models.SET_NULL)
+    crunchbase_id        = models.TextField(unique=True, null=True, blank=True)
+    crunchbase_permalink = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

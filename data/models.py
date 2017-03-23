@@ -777,7 +777,7 @@ class MetricValue(models.Model):
 
 class Investment(models.Model):
     company    = models.ForeignKey(Company, related_name='investments')
-    series     = models.CharField(max_length=25)
+    series     = models.TextField(null=True, blank=True)
     date       = models.DateField(null=True, blank=True)
     pre_money  = models.DecimalField(max_digits=24, decimal_places=6,
                                      null=True, blank=True)
@@ -984,4 +984,113 @@ class InvestorInvestment(models.Model):
         self.save()
         return self
 
+class Deal(models.Model):
+    account    = models.ForeignKey('users.Account',
+                                   default='users.DEFAULT_ACCOUNT_ID')
+
+    name       = models.TextField(null=True, blank=True)
+    company    = models.ForeignKey(Company, related_name='deals',
+                                   null=True, blank=True,
+                                   on_delete=models.CASCADE)
+    investment = models.OneToOneField(Investment, null=True, blank=True,
+                                      on_delete=models.SET_NULL)
+    referrer   = models.ForeignKey(Person, related_name='referrer_deals',
+                                   null=True, blank=True,
+                                   on_delete=models.SET_NULL)
+    owner      = models.ForeignKey(Person, related_name='owner_deals',
+                                   null=True, blank=True,
+                                   on_delete=models.SET_NULL)
+    date       = models.DateField(null=True, blank=True)
+    source     = models.TextField(null=True, blank=True)
+    type       = models.TextField(null=True, blank=True)
+    status     = models.TextField(null=True, blank=True)
+    stage      = models.TextField(null=True, blank=True)
+
+    def __unicode__(self):
+        return u'%s %s' % (self.name, unicode(self.company))
+
+    def get_api_format(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'company': self.company.name if self.company else None,
+            'companyId': self.company.id if self.company else None,
+            'investment': self.investment.series if self.investment else None,
+            'investmentId': self.investment.id if self.investment else None,
+            'referrer': self.referrer.full_name if self.referrer else None,
+            'referrerId': self.referrer.id if self.referrer else None,
+            'owner': self.owner.full_name if self.owner else None,
+            'ownerId': self.owner.id if self.owner else None,
+            'date': self.date,
+            'source': self.source,
+            'type': self.type,
+            'status': self.status,
+            'stage': self.stage,
+        }
+
+    @classmethod
+    def create_from_api(cls, account, request_json):
+        """
+        Expected request body:
+        {
+            'companyId': [int],
+            'investmentId': [int],
+            'name': [string],
+            'referrerId': [int],
+            'ownerId': [int],
+            'date': [datetime.date],
+            'source': [float],
+            'type': [float],
+            'status': [float],
+            'stage': [float]
+        }
+        """
+        # TODO: Foreign key relationships
+        deal_dict = {}
+        if request_json.get('name'):
+            deal_dict['name'] = request_json.get('name')
+        if request_json.get('date'):
+            deal_dict['date'] = parse_date(request_json.get('date'))
+        if request_json.get('source'):
+            deal_dict['source'] = request_json.get('source')
+        if request_json.get('type'):
+            deal_dict['type'] = request_json.get('type')
+        if request_json.get('status'):
+            deal_dict['status'] = request_json.get('status')
+        if request_json.get('stage'):
+            deal_dict['stage'] = request_json.get('stage')
+        deal = Deal.objects.create(account=account, **deal_dict)
+        return deal
+
+    def update_from_api(self, request_json):
+        """
+        Expected request body:
+        {
+            'companyId': [int],
+            'investmentId': [int],
+            'name': [string],
+            'referrerId': [int],
+            'ownerId': [int],
+            'date': [datetime.date],
+            'source': [float],
+            'type': [float],
+            'status': [float],
+            'stage': [float]
+        }
+        """
+        # TODO: Foreign key relationships
+        if request_json.get('name'):
+            self.name = request_json.get('name')
+        if request_json.get('date'):
+            self.date = parse_date(request_json.get('date'))
+        if request_json.get('source'):
+            self.source = request_json.get('source')
+        if request_json.get('type'):
+            self.type = request_json.get('type')
+        if request_json.get('status'):
+            self.status = request_json.get('status')
+        if request_json.get('stage'):
+            self.stage = request_json.get('stage')
+        self.save()
+        return self
 

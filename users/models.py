@@ -1,8 +1,10 @@
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
-from data.models import Person, Company
+from data.models import Person, Company, Deal
 from contacts.models import Interaction
+
+DEFAULT_ACCOUNT_ID = 1
 
 class CusomUserManager(BaseUserManager):
     def create_user(self, email, role, password=None):
@@ -128,10 +130,20 @@ class Account(models.Model):
     def get_portfolio_company(self, company_id):
         return self.account_portfolio.get(company__id=company_id).company
 
+    def get_deals(self, **kwargs):
+        args = { 'account': self }
+        return Deal.objects.filter(**args).order_by('name')
+
     def get_portfolio(self, **kwargs):
         args = { 'account_portfolio__account': self }
         args.update(kwargs)
         return Company.objects.filter(**args).order_by('name')
+
+    def get_api_deals(self):
+        if self.company.investor:
+            return [deal.get_api_format() for deal in self.get_deals()]
+        else:
+            return []
 
     def get_api_portfolio(self):
         if self.company.investor:

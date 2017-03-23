@@ -20,10 +20,11 @@ import FounderFundraisingPage from './founder/fundraising.jsx';
 import InvestorAppContainer from './investor/investor.jsx';
 import InvestorSidenav from './investor/sidenav.jsx';
 import InvestorTopnav from './investor/topnav.jsx';
-import InvestorDealPage from './investor/deals.jsx';
+//import InvestorDealPage from './investor/deals.jsx';
 import InvestorLandscapePage from './investor/landscape.jsx';
 import InvestorComparePage from './investor/compare.jsx';
 import InvestorPorfolioPage from './investor/portfolio/portfolio.jsx';
+import InvestorDealsPage from './investor/deals/deals.jsx';
 
 import ContactsPage from './shared/contacts/contacts.jsx';
 import {FounderCompanyPage, InvestorCompanyPage} from './shared/company/company.jsx';
@@ -83,8 +84,8 @@ class App extends React.Component {
           <Route path="investor" components={{main: InvestorAppContainer,
                                               //topnav: InvestorTopnav,
                                               sidenav: InvestorSidenav}}>
-            <IndexRoute component={InvestorDealPage} />
-            <Route path="deals" component={InvestorDealPage} />
+            <IndexRoute component={InvestorDealsPage} />
+            <Route path="deals" component={InvestorDealsPage} />
             <Route path="landscape" component={InvestorLandscapePage} />
             <Route path="compare" component={InvestorComparePage} />
             <Route path="contacts" component={ContactsPage} />

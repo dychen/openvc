@@ -330,15 +330,7 @@ class CompanyInvestments(APIView):
     # POST /users/company/investments/:id
     def __post_update(self, request, investment_id, format=None):
         """
-        Expected request body:
-        {
-            'series': [str],
-            'date': [datetime.date],
-            'preMoney': [float],
-            'raised': [float],
-            'postMoney': [float],
-            'sharePrice': [float]
-        }
+        Expected request body: See __post_create
         """
         try:
             user = check_authentication(request)
@@ -449,15 +441,7 @@ class CompanyInvestors(APIView):
     def __post_update(self, request, investment_id, investor_investment_id,
                       format=None):
         """
-        Expected request body:
-        {
-            'investor': [required] [str],
-            'investorType': [str],
-            'date': [datetime.date],
-            'invested': [float],
-            'ownership': [float],
-            'shares': [float]
-        }
+        Expected request body: See __post_create
         """
         try:
             user = check_authentication(request)
@@ -576,14 +560,7 @@ class CompanyMetrics(APIView):
     # POST /users/company/metrics/:id
     def __post_update(self, request, metric_id, format=None):
         """
-        Expected request body:
-        {
-            'metric': [str],
-            [datestring]: [float],
-            [datestring]: [float],
-            [datestring]: [float],
-            ...
-        }
+        Expected request body: See __post_create
         """
         try:
             user = check_authentication(request)

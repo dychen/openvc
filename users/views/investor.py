@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 
 from users.models import User, Account, UserAccount, AccountPortfolio
 from data.models import (Company, Person, Employment, BoardMember, Investment,
-                         InvestorInvestment, Metric)
+                         InvestorInvestment, Metric, Deal)
 from shared.auth import check_authentication
 from shared.utils import parse_date, get_quarters_until
 
@@ -73,15 +73,7 @@ class InvestorPortfolio(APIView):
     # POST /users/portfolio/:company_id
     def __post_update(self, request, company_id, format=None):
         """
-        Expected request body:
-        {
-            'name': [str],
-            'segment': [str],
-            'sector': [str],
-            'location': [str],
-            'logoUrl': [str],
-            'website': [str]
-        }
+        Expected request body: See __post_create
         """
         try:
             user = check_authentication(request)
@@ -124,9 +116,6 @@ class InvestorPortfolio(APIView):
             account_portfolio.delete()
             return Response({ 'id': company_id }, status=status.HTTP_200_OK)
 
-        except (TypeError, ValueError) as e:
-            return Response({ 'error': str(e) },
-                            status=status.HTTP_400_BAD_REQUEST)
         except (Person.DoesNotExist, Employment.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
@@ -260,9 +249,6 @@ class CompanyTeam(APIView):
             employment.update(current=False)
             return Response({ 'id': person_id }, status=status.HTTP_200_OK)
 
-        except (TypeError, ValueError) as e:
-            return Response({ 'error': str(e) },
-                            status=status.HTTP_400_BAD_REQUEST)
         except (Person.DoesNotExist, Employment.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
@@ -385,9 +371,6 @@ class CompanyBoard(APIView):
                                               .delete())
             return Response({ 'id': person_id }, status=status.HTTP_200_OK)
 
-        except (TypeError, ValueError) as e:
-            return Response({ 'error': str(e) },
-                            status=status.HTTP_400_BAD_REQUEST)
         except (Person.DoesNotExist, Employment.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
@@ -450,15 +433,7 @@ class CompanyInvestments(APIView):
     # POST /users/portfolio/:company_id/investments/:investment_id
     def __post_update(self, request, company_id, investment_id, format=None):
         """
-        Expected request body:
-        {
-            'series': [str],
-            'date': [datetime.date],
-            'preMoney': [float],
-            'raised': [float],
-            'postMoney': [float],
-            'sharePrice': [float]
-        }
+        Expected request body: See __post_create
         """
         try:
             user = check_authentication(request)
@@ -499,9 +474,6 @@ class CompanyInvestments(APIView):
             investment.delete()
             return Response({ 'id': investment_id }, status=status.HTTP_200_OK)
 
-        except (TypeError, ValueError) as e:
-            return Response({ 'error': str(e) },
-                            status=status.HTTP_400_BAD_REQUEST)
         except (Person.DoesNotExist, Employment.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
@@ -576,15 +548,7 @@ class CompanyInvestors(APIView):
     def __post_update(self, request, company_id, investment_id,
                       investor_investment_id, format=None):
         """
-        Expected request body:
-        {
-            'investor': [required] [str],
-            'investorType': [str],
-            'date': [datetime.date],
-            'invested': [float],
-            'ownership': [float],
-            'shares': [float]
-        }
+        Expected request body: See __post_create
         """
         try:
             user = check_authentication(request)
@@ -638,9 +602,6 @@ class CompanyInvestors(APIView):
             return Response({ 'id': investor_investment_id },
                             status=status.HTTP_200_OK)
 
-        except (TypeError, ValueError) as e:
-            return Response({ 'error': str(e) },
-                            status=status.HTTP_400_BAD_REQUEST)
         except (Person.DoesNotExist, Investment.DoesNotExist,
                 InvestorInvestment.DoesNotExist) as e:
             return Response({ 'error': str(e) },
@@ -704,14 +665,7 @@ class CompanyMetrics(APIView):
     # POST /users/portfolio/:company_id/metrics/:metric_id
     def __post_update(self, request, company_id, metric_id, format=None):
         """
-        Expected request body:
-        {
-            'metric': [str],
-            [datestring]: [float],
-            [datestring]: [float],
-            [datestring]: [float],
-            ...
-        }
+        Expected request body: See __post_create
         """
         try:
             user = check_authentication(request)
@@ -750,10 +704,108 @@ class CompanyMetrics(APIView):
             metric.delete()
             return Response({ 'id': metric_id }, status=status.HTTP_200_OK)
 
+        except (Company.DoesNotExist, Metric.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+class InvestorDeals(APIView):
+
+    authentication_classes = (TokenAuthentication,)
+
+    # GET /users/deals
+    def get(self, request, format=None):
+        try:
+            # TODO: Coordinate this with the frontend
+            user = check_authentication(request)
+            return Response(user.get_active_account().get_api_deals(),
+                            status=status.HTTP_200_OK)
+
+        except (UserAccount.MultipleObjectsReturned,
+                UserAccount.DoesNotExist,
+                Account.DoesNotExist,
+                Deal.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # POST /users/deals
+    def __post_create(self, request, format=None):
+        """
+        Expected request body:
+        {
+            'companyId': [int],
+            'investmentId': [int],
+            'name': [string],
+            'referrerId': [int],
+            'ownerId': [int],
+            'date': [datetime.date],
+            'source': [float],
+            'type': [float],
+            'status': [float],
+            'stage': [float]
+        }
+        """
+        try:
+            user = check_authentication(request)
+            request_json = json.loads(request.body)
+            deal = Deal.create_from_api(user.get_active_account(),
+                                        request_json)
+            return Response(deal.get_api_format(),
+                            status=status.HTTP_201_CREATED)
+
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-        except (Person.DoesNotExist, Employment.DoesNotExist) as e:
+        except (UserAccount.MultipleObjectsReturned,
+                UserAccount.DoesNotExist,
+                Account.DoesNotExist,
+                Company.DoesNotExist,
+                Deal.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # POST /users/deals/:deal_id
+    def __post_update(self, request, deal_id, format=None):
+        """
+        Expected request body: See __post_create
+        """
+        try:
+            user = check_authentication(request)
+            request_json = json.loads(request.body)
+            deal = Deal.objects.get(id=deal_id,
+                                    account=user.get_active_account())
+
+            deal = deal.update_from_api(request_json)
+            return Response(deal.get_api_format(),
+                            status=status.HTTP_201_CREATED)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (UserAccount.MultipleObjectsReturned,
+                UserAccount.DoesNotExist,
+                Account.DoesNotExist,
+                Company.DoesNotExist,
+                Deal.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, deal_id=None, format=None):
+        if deal_id:
+            return self.__post_update(request, deal_id, format=format)
+        else:
+            return self.__post_create(request, format=format)
+
+    # DELETE /users/deals/:deal_id
+    def delete(self, request, deal_id, format=None):
+        try:
+            user = check_authentication(request)
+            deal_id = int(deal_id)
+            deal = Deal.objects.get(id=deal_id,
+                                    account=user.get_active_account())
+            deal.delete()
+            return Response({ 'id': deal_id }, status=status.HTTP_200_OK)
+
+        except (Account.DoesNotExist, Deal.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 

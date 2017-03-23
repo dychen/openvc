@@ -6,8 +6,8 @@ class PortfolioTableSection extends React.Component {
     super(props);
 
     this.FIELDS = ['logoUrl', 'name', 'segment', 'sector', 'location',
-                   'website', 'invested', 'ownership', 'ownership',
-                   'latestRoundSeries', 'latestRoundDate', 'latestRoundRaised',
+                   'website', 'invested', 'ownership', 'latestRoundSeries',
+                   'latestRoundDate', 'latestRoundRaised',
                    'latestRoundPostMoneyVal'];
     this.FIELD_MAP = {
       name: {

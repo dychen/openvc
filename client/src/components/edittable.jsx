@@ -350,7 +350,7 @@ class EditTable extends React.Component {
 
     const rows = this.state.data.map((row) => {
       const elements = this.props.FIELDS.map((field) => {
-        const uniqueKey = `${row.id.toString()}-${field}`
+        const uniqueKey = `${row.id.toString()}-${field}`;
         return (
           <td key={uniqueKey}>
             <EditField field={field} id={row.id}

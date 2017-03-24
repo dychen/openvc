@@ -105,9 +105,11 @@ class PersonEmployment(APIView):
 
         try:
             user = check_authentication(request)
+            account = user.get_active_account()
             request_json = validate(json.loads(request.body))
             person = Person.objects.get(id=person_id)
-            employment = Employment.create_from_api(person, request_json)
+            employment = Employment.create_from_api(account, person,
+                                                    request_json)
 
             return Response(employment.get_api_format(),
                             status=status.HTTP_201_CREATED)

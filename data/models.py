@@ -1,8 +1,32 @@
+"""
+Models:
+
+* Person
+** PersonTag
+
+* Company
+** CompanyTag
+** Metric
+*** MetricValue
+** Investment
+*** InvestorInvestment
+
+* Investor
+
+* Employment
+* BoardMember
+
+* Deal
+"""
+
 import datetime
 import json
 from decimal import Decimal
 from django.db import models
 from shared.utils import parse_date
+
+DEFAULT_ACCOUNT_ID = 1 # Can't define this in users.models due to circular
+                       # imports.
 
 def create_defaults_hash(api_response, api_field_map):
     """
@@ -31,41 +55,25 @@ def create_defaults_hash(api_response, api_field_map):
         if api_field in api_response and not is_null(api_response[api_field])
     }
 
-class Investor(models.Model):
-    TYPES = {
-        'Company': 'COMPANY',
-        'Person': 'PERSON',
-    }
-    TYPE_CHOICES = [(v, k) for k, v in TYPES.iteritems()]
-
-    name       = models.TextField()
-    type       = models.TextField(choices=TYPE_CHOICES, default='COMPANY')
-
-    def __unicode__(self):
-        return self.name or u''
-
-    def get_total_investment(self, company, **kwargs):
-        args = { 'investor': self, 'investment__company': company }
-        args.update(kwargs)
-        return (InvestorInvestment.objects.filter(**args)
-                                  .aggregate(total=models.Sum('invested'))['total']
-                or Decimal(0))
-
-    def get_current_ownership(self, company, **kwargs):
-        args = { 'investor': self, 'investment__company': company }
-        args.update(kwargs)
-
-        # Get the most recent ownership % (each round has current total own %)
-        for ii in InvestorInvestment.objects.filter(**args).order_by('-date'):
-            if ii.ownership:
-                return ii.ownership
-        return None
-
 class Person(models.Model):
+    """
+    Relationships:
+        Investor (1:1)
+        PersonTag (1:N)
+        Employment (1:N)
+        BoardMember (1:N)
+    Candidate key:
+        None
+    Required fields:
+        account, first_name, last_name
+    """
 
     def _get_full_name(self):
         names = [n for n in [self.first_name, self.last_name] if n]
         return ' '.join(names)
+
+    account    = models.ForeignKey('users.Account', related_name='people',
+                                   default=DEFAULT_ACCOUNT_ID)
 
     first_name = models.TextField()
     last_name  = models.TextField()
@@ -78,15 +86,13 @@ class Person(models.Model):
     # Should be unique, but don't add a constraint for more flexibility around
     # user input.
     linkedin_url = models.TextField(null=True, blank=True)
-    investor   = models.OneToOneField(Investor, unique=True, null=True,
-                                      blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     full_name = property(_get_full_name)
 
     def __unicode__(self):
-        return self.full_name
+        return u'%s: %s' % (unicode(self.account), self.full_name)
 
     def __get_current_employment(self):
         return (self.employment.filter(current=True)
@@ -105,19 +111,20 @@ class Person(models.Model):
                                          'company__name', 'title'))
 
     @classmethod
-    def update_or_create_duplicate_check(cls, **kwargs):
+    def update_or_create_duplicate_check(cls, account, **kwargs):
         if 'email' in kwargs and kwargs['email']:
             person, _ = Person.objects.update_or_create(
-                email=kwargs['email'], defaults=kwargs
+                account=account, email=kwargs['email'], defaults=kwargs
             )
             return person
         elif 'linkedin_url' in kwargs and kwargs['linkedin_url']:
             person, _ = Person.objects.update_or_create(
-                linkedin_url=kwargs['linkedin_url'], defaults=kwargs
+                account=account, linkedin_url=kwargs['linkedin_url'],
+                defaults=kwargs
             )
             return person
         else:
-            return Person.objects.create(**kwargs)
+            return Person.objects.create(account=account, **kwargs)
 
     def get_latest_employment(self):
         try:
@@ -164,7 +171,7 @@ class Person(models.Model):
         }
 
     @classmethod
-    def create_from_api(cls, request_json):
+    def create_from_api(cls, account, request_json):
         """
         Expected request body:
         {
@@ -191,16 +198,17 @@ class Person(models.Model):
             person_dict['photo_url'] = request_json.get('photoUrl')
         if request_json.get('linkedinUrl'):
             person_dict['linkedin_url'] = request_json.get('linkedinUrl')
-        person = Person.update_or_create_duplicate_check(**person_dict)
+        person = Person.update_or_create_duplicate_check(account,
+                                                         **person_dict)
 
         if request_json.get('company') and request_json.get('title'):
             company, _ = Company.objects.get_or_create(
-                name=request_json.get('company')
+                account=account, name=request_json.get('company')
             )
             # Don't create a new Employment object if
             # (person, company, title) already exists
             Employment.objects.get_or_create(
-                person=person, company=company,
+                account=account, person=person, company=company,
                 title=request_json.get('title')
             )
         return person
@@ -240,28 +248,63 @@ class Person(models.Model):
                 for employment in self.get_ordered_employment(reverse=True)]
 
 class PersonTag(models.Model):
+    """
+    Relationships:
+        Person (N:1)
+    Candidate key:
+        (account_id, person_id, tag)
+    Required fields:
+        account, person, tag
+    """
+
+    account    = models.ForeignKey('users.Account', related_name='person_tags',
+                                   default=DEFAULT_ACCOUNT_ID)
+
     person     = models.ForeignKey(Person, related_name='tags')
     tag        = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        unique_together = ('account', 'person', 'tag')
+
+    def __unicode__(self):
+        return (u'%s: %s %s' % (unicode(self.account), unicode(self.person),
+                                self.tag))
+
 class Company(models.Model):
-    name       = models.TextField(null=True, blank=True)
+    """
+    Relationships:
+        Investor (1:1)
+        CompanyTag (1:N)
+        Employment (1:N)
+        BoardMember (1:N)
+        Metric (1:N)
+        Investment (1:N)
+        Deal (1:N)
+    Candidate key:
+        None
+    Required fields:
+        account, name
+    """
+
+    account    = models.ForeignKey('users.Account', related_name='companies',
+                                   default=DEFAULT_ACCOUNT_ID)
+
+    name       = models.TextField()
     location   = models.TextField(null=True, blank=True)
     website    = models.TextField(null=True, blank=True)
     segment    = models.TextField(null=True, blank=True)
     sector     = models.TextField(null=True, blank=True)
     logo_url   = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
-    investor   = models.OneToOneField(Investor, unique=True, null=True,
-                                      blank=True, on_delete=models.SET_NULL)
     crunchbase_id        = models.TextField(unique=True, null=True, blank=True)
     crunchbase_permalink = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'%s' % self.name
+        return u'%s: %s' % (unicode(self.account), self.name or u'')
 
     def get_employees(self, **kwargs):
         # Distinct on person id, sorted by end date and start date
@@ -299,13 +342,6 @@ class Company(models.Model):
     def get_metrics(self, **kwargs):
         return self.metrics.filter(**kwargs).order_by('name')
 
-    def get_portfolio(self):
-        # TODO: Order by name - tricky because companies won't necessarily be
-        #       distinct by name.
-        return Company.objects.filter(
-            investments__investor_investments__investor__company=self
-        ).distinct('id')
-
     # Company API
 
     def get_api_format(self):
@@ -320,7 +356,7 @@ class Company(models.Model):
         }
 
     @classmethod
-    def create_from_api(cls, request_json):
+    def create_from_api(cls, account, request_json):
         """
         Expected request body:
         {
@@ -345,7 +381,7 @@ class Company(models.Model):
             company_dict['logo_url'] = request_json.get('logoUrl')
         if request_json.get('website'):
             company_dict['website'] = request_json.get('website')
-        return Company.objects.create(**company_dict)
+        return Company.objects.create(account=account, **company_dict)
 
     def update_from_api(self, request_json):
         """
@@ -482,12 +518,95 @@ class Company(models.Model):
                 or Decimal(0))
 
 class CompanyTag(models.Model):
+    """
+    Relationships:
+        Company (N:1)
+    Candidate key:
+        (account_id, company_id, tag)
+    Required fields:
+        account, company, tag
+    """
+
+    account    = models.ForeignKey('users.Account', related_name='company_tags',
+                                   default=DEFAULT_ACCOUNT_ID)
+
     company    = models.ForeignKey(Company, related_name='tags')
     tag        = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        unique_together = ('account', 'company', 'tag')
+
+    def __unicode__(self):
+        return (u'%s: %s %s' % (unicode(self.account), unicode(self.company),
+                                self.tag))
+
+class Investor(models.Model):
+    """
+    Relationships:
+        Person (1:1)
+        Company (1:1)
+    Candidate key:
+        (account_id, person_id), (account_id, company_id)
+    Required fields:
+        account, name, type
+    """
+
+    TYPES = {
+        'Company': 'COMPANY',
+        'Person': 'PERSON',
+    }
+    TYPE_CHOICES = [(v, k) for k, v in TYPES.iteritems()]
+
+    account    = models.ForeignKey('users.Account', related_name='investors',
+                                   default=DEFAULT_ACCOUNT_ID)
+
+    name       = models.TextField()
+    type       = models.TextField(choices=TYPE_CHOICES, default='COMPANY')
+    person     = models.OneToOneField(Person, unique=True, null=True,
+                                      blank=True, on_delete=models.CASCADE)
+    company    = models.OneToOneField(Company, unique=True, null=True,
+                                      blank=True, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = (('account', 'person'), ('account', 'company'))
+
+    def __unicode__(self):
+        return u'%s: %s' % (unicode(self.account), self.name)
+
+    def get_total_investment(self, company, **kwargs):
+        args = { 'investor': self, 'investment__company': company }
+        args.update(kwargs)
+        return (InvestorInvestment.objects.filter(**args)
+                                  .aggregate(total=models.Sum('invested'))['total']
+                or Decimal(0))
+
+    def get_current_ownership(self, company, **kwargs):
+        args = { 'investor': self, 'investment__company': company }
+        args.update(kwargs)
+
+        # Get the most recent ownership % (each round has current total own %)
+        for ii in InvestorInvestment.objects.filter(**args).order_by('-date'):
+            if ii.ownership:
+                return ii.ownership
+        return None
+
 class Employment(models.Model):
+    """
+    Relationships:
+        Person (N:1)
+        Company (N:1)
+    Candidate key:
+        None. NOT: (account_id, person_id, company_id) in case the title,
+        location, or something else changes.
+    Required fields:
+        account, person, company
+    """
+
+    account    = models.ForeignKey('users.Account', related_name='employments',
+                                   default=DEFAULT_ACCOUNT_ID)
+
     person     = models.ForeignKey(Person, related_name='employment')
     company    = models.ForeignKey(Company, related_name='employment')
     title      = models.TextField(null=True, blank=True)
@@ -500,7 +619,8 @@ class Employment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'%s %s' % (unicode(self.person), unicode(self.company))
+        return (u'%s: %s %s' % (unicode(self.account), unicode(self.person),
+                                unicode(self.company)))
 
     def get_api_format(self):
         return {
@@ -514,7 +634,7 @@ class Employment(models.Model):
         }
 
     @classmethod
-    def create_from_api(cls, person, request_json):
+    def create_from_api(cls, account, person, request_json):
         """
         Expected request body:
         {
@@ -527,7 +647,7 @@ class Employment(models.Model):
         }
         """
         company, _ = Company.objects.get_or_create(
-            name=request_json.get('company')
+            account=account, name=request_json.get('company')
         )
 
         employment_dict = {}
@@ -536,13 +656,17 @@ class Employment(models.Model):
         if request_json.get('location'):
             employment_dict['location'] = request_json.get('location')
         if request_json.get('startDate'):
-            employment_dict['start_date'] = parse_date(request_json.get('startDate'))
+            employment_dict['start_date'] = parse_date(
+                request_json.get('startDate')
+            )
         if request_json.get('endDate'):
-            employment_dict['end_date'] = parse_date(request_json.get('endDate'))
+            employment_dict['end_date'] = parse_date(
+                request_json.get('endDate')
+            )
         if request_json.get('notes'):
             employment_dict['notes'] = request_json.get('notes')
-        return Employment.objects.create(person=person, company=company,
-                                         **employment_dict)
+        return Employment.objects.create(account=account, person=person,
+                                         company=company, **employment_dict)
 
     def update_from_api(self, request_json):
         """
@@ -557,6 +681,7 @@ class Employment(models.Model):
         }
         """
         if request_json.get('company'):
+            # TODO: Change this + add account reference
             company, _ = Company.objects.get_or_create(
                 name=request_json.get('company')
             )
@@ -575,6 +700,22 @@ class Employment(models.Model):
         return self
 
 class BoardMember(models.Model):
+    """
+    Relationships:
+        Person (N:1)
+        Company (N:1)
+    Candidate key:
+        None. NOT: (account_id, person_id, company_id) so a board member can
+        leave a company and come back. There should be a constraint that
+        (account_id, person_id, company_id, current=True) is unique.
+    Required fields:
+        account, person, company
+    """
+
+    account    = models.ForeignKey('users.Account',
+                                   related_name='board_members',
+                                   default=DEFAULT_ACCOUNT_ID)
+
     person     = models.ForeignKey(Person, related_name='board_members')
     company    = models.ForeignKey(Company, related_name='board_members')
     location   = models.TextField(null=True, blank=True)
@@ -586,7 +727,8 @@ class BoardMember(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'%s %s' % (unicode(self.person), unicode(self.company))
+        return (u'%s: %s %s' % (unicode(self.account), unicode(self.person),
+                                unicode(self.company)))
 
     def get_api_format(self):
         latest_employment = self.get_latest_employment()
@@ -607,8 +749,10 @@ class BoardMember(models.Model):
         }
 
     @classmethod
-    def create_from_api(cls, person, request_json):
+    def create_from_api(cls, account, person, request_json):
         """
+        CURRENTLY UNUSED?
+
         Expected request body:
         {
             'company': [required] [str],
@@ -619,20 +763,24 @@ class BoardMember(models.Model):
         }
         """
         company, _ = Company.objects.get_or_create(
-            name=request_json.get('company')
+            account=account, name=request_json.get('company')
         )
 
         board_member_dict = {}
         if request_json.get('location'):
             board_member_dict['location'] = request_json.get('location')
         if request_json.get('startDate'):
-            board_member_dict['start_date'] = parse_date(request_json.get('startDate'))
+            board_member_dict['start_date'] = parse_date(
+                request_json.get('startDate')
+            )
         if request_json.get('endDate'):
-            board_member_dict['end_date'] = parse_date(request_json.get('endDate'))
+            board_member_dict['end_date'] = parse_date(
+                request_json.get('endDate')
+            )
         if request_json.get('notes'):
             board_member_dict['notes'] = request_json.get('notes')
-        return BoardMember.objects.create(person=person, company=company,
-                                          **board_member_dict)
+        return BoardMember.objects.create(account=account, person=person,
+                                          company=company, **board_member_dict)
 
     def update_from_api(self, request_json):
         """
@@ -646,6 +794,7 @@ class BoardMember(models.Model):
         }
         """
         if request_json.get('company'):
+            # TODO: Change this + add account reference
             company, _ = Company.objects.get_or_create(
                 name=request_json.get('company')
             )
@@ -662,6 +811,23 @@ class BoardMember(models.Model):
         return self
 
 class Metric(models.Model):
+    """
+    interval [text]: Metric tracking interval (e.g. Quarterly for Quarterly Net
+                     Revenue).
+    estimated [bool]: True if the metric is a projection, False otherwise.
+
+    Relationships:
+        Company (N:1)
+        MetricValue (1:N)
+    Candidate key:
+        (account_id, company_id, name, interval, estimated)
+    Required fields:
+        account, company, name
+    """
+
+    account    = models.ForeignKey('users.Account', related_name='metrics',
+                                   default=DEFAULT_ACCOUNT_ID)
+
     company    = models.ForeignKey(Company, related_name='metrics')
     name       = models.TextField()
     description = models.TextField(null=True, blank=True)
@@ -671,11 +837,14 @@ class Metric(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('company', 'name', 'interval', 'estimated')
+        unique_together = ('account', 'company', 'name', 'interval',
+                           'estimated')
+
 
     def __unicode__(self):
-        return '%s %s %s %s' % (unicode(self.company), self.name,
-                                self.interval, self.estimated)
+        return (u'%s: %s %s %s %s' % (unicode(self.account),
+                                      unicode(self.company), self.name,
+                                      self.interval, self.estimated))
 
     def get_api_format(self):
         return [
@@ -690,11 +859,12 @@ class Metric(models.Model):
             'metric': self.name,
         }
         for metric_value in self.metric_values.order_by('date'):
-            metric_dict[metric_value.date.strftime('%Y-%m-%d')] = metric_value.value
+            metric_dict[metric_value.date.strftime('%Y-%m-%d')] = \
+                metric_value.value
         return metric_dict
 
     @classmethod
-    def create_from_api(cls, company, request_json):
+    def create_from_api(cls, account, company, request_json):
         """
         Expected request body:
         {
@@ -707,18 +877,15 @@ class Metric(models.Model):
         """
         metric_name = request_json.get('metric')
         metric, _ = Metric.objects.update_or_create(
-            company=company,
-            name=metric_name,
-            estimated=False,
-            interval='Quarter',
+            account=account, company=company, name=metric_name,
+            estimated=False, interval='Quarter'
         )
         for k, v in request_json.iteritems():
             try:
                 date = datetime.datetime.strptime(k, '%Y-%m-%d').date()
                 if date and v:
                     MetricValue.objects.update_or_create(
-                        metric=metric,
-                        date=date,
+                        account=account, metric=metric, date=date,
                         defaults={ 'value': v }
                     )
             except ValueError:
@@ -752,6 +919,19 @@ class Metric(models.Model):
         return self
 
 class MetricValue(models.Model):
+    """
+    Relationships:
+        Metric (N:1)
+    Candidate key:
+        (account_id, metric_id, date)
+    Required fields:
+        account, metric, date, value
+    """
+
+    account    = models.ForeignKey('users.Account',
+                                   related_name='metric_values',
+                                   default=DEFAULT_ACCOUNT_ID)
+
     metric     = models.ForeignKey(Metric, related_name='metric_values')
     date       = models.DateField()
     value      = models.FloatField()
@@ -759,10 +939,11 @@ class MetricValue(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('metric', 'date')
+        unique_together = ('account', 'metric', 'date')
 
     def __unicode__(self):
-        return '%s %s' % (unicode(self.metric), self.date)
+        return (u'%s: %s %s' % (unicode(self.account), unicode(self.metric),
+                                self.date))
 
     def get_api_format(self):
         return {
@@ -776,8 +957,21 @@ class MetricValue(models.Model):
         }
 
 class Investment(models.Model):
+    """
+    Relationships:
+        Company (N:1)
+        InvestorInvestment (1:N)
+    Candidate key:
+        (account_id, company_id, series)
+    Required fields:
+        account, company, series
+    """
+
+    account    = models.ForeignKey('users.Account', related_name='investments',
+                                   default=DEFAULT_ACCOUNT_ID)
+
     company    = models.ForeignKey(Company, related_name='investments')
-    series     = models.TextField(null=True, blank=True)
+    series     = models.TextField()
     date       = models.DateField(null=True, blank=True)
     pre_money  = models.DecimalField(max_digits=24, decimal_places=6,
                                      null=True, blank=True)
@@ -796,10 +990,11 @@ class Investment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('company', 'series')
+        unique_together = ('account', 'company', 'series')
 
     def __unicode__(self):
-        return u'%s %s' % (unicode(self.company), self.series)
+        return (u'%s: %s %s' % (unicode(self.account), unicode(self.company),
+                                self.series))
 
     def get_api_format(self):
         return {
@@ -814,7 +1009,7 @@ class Investment(models.Model):
         }
 
     @classmethod
-    def create_from_api(cls, company, request_json):
+    def create_from_api(cls, account, company, request_json):
         """
         Expected request body:
         {
@@ -841,7 +1036,8 @@ class Investment(models.Model):
         if request_json.get('sharePrice'):
             investment_dict['share_price'] = request_json.get('sharePrice')
         investment, _ = Investment.objects.update_or_create(
-            company=company, series=series, defaults=investment_dict
+            account=account, company=company, series=series,
+            defaults=investment_dict
         )
         return investment
 
@@ -882,6 +1078,20 @@ class Investment(models.Model):
                 )]
 
 class InvestorInvestment(models.Model):
+    """
+    Relationships:
+        Investment (N:1)
+        Investor (N:1)
+    Candidate key:
+        (account_id, investment_id, investor_id)
+    Required fields:
+        account, investment, investor
+    """
+
+    account    = models.ForeignKey('users.Account',
+                                   related_name='investor_investments',
+                                   default=DEFAULT_ACCOUNT_ID)
+
     investment = models.ForeignKey(Investment,
                                    related_name='investor_investments',
                                    on_delete=models.CASCADE)
@@ -899,11 +1109,12 @@ class InvestorInvestment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = (('investment', 'investor'))
+        unique_together = ('account', 'investment', 'investor')
 
     def __unicode__(self):
-        return u'%s %s %s' % (unicode(self.investment), unicode(self.investor),
-                              self.date)
+        return (u'%s: %s %s %s' % (unicode(self.account),
+                                   unicode(self.investment),
+                                   unicode(self.investor)))
 
     def get_api_format(self):
         return {
@@ -924,7 +1135,7 @@ class InvestorInvestment(models.Model):
         }
 
     @classmethod
-    def create_from_api(cls, investment, request_json):
+    def create_from_api(cls, account, investment, request_json):
         """
         Expected request body:
         {
@@ -939,7 +1150,7 @@ class InvestorInvestment(models.Model):
         if request_json.get('investorType'):
             investor_dict['investor_type'] = request_json.get('investorType')
         investor, _ = Investor.objects.get_or_create(
-            name=request_json.get('investor'),
+            account=account, name=request_json.get('investor'),
             defaults=investor_dict
         )
 
@@ -951,8 +1162,7 @@ class InvestorInvestment(models.Model):
         if request_json.get('shares'):
             investor_investment_dict['shares'] = request_json.get('shares')
         investor_investment, _ = InvestorInvestment.objects.update_or_create(
-            investment=investment,
-            investor=investor,
+            account=account, investment=investment, investor=investor,
             defaults=investor_investment_dict
         )
         return investor_investment
@@ -970,6 +1180,7 @@ class InvestorInvestment(models.Model):
         """
         investor_dict = {}
         if request_json.get('investor') and request_json.get('investorType'):
+            # TODO: Change this + add account reference
             investor, _ = Investor.objects.get_or_create(
                 name=request_json.get('investor'),
                 defaults=investor_dict
@@ -985,10 +1196,23 @@ class InvestorInvestment(models.Model):
         return self
 
 class Deal(models.Model):
-    account    = models.ForeignKey('users.Account',
-                                   default='users.DEFAULT_ACCOUNT_ID')
+    """
+    Relationships:
+        Company (N:1)
+        Investment (1:1)
+        Person (referrer) (N:1)
+        Person (owner) (N:1) # TODO: Consider changing to User model
+    Candidate key:
+        None. Can have multiple deals for each (account, company) tuple
+        (multiple rounds of fundraising).
+    Required fields:
+        account, company, investor
+    """
 
-    name       = models.TextField(null=True, blank=True)
+    account    = models.ForeignKey('users.Account', related_name='deals',
+                                   default=DEFAULT_ACCOUNT_ID)
+
+    name       = models.TextField()
     company    = models.ForeignKey(Company, related_name='deals',
                                    null=True, blank=True,
                                    on_delete=models.CASCADE)
@@ -1007,7 +1231,7 @@ class Deal(models.Model):
     stage      = models.TextField(null=True, blank=True)
 
     def __unicode__(self):
-        return u'%s %s' % (self.name, unicode(self.company))
+        return u'%s: %s' % (unicode(self.account), self.name)
 
     def get_api_format(self):
         return {
@@ -1035,7 +1259,7 @@ class Deal(models.Model):
         {
             'companyId': [int],
             'investmentId': [int],
-            'name': [string],
+            'name': [required] [string],
             'referrerId': [int],
             'ownerId': [int],
             'date': [datetime.date],
@@ -1046,9 +1270,8 @@ class Deal(models.Model):
         }
         """
         # TODO: Foreign key relationships
-        deal_dict = {}
-        if request_json.get('name'):
-            deal_dict['name'] = request_json.get('name')
+        deal_dict = { 'name': request_json.get('name') }
+
         if request_json.get('date'):
             deal_dict['date'] = parse_date(request_json.get('date'))
         if request_json.get('source'):

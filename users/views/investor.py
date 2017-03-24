@@ -54,7 +54,7 @@ class InvestorPortfolio(APIView):
             user = check_authentication(request)
             request_json = validate(json.loads(request.body))
             account = user.get_active_account()
-            company = Company.create_from_api(request_json)
+            company = Company.create_from_api(account, request_json)
             AccountPortfolio.objects.create(account=account, company=company,
                                             active=True)
             return Response(company.get_api_format(),
@@ -160,9 +160,10 @@ class CompanyTeam(APIView):
 
         try:
             user = check_authentication(request)
+            account = user.get_active_account()
             request_json = validate(json.loads(request.body))
             company = user.get_portfolio_company(company_id)
-            person = Person.create_from_api(request_json)
+            person = Person.create_from_api(account, request_json)
             Employment.objects.create(
                 person=person,
                 company=company,
@@ -292,9 +293,10 @@ class CompanyBoard(APIView):
 
         try:
             user = check_authentication(request)
+            account = user.get_active_account()
             request_json = validate(json.loads(request.body))
             company = user.get_portfolio_company(company_id)
-            person = Person.create_from_api(request_json)
+            person = Person.create_from_api(account, request_json)
             BoardMember.objects.create(person=person, company=company,
                                        current=True)
             return Response(person.get_api_format(),
@@ -414,9 +416,11 @@ class CompanyInvestments(APIView):
 
         try:
             user = check_authentication(request)
+            account = user.get_active_account()
             request_json = validate(json.loads(request.body))
             company = user.get_portfolio_company(company_id)
-            investment = Investment.create_from_api(company, request_json)
+            investment = Investment.create_from_api(account, company,
+                                                    request_json)
             return Response(investment.get_api_format(),
                             status=status.HTTP_201_CREATED)
 
@@ -522,12 +526,13 @@ class CompanyInvestors(APIView):
 
         try:
             user = check_authentication(request)
+            account = user.get_active_account()
             request_json = validate(json.loads(request.body))
             company = user.get_portfolio_company(company_id)
             investment = company.investments.get(id=investment_id)
 
             investor_investment = InvestorInvestment.create_from_api(
-                investment, request_json
+                account, investment, request_json
             )
             return Response(investor_investment.get_api_format(),
                             status=status.HTTP_201_CREATED)
@@ -646,9 +651,10 @@ class CompanyMetrics(APIView):
 
         try:
             user = check_authentication(request)
+            account = user.get_active_account()
             request_json = validate(json.loads(request.body))
             company = user.get_portfolio_company(company_id)
-            metric = Metric.create_from_api(company, request_json)
+            metric = Metric.create_from_api(account, company, request_json)
             return Response(metric.get_api_list_format(),
                             status=status.HTTP_201_CREATED)
 
@@ -734,7 +740,7 @@ class InvestorDeals(APIView):
         {
             'companyId': [int],
             'investmentId': [int],
-            'name': [string],
+            'name': [required] [string],
             'referrerId': [int],
             'ownerId': [int],
             'date': [datetime.date],
@@ -744,9 +750,14 @@ class InvestorDeals(APIView):
             'stage': [float]
         }
         """
+        def validate(request_json):
+            if not (request_json.get('name')):
+                raise ValidationError('Name is required.')
+            return request_json
+
         try:
             user = check_authentication(request)
-            request_json = json.loads(request.body)
+            request_json = validate(json.loads(request.body))
             deal = Deal.create_from_api(user.get_active_account(),
                                         request_json)
             return Response(deal.get_api_format(),

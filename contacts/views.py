@@ -79,8 +79,9 @@ class UserContacts(APIView):
 
         try:
             user = check_authentication(request)
+            account = user.get_active_account()
             request_json = validate(json.loads(request.body))
-            person = Person.create_from_api(request_json)
+            person = Person.create_from_api(account, request_json)
 
             Connection.objects.update_or_create(
                 user=user, person=person,
@@ -195,8 +196,9 @@ class AllContacts(APIView):
 
         try:
             user = check_authentication(request)
+            account = user.get_active_account()
             request_json = validate(json.loads(request.body))
-            person = Person.create_from_api(request_json)
+            person = Person.create_from_api(account, request_json)
 
             return Response(format_contact_dict(person, user, connected=False),
                             status=status.HTTP_201_CREATED)

@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ('type', models.TextField(blank=True, null=True)),
                 ('status', models.TextField(blank=True, null=True)),
                 ('stage', models.TextField(blank=True, null=True)),
-                ('account', models.ForeignKey(default=b'users.DEFAULT_ACCOUNT_ID', on_delete=django.db.models.deletion.CASCADE, to='users.Account')),
+                ('account', models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='users.Account')),
                 ('company', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='deals', to='data.Company')),
             ],
         ),

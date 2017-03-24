@@ -4,8 +4,6 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from data.models import Person, Company, Deal
 from contacts.models import Interaction
 
-DEFAULT_ACCOUNT_ID = 1
-
 class CusomUserManager(BaseUserManager):
     def create_user(self, email, role, password=None):
         """
@@ -120,12 +118,12 @@ class User(AbstractBaseUser):
 
 class Account(models.Model):
     company    = models.OneToOneField(Company, unique=True,
-                                      related_name='account')
+                                      related_name='account_company')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return unicode(self.company)
+        return unicode(self.account_company)
 
     def get_portfolio_company(self, company_id):
         return self.account_portfolio.get(company__id=company_id).company
@@ -140,13 +138,13 @@ class Account(models.Model):
         return Company.objects.filter(**args).order_by('name')
 
     def get_api_deals(self):
-        if self.company.investor:
+        if self.account_company.investor:
             return [deal.get_api_format() for deal in self.get_deals()]
         else:
             return []
 
     def get_api_portfolio(self):
-        if self.company.investor:
+        if self.account_company.investor:
             return [
                 company.get_api_portco_format(self.company.investor)
                 for company in self.get_portfolio()

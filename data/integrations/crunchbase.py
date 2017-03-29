@@ -3,7 +3,7 @@ import csv
 import time
 import requests
 from data.models import create_defaults_hash
-from data.models import Company, Investor
+from data.models import Company, Investor, DEFAULT_ACCOUNT_ID
 
 ORGANIZATION_API_URL = 'https://api.crunchbase.com/v/3/odm-organizations'
 ORGANIZATION_CSV_PATH = 'files/crunchbase/organizations.csv'
@@ -24,6 +24,7 @@ def create_organization(crunchbase_id, data):
         'description': 'short_description',
     })
     company, _ = Company.objects.update_or_create(
+        account=DEFAULT_ACCOUNT_ID,
         crunchbase_id=crunchbase_id,
         defaults=company_defaults
     )
@@ -33,6 +34,7 @@ def create_organization(crunchbase_id, data):
         })
         investor_defaults.update({ 'type': 'COMPANY' })
         Investor.objects.update_or_create(
+            account=DEFAULT_ACCOUNT_ID,
             company=company,
             defaults=investor_defaults
         )

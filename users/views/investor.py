@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 
-from users.models import User, Account, UserAccount, AccountPortfolio
+from users.models import User, Account, AccountPortfolio
 from data.models import (Company, Person, Employment, BoardMember, Investment,
                          InvestorInvestment, Metric, Deal)
 from shared.auth import check_authentication
@@ -21,14 +21,10 @@ class InvestorPortfolio(APIView):
     def get(self, request, format=None):
         try:
             user = check_authentication(request)
-            person = user.person
-            return Response(user.get_active_account().get_api_portfolio(),
+            return Response(user.account.get_api_portfolio(),
                             status=status.HTTP_200_OK)
 
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist) as e:
+        except (Account.DoesNotExist, Company.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -52,8 +48,9 @@ class InvestorPortfolio(APIView):
 
         try:
             user = check_authentication(request)
+            account = user.account
             request_json = validate(json.loads(request.body))
-            account = user.get_active_account()
+
             company = Company.create_from_api(account, request_json)
             AccountPortfolio.objects.create(account=account, company=company,
                                             active=True)
@@ -63,10 +60,7 @@ class InvestorPortfolio(APIView):
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist) as e:
+        except (Account.DoesNotExist, Company.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -77,23 +71,21 @@ class InvestorPortfolio(APIView):
         """
         try:
             user = check_authentication(request)
+            account = user.account
+            company = Company.objects.get(account=account, id=company_id)
             request_json = json.loads(request.body)
-            account = user.get_active_account()
-            company = Company.objects.get(id=company_id)
+
             company = company.update_from_api(request_json)
-            AccountPortfolio.objects.update_or_create(
-                account=account, company=company, active=True
-            )
+            AccountPortfolio.objects.update_or_create(account=account,
+                                                      company=company,
+                                                      active=True)
             return Response(company.get_api_format(),
                             status=status.HTTP_201_CREATED)
 
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist) as e:
+        except (Account.DoesNotExist, Company.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -107,12 +99,12 @@ class InvestorPortfolio(APIView):
     def delete(self, request, id=None, format=None):
         try:
             user = check_authentication(request)
-            account = user.get_active_account()
+            account = user.account
             company_id = int(id)
+
             company = user.get_portfolio_company(company_id)
-            account_portfolio = AccountPortfolio.objects.get(
-                account=account, company=company
-            )
+            account_portfolio = AccountPortfolio.objects.get(account=account,
+                                                             company=company)
             account_portfolio.delete()
             return Response({ 'id': company_id }, status=status.HTTP_200_OK)
 
@@ -129,12 +121,10 @@ class CompanyTeam(APIView):
         try:
             user = check_authentication(request)
             company = user.get_portfolio_company(company_id)
+
             return Response(company.get_api_team(), status=status.HTTP_200_OK)
 
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist) as e:
+        except (Account.DoesNotExist, Company.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -160,26 +150,22 @@ class CompanyTeam(APIView):
 
         try:
             user = check_authentication(request)
-            account = user.get_active_account()
-            request_json = validate(json.loads(request.body))
+            account = user.account
             company = user.get_portfolio_company(company_id)
+            request_json = validate(json.loads(request.body))
+
             person = Person.create_from_api(account, request_json)
-            Employment.objects.create(
-                person=person,
-                company=company,
-                title=request_json.get('title'),
-                current=True
-            )
+            Employment.objects.create(account=account, person=person,
+                                      company=company,
+                                      title=request_json.get('title'),
+                                      current=True)
             return Response(person.get_api_format(),
                             status=status.HTTP_201_CREATED)
 
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist) as e:
+        except (Account.DoesNotExist, Company.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -203,30 +189,27 @@ class CompanyTeam(APIView):
 
         try:
             user = check_authentication(request)
-            request_json = validate(json.loads(request.body))
+            account = user.account
             company = user.get_portfolio_company(company_id)
-            person = Person.objects.get(id=person_id)
+            request_json = validate(json.loads(request.body))
+
+            person = Person.objects.get(account=account, id=person_id)
             person = person.update_from_api(request_json)
 
             employment_dict = {}
             if request_json.get('title'):
                 employment_dict['title'] = request_json.get('title')
-            Employment.objects.update_or_create(
-                person=person, company=company, current=True,
-                defaults=employment_dict
-            )
+            Employment.objects.update_or_create(account=account, person=person,
+                                                company=company, current=True,
+                                                defaults=employment_dict)
 
-            return Response(person.get_api_format(),
-                            status=status.HTTP_200_OK)
+            return Response(person.get_api_format(), status=status.HTTP_200_OK)
 
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Employment.DoesNotExist,
-                Company.DoesNotExist) as e:
+        except (Account.DoesNotExist, Employment.DoesNotExist,
+                Company.DoesNotExist, Person.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -241,10 +224,12 @@ class CompanyTeam(APIView):
     def delete(self, request, company_id, person_id=None, format=None):
         try:
             user = check_authentication(request)
+            account = user.account
             company = user.get_portfolio_company(company_id)
             person_id = int(person_id)
-            person = Person.objects.get(id=person_id)
-            employment = person.employment.filter(person=person,
+
+            person = Person.objects.get(account=account, id=person_id)
+            employment = person.employment.filter(account=account,
                                                   company=company,
                                                   current=True)
             employment.update(current=False)
@@ -265,10 +250,7 @@ class CompanyBoard(APIView):
             company = user.get_portfolio_company(company_id)
             return Response(company.get_api_board(), status=status.HTTP_200_OK)
 
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist) as e:
+        except (Account.DoesNotExist, Company.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -293,22 +275,20 @@ class CompanyBoard(APIView):
 
         try:
             user = check_authentication(request)
-            account = user.get_active_account()
-            request_json = validate(json.loads(request.body))
+            account = user.account
             company = user.get_portfolio_company(company_id)
+            request_json = validate(json.loads(request.body))
+
             person = Person.create_from_api(account, request_json)
-            BoardMember.objects.create(person=person, company=company,
-                                       current=True)
+            BoardMember.objects.create(account=account, person=person,
+                                       company=company, current=True)
             return Response(person.get_api_format(),
                             status=status.HTTP_201_CREATED)
 
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist) as e:
+        except (Account.DoesNotExist, Company.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -331,14 +311,15 @@ class CompanyBoard(APIView):
 
         try:
             user = check_authentication(request)
-            request_json = validate(json.loads(request.body))
+            account = user.account
             company = user.get_portfolio_company(company_id)
-            person = Person.objects.get(id=person_id)
+            request_json = validate(json.loads(request.body))
+
+            person = Person.objects.get(account=account, id=person_id)
             person = person.update_from_api(request_json)
 
-            BoardMember.objects.update_or_create(
-                person=person, company=company, current=True
-            )
+            BoardMember.objects.update_or_create(account=account, person=person,
+                                                 company=company, current=True)
 
             return Response(person.get_api_format(),
                             status=status.HTTP_200_OK)
@@ -346,11 +327,8 @@ class CompanyBoard(APIView):
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Employment.DoesNotExist,
-                Company.DoesNotExist) as e:
+        except (Account.DoesNotExist, BoardMember.DoesNotExist,
+                Company.DoesNotExist, Person.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -365,10 +343,12 @@ class CompanyBoard(APIView):
     def delete(self, request, company_id, person_id=None, format=None):
         try:
             user = check_authentication(request)
+            account = user.account
             company = user.get_portfolio_company(company_id)
             person_id = int(person_id)
-            person = Person.objects.get(id=person_id)
-            employment = (person.board_members.filter(person=person,
+
+            person = Person.objects.get(account=account, id=person_id)
+            employment = (person.board_members.filter(account=account,
                                                       company=company)
                                               .delete())
             return Response({ 'id': person_id }, status=status.HTTP_200_OK)
@@ -389,10 +369,7 @@ class CompanyInvestments(APIView):
             return Response(company.get_api_investments(),
                             status=status.HTTP_200_OK)
 
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist) as e:
+        except (Account.DoesNotExist, Company.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -416,9 +393,10 @@ class CompanyInvestments(APIView):
 
         try:
             user = check_authentication(request)
-            account = user.get_active_account()
-            request_json = validate(json.loads(request.body))
+            account = user.account
             company = user.get_portfolio_company(company_id)
+            request_json = validate(json.loads(request.body))
+
             investment = Investment.create_from_api(account, company,
                                                     request_json)
             return Response(investment.get_api_format(),
@@ -427,10 +405,7 @@ class CompanyInvestments(APIView):
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist) as e:
+        except (Account.DoesNotExist, Company.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -441,11 +416,13 @@ class CompanyInvestments(APIView):
         """
         try:
             user = check_authentication(request)
-            request_json = json.loads(request.body)
+            account = user.account
             company = user.get_portfolio_company(company_id)
-            investment = Investment.objects.get(id=investment_id,
-                                                company=company)
+            request_json = json.loads(request.body)
 
+            investment = Investment.objects.get(account=account,
+                                                id=investment_id,
+                                                company=company)
             investment = investment.update_from_api(request_json)
             return Response(investment.get_api_format(),
                             status=status.HTTP_200_OK)
@@ -453,10 +430,7 @@ class CompanyInvestments(APIView):
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist) as e:
+        except (Account.DoesNotExist, Company.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -471,9 +445,12 @@ class CompanyInvestments(APIView):
     def delete(self, request, company_id, investment_id=None, format=None):
         try:
             user = check_authentication(request)
+            account = user.account
             company = user.get_portfolio_company(company_id)
             investment_id = int(investment_id)
-            investment = Investment.objects.get(id=investment_id,
+
+            investment = Investment.objects.get(account=account,
+                                                id=investment_id,
                                                 company=company)
             investment.delete()
             return Response({ 'id': investment_id }, status=status.HTTP_200_OK)
@@ -498,10 +475,7 @@ class CompanyInvestors(APIView):
 
         except Exception as e:
             print e
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist,
+        except (Account.DoesNotExist, Company.DoesNotExist,
                 Investment.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
@@ -526,10 +500,11 @@ class CompanyInvestors(APIView):
 
         try:
             user = check_authentication(request)
-            account = user.get_active_account()
-            request_json = validate(json.loads(request.body))
+            account = user.account
             company = user.get_portfolio_company(company_id)
-            investment = company.investments.get(id=investment_id)
+            investment = company.investments.get(account=account,
+                                                 id=investment_id)
+            request_json = validate(json.loads(request.body))
 
             investor_investment = InvestorInvestment.create_from_api(
                 account, investment, request_json
@@ -540,10 +515,7 @@ class CompanyInvestors(APIView):
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist,
+        except (Account.DoesNotExist, Company.DoesNotExist,
                 Investment.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
@@ -557,12 +529,14 @@ class CompanyInvestors(APIView):
         """
         try:
             user = check_authentication(request)
-            request_json = json.loads(request.body)
+            account = user.account
             company = user.get_portfolio_company(company_id)
-            investment = company.investments.get(id=investment_id)
+            investment = company.investments.get(account=account,
+                                                 id=investment_id)
+            request_json = json.loads(request.body)
 
             investor_investment = InvestorInvestment.objects.get(
-                investment=investment,
+                account=account, investment=investment,
                 id=investor_investment_id
             )
             investor_investment = investor_investment.update_from_api(
@@ -574,12 +548,8 @@ class CompanyInvestors(APIView):
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist,
-                Investment.DoesNotExist,
-                InvestorInvestment.DoesNotExist) as e:
+        except (Account.DoesNotExist, Company.DoesNotExist,
+                Investment.DoesNotExist, InvestorInvestment.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -598,12 +568,15 @@ class CompanyInvestors(APIView):
                investor_investment_id=None, format=None):
         try:
             user = check_authentication(request)
+            account = user.account
             company = user.get_portfolio_company(company_id)
-            investment = company.investments.get(id=investment_id)
-
+            investment = company.investments.get(account=account,
+                                                 id=investment_id)
             investor_investment_id = int(investor_investment_id)
-            Investor_investment.objects.get(id=investor_investment_id,
-                                            investment=investment).delete()
+
+            InvestorInvestment.objects.get(account=account,
+                                           id=investor_investment_id,
+                                           investment=investment).delete()
             return Response({ 'id': investor_investment_id },
                             status=status.HTTP_200_OK)
 
@@ -625,10 +598,7 @@ class CompanyMetrics(APIView):
             return Response(company.get_api_metrics(),
                             status=status.HTTP_200_OK)
 
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist) as e:
+        except (Account.DoesNotExist, Company.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -651,9 +621,10 @@ class CompanyMetrics(APIView):
 
         try:
             user = check_authentication(request)
-            account = user.get_active_account()
-            request_json = validate(json.loads(request.body))
+            account = user.account
             company = user.get_portfolio_company(company_id)
+            request_json = validate(json.loads(request.body))
+
             metric = Metric.create_from_api(account, company, request_json)
             return Response(metric.get_api_list_format(),
                             status=status.HTTP_201_CREATED)
@@ -661,10 +632,7 @@ class CompanyMetrics(APIView):
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist) as e:
+        except (Account.DoesNotExist, Company.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -675,10 +643,12 @@ class CompanyMetrics(APIView):
         """
         try:
             user = check_authentication(request)
-            request_json = json.loads(request.body)
+            account = user.account
             company = user.get_portfolio_company(company_id)
-            metric = Metric.objects.get(id=metric_id, company=company)
+            request_json = json.loads(request.body)
 
+            metric = Metric.objects.get(account=account, id=metric_id,
+                                        company=company)
             metric = metric.update_from_api(request_json)
             return Response(metric.get_api_list_format(),
                             status=status.HTTP_201_CREATED)
@@ -686,10 +656,7 @@ class CompanyMetrics(APIView):
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist) as e:
+        except (Account.DoesNotExist, Company.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -704,9 +671,12 @@ class CompanyMetrics(APIView):
     def delete(self, request, company_id, metric_id=None, format=None):
         try:
             user = check_authentication(request)
+            account = user.account
             company = user.get_portfolio_company(company_id)
             metric_id = int(metric_id)
-            metric = Metric.objects.get(id=metric_id, company=company)
+
+            metric = Metric.objects.get(account=account, id=metric_id,
+                                        company=company)
             metric.delete()
             return Response({ 'id': metric_id }, status=status.HTTP_200_OK)
 
@@ -723,13 +693,10 @@ class InvestorDeals(APIView):
         try:
             # TODO: Coordinate this with the frontend
             user = check_authentication(request)
-            return Response(user.get_active_account().get_api_deals(),
+            return Response(user.account.get_api_deals(),
                             status=status.HTTP_200_OK)
 
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Deal.DoesNotExist) as e:
+        except (Account.DoesNotExist, Deal.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
@@ -758,18 +725,15 @@ class InvestorDeals(APIView):
         try:
             user = check_authentication(request)
             request_json = validate(json.loads(request.body))
-            deal = Deal.create_from_api(user.get_active_account(),
-                                        request_json)
+
+            deal = Deal.create_from_api(user.account, request_json)
             return Response(deal.get_api_format(),
                             status=status.HTTP_201_CREATED)
 
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist,
+        except (Account.DoesNotExist, Company.DoesNotExist,
                 Deal.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
@@ -782,9 +746,8 @@ class InvestorDeals(APIView):
         try:
             user = check_authentication(request)
             request_json = json.loads(request.body)
-            deal = Deal.objects.get(id=deal_id,
-                                    account=user.get_active_account())
 
+            deal = Deal.objects.get(account=user.account, id=deal_id)
             deal = deal.update_from_api(request_json)
             return Response(deal.get_api_format(),
                             status=status.HTTP_201_CREATED)
@@ -792,10 +755,7 @@ class InvestorDeals(APIView):
         except (TypeError, ValueError) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
-        except (UserAccount.MultipleObjectsReturned,
-                UserAccount.DoesNotExist,
-                Account.DoesNotExist,
-                Company.DoesNotExist,
+        except (Account.DoesNotExist, Company.DoesNotExist,
                 Deal.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
@@ -811,8 +771,8 @@ class InvestorDeals(APIView):
         try:
             user = check_authentication(request)
             deal_id = int(deal_id)
-            deal = Deal.objects.get(id=deal_id,
-                                    account=user.get_active_account())
+
+            deal = Deal.objects.get(account=user.account, id=deal_id)
             deal.delete()
             return Response({ 'id': deal_id }, status=status.HTTP_200_OK)
 

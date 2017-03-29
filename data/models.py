@@ -92,7 +92,7 @@ class Person(models.Model):
     full_name = property(_get_full_name)
 
     def __unicode__(self):
-        return u'%s: %s' % (unicode(self.account), self.full_name)
+        return u'(%s) %s' % (unicode(self.account), self.full_name)
 
     def __get_current_employment(self):
         return (self.employment.filter(current=True)
@@ -109,6 +109,9 @@ class Person(models.Model):
                                .exclude(end_date__isnull=True)
                                .order_by('end_date', 'start_date',
                                          'company__name', 'title'))
+
+    def is_investor(self):
+        return hasattr(self, 'investor')
 
     @classmethod
     def update_or_create_duplicate_check(cls, account, **kwargs):
@@ -269,11 +272,18 @@ class PersonTag(models.Model):
         unique_together = ('account', 'person', 'tag')
 
     def __unicode__(self):
-        return (u'%s: %s %s' % (unicode(self.account), unicode(self.person),
-                                self.tag))
+        return (u'(%s) %s %s' % (unicode(self.account), unicode(self.person),
+                                 self.tag))
 
 class Company(models.Model):
     """
+    WARNING: Might need to run the following data migration:
+
+    account = Account.objects.get(id=1)
+    for company in Company.objects.all():
+        company.account = account
+        company.save()
+
     Relationships:
         Investor (1:1)
         CompanyTag (1:N)
@@ -304,7 +314,10 @@ class Company(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'%s: %s' % (unicode(self.account), self.name or u'')
+        return u'(%s) %s' % (unicode(self.account), self.name or u'')
+
+    def is_investor(self):
+        return hasattr(self, 'investor')
 
     def get_employees(self, **kwargs):
         # Distinct on person id, sorted by end date and start date
@@ -539,8 +552,8 @@ class CompanyTag(models.Model):
         unique_together = ('account', 'company', 'tag')
 
     def __unicode__(self):
-        return (u'%s: %s %s' % (unicode(self.account), unicode(self.company),
-                                self.tag))
+        return (u'(%s) %s %s' % (unicode(self.account), unicode(self.company),
+                                 self.tag))
 
 class Investor(models.Model):
     """
@@ -573,7 +586,7 @@ class Investor(models.Model):
         unique_together = (('account', 'person'), ('account', 'company'))
 
     def __unicode__(self):
-        return u'%s: %s' % (unicode(self.account), self.name)
+        return u'(%s) %s' % (unicode(self.account), self.name)
 
     def get_total_investment(self, company, **kwargs):
         args = { 'investor': self, 'investment__company': company }
@@ -619,8 +632,8 @@ class Employment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return (u'%s: %s %s' % (unicode(self.account), unicode(self.person),
-                                unicode(self.company)))
+        return (u'(%s) %s %s' % (unicode(self.account), unicode(self.person),
+                                 unicode(self.company)))
 
     def get_api_format(self):
         return {
@@ -727,8 +740,8 @@ class BoardMember(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return (u'%s: %s %s' % (unicode(self.account), unicode(self.person),
-                                unicode(self.company)))
+        return (u'(%s) %s %s' % (unicode(self.account), unicode(self.person),
+                                 unicode(self.company)))
 
     def get_api_format(self):
         latest_employment = self.get_latest_employment()
@@ -842,9 +855,9 @@ class Metric(models.Model):
 
 
     def __unicode__(self):
-        return (u'%s: %s %s %s %s' % (unicode(self.account),
-                                      unicode(self.company), self.name,
-                                      self.interval, self.estimated))
+        return (u'(%s) %s %s %s %s' % (unicode(self.account),
+                                       unicode(self.company), self.name,
+                                       self.interval, self.estimated))
 
     def get_api_format(self):
         return [
@@ -893,7 +906,7 @@ class Metric(models.Model):
 
         return metric
 
-    def update_from_api(self, request_json):
+    def update_from_api(self, account, request_json):
         """
         Expected request body:
         {
@@ -909,6 +922,7 @@ class Metric(models.Model):
                 date = datetime.datetime.strptime(k, '%Y-%m-%d').date()
                 if date and v:
                     MetricValue.objects.update_or_create(
+                        account=account,
                         metric=self,
                         date=date,
                         defaults={ 'value': v }
@@ -942,8 +956,8 @@ class MetricValue(models.Model):
         unique_together = ('account', 'metric', 'date')
 
     def __unicode__(self):
-        return (u'%s: %s %s' % (unicode(self.account), unicode(self.metric),
-                                self.date))
+        return (u'(%s) %s %s' % (unicode(self.account), unicode(self.metric),
+                                 self.date))
 
     def get_api_format(self):
         return {
@@ -993,8 +1007,8 @@ class Investment(models.Model):
         unique_together = ('account', 'company', 'series')
 
     def __unicode__(self):
-        return (u'%s: %s %s' % (unicode(self.account), unicode(self.company),
-                                self.series))
+        return (u'(%s) %s %s' % (unicode(self.account), unicode(self.company),
+                                 self.series))
 
     def get_api_format(self):
         return {
@@ -1112,9 +1126,9 @@ class InvestorInvestment(models.Model):
         unique_together = ('account', 'investment', 'investor')
 
     def __unicode__(self):
-        return (u'%s: %s %s %s' % (unicode(self.account),
-                                   unicode(self.investment),
-                                   unicode(self.investor)))
+        return (u'(%s) %s %s %s' % (unicode(self.account),
+                                    unicode(self.investment),
+                                    unicode(self.investor)))
 
     def get_api_format(self):
         return {
@@ -1231,7 +1245,7 @@ class Deal(models.Model):
     stage      = models.TextField(null=True, blank=True)
 
     def __unicode__(self):
-        return u'%s: %s' % (unicode(self.account), self.name)
+        return u'(%s) %s' % (unicode(self.account), self.name)
 
     def get_api_format(self):
         return {

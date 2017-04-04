@@ -1,9 +1,8 @@
 import React from 'react';
 import Immutable from 'immutable';
-import {authFetch, formatAPIJSON, preprocessJSON,
-        transformEditJSON} from '../utils/api.js';
+import {authFetch, formatAPIJSON, preprocessJSON} from '../utils/api.js';
 
-import EditField from './editfield.jsx';
+import {EditField} from './editfield.jsx';
 
 import './edittable.scss';
 
@@ -14,10 +13,17 @@ import './edittable.scss';
  *   FIELD_MAP [Object]: Mapping between API field names and field properties:
  *   {
  *     [fieldName]: {
- *       display: [displayName],
- *       type: [fieldType]
+ *       display: [displayName], // Column display text
+ *       type: [fieldType],      // Data type
+ *       model: [modelname],     // TODO: Model the field belongs to
+ *       required: [boolean],    // Whether the value is required to create a
+ *                               // new object
+ *       editable: [boolean]     // TODO: Whether the field is editable
  *     }
  *   }
+ *
+ *   fieldType [string]: 'string', 'number', 'money', 'date', 'image', 'text',
+ *                       'model'
  */
 class EditTable extends React.Component {
   constructor(props) {
@@ -25,11 +31,7 @@ class EditTable extends React.Component {
 
     this._NEW_ROW_INITIAL = {};
     this.props.FIELDS.forEach((field) => {
-      this._NEW_ROW_INITIAL[field] = {
-        value: '',
-        editValue: '',
-        editing: false
-      }
+      this._NEW_ROW_INITIAL[field] = '';
     });
 
     this.state = {
@@ -38,18 +40,11 @@ class EditTable extends React.Component {
       newRow: this._NEW_ROW_INITIAL
     };
 
-    this._cancelEdits = this._cancelEdits.bind(this);
-    this._getRowValuesObject = this._getRowValuesObject.bind(this);
-
     // Add new row handlers
     this.toggleAddRow = this.toggleAddRow.bind(this);
-    this.editAddRowEntity = this.editAddRowEntity.bind(this);
-    this.updateAddRowInput = this.updateAddRowInput.bind(this);
     this.handleCreateEntity = this.handleCreateEntity.bind(this);
 
     // Update existing row handlers
-    this.editEntity = this.editEntity.bind(this);
-    this.updateEntityInput = this.updateEntityInput.bind(this);
     this.handleUpdateEntity = this.handleUpdateEntity.bind(this);
     this.handleDeleteEntity = this.handleDeleteEntity.bind(this);
 
@@ -60,71 +55,6 @@ class EditTable extends React.Component {
     this.deleteEntity = this.deleteEntity.bind(this);
 
     this.getEntityList();
-  }
-
-  /*
-   * WARNING: This can cause unexpected bugs because it's bound to the
-   *          the container div and modifies state. Be sure to stop propagation
-   *          on subcomponent clicks, and consider only firing if an "in edit
-   *          mode" flag is set.
-   * TODO: Find a better pattern than callbacks
-   * TODO: Hook this into parent element
-   */
-  _cancelEdits(callback) {
-    console.log('DEBUG: _cancelEdits()');
-    const resetData = this.state.data.map(row => {
-      let resetRow = { id: row.id };
-      this.props.FIELDS.forEach((field) => {
-        resetRow[field] = {
-          value: row[field].value,
-          editValue: row[field].value,
-          editing: false
-        };
-      });
-      return resetRow;
-    });
-    let newRowPreserved = {};
-    this.props.FIELDS.forEach((field) => {
-      newRowPreserved[field] = {
-        value: this.state.newRow[field].editValue,
-        editValue: this.state.newRow[field].editValue, // Preserve this value
-        editing: false
-      }
-    });
-
-    if (callback && typeof(callback) === 'function') {
-      this.setState({
-        data: resetData,
-        newRow: newRowPreserved
-      }, callback);
-    }
-    else {
-      this.setState({
-        data: resetData,
-        newRow: newRowPreserved
-      });
-    }
-  }
-
-  /*
-   * Args:
-   *   obj [Object]: Edit JSON object in the format:
-   *   {
-   *     key: {
-   *       value: [string/number],
-   *       editValue: [string/number],
-   *       editing: [boolean]
-   *     }
-   *   }
-   * Return:
-   *   [Object]: { key: [string] editValue }
-   */
-  _getRowValuesObject(obj) {
-    let valuesObj = { id: obj.id };
-    this.props.FIELDS.forEach((field) => {
-      valuesObj[field] = obj[field].editValue.toString().trim();
-    });
-    return valuesObj;
   }
 
   /*
@@ -139,68 +69,49 @@ class EditTable extends React.Component {
     });
   }
 
-  editAddRowEntity(field, entityId) {
-    this._cancelEdits(() => {
-      const newState = Immutable.fromJS(this.state)
-        .setIn(['newRow', field, 'editing'], true);
-      this.setState(newState.toJS());
-    });
-  }
-
-  updateAddRowInput(field, value, entityId) {
+  handleCreateEntity(field, value) {
+    // Optimistic update
     const newState = Immutable.fromJS(this.state)
-      .setIn(['newRow', field, 'editValue'], value);
-    this.setState(newState.toJS());
-  }
+      .setIn(['newRow', field], value);
 
-  handleCreateEntity(field, value, entityId) {
-    // Return an array whose length is the number of required fields that are
-    // empty.
-    const missingRequiredFields = Object.keys(this.props.FIELD_MAP).filter(key => {
-      if (this.props.FIELD_MAP[key].required === true)
-        return this.state.newRow[key].editValue.trim() === '';
-      return false;
+    // Write to the backend in callback (dependent on state update)
+    this.setState(newState.toJS(), () => {
+      // Return an array whose length is the number of required fields that are
+      // empty.
+      const missingRequiredFields = Object.keys(this.props.FIELD_MAP)
+        .filter(key => {
+          if (this.props.FIELD_MAP[key].required === true)
+            return this.state.newRow[key].trim() === '';
+          return false;
+        });
+      if (missingRequiredFields.length === 0) {
+        this.createEntity(this.state.newRow);
+        this.setState({
+          addRow: false,
+          newRow: this._NEW_ROW_INITIAL
+        });
+      }
     });
-    if (missingRequiredFields.length === 0) {
-      this.createEntity(this._getRowValuesObject(this.state.newRow));
-      this.setState({
-        addRow: false,
-        newRow: this._NEW_ROW_INITIAL
-      });
-    }
-    else {
-      this._cancelEdits();
-    }
   }
 
   /*
    * Update existing row handlers
    */
 
-  editEntity(field, entityId) {
-    this._cancelEdits(() => {
-      const entityIdx = this.state.data.findIndex(entity =>
-        entity.id === entityId
-      );
-      const newState = Immutable.fromJS(this.state)
-        .setIn(['data', entityIdx, field, 'editing'], true);
-      this.setState(newState.toJS());
-    });
-  }
-
-  updateEntityInput(field, value, entityId) {
+  handleUpdateEntity(field, value, entityId) {
+    // Optimistic update
     const entityIdx = this.state.data.findIndex(entity =>
       entity.id === entityId
     );
     const newState = Immutable.fromJS(this.state)
-      .setIn(['data', entityIdx, field, 'editValue'], value);
-    this.setState(newState.toJS());
-  }
+      .setIn(['data', entityIdx, field], value);
 
-  handleUpdateEntity(field, value, entityId) {
-    let body = {};
-    body[field] = value;
-    this.updateEntity(entityId, body);
+    // Write to the backend in callback
+    this.setState(newState.toJS(), () => {
+      let body = {};
+      body[field] = value;
+      this.updateEntity(entityId, body);
+    });
   }
 
   handleDeleteEntity(e) {
@@ -225,8 +136,7 @@ class EditTable extends React.Component {
     })
     .then(json => {
       // Success
-      json = transformEditJSON(formatAPIJSON(preprocessJSON(json),
-                                             this.props.FIELDS));
+      json = formatAPIJSON(preprocessJSON(json), this.props.FIELDS);
       this.setState({ data: json });
     })
     .catch(err => {
@@ -257,8 +167,7 @@ class EditTable extends React.Component {
     })
     .then(json => {
       // Success
-      json = transformEditJSON(formatAPIJSON(preprocessJSON(json),
-                                             this.props.FIELDS));
+      json = formatAPIJSON(preprocessJSON(json), this.props.FIELDS);
       const newState = Immutable.fromJS(this.state)
         .update('data', data => data.push(json));
 
@@ -293,8 +202,7 @@ class EditTable extends React.Component {
     })
     .then(json => {
       // Success
-      json = transformEditJSON(formatAPIJSON(preprocessJSON(json),
-                                             this.props.FIELDS));
+      json = formatAPIJSON(preprocessJSON(json), this.props.FIELDS);
       const entityIdx = this.state.data.findIndex(entity =>
         entity.id === json.id
       );
@@ -355,12 +263,8 @@ class EditTable extends React.Component {
           <td key={uniqueKey}>
             <EditField field={field} id={row.id}
                        fieldType={this.props.FIELD_MAP[field].type}
-                       originalValue={row[field].value}
-                       editingValue={row[field].editValue}
-                       editing={row[field].editing}
-                       editField={this.editEntity}
-                       updateInput={this.updateEntityInput}
-                       saveInput={this.handleUpdateEntity} />
+                       originalValue={row[field]}
+                       onSave={this.handleUpdateEntity} />
           </td>
         );
       });
@@ -383,12 +287,8 @@ class EditTable extends React.Component {
             <td key={field}>
               <EditField field={field}
                          fieldType={this.props.FIELD_MAP[field].type}
-                         originalValue={this.state.newRow[field].value}
-                         editingValue={this.state.newRow[field].editValue}
-                         editing={this.state.newRow[field].editing}
-                         editField={this.editAddRowEntity}
-                         updateInput={this.updateAddRowInput}
-                         saveInput={this.handleCreateEntity} />
+                         originalValue={this.state.newRow[field]}
+                         onSave={this.handleCreateEntity} />
             </td>
           );
         })}

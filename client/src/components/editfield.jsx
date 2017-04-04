@@ -7,70 +7,80 @@ import './editfield.scss';
 
 /*
  * props:
- *   field [string]: Name of field being edited (e.g. 'title'), the name of
- *                   the innermost key for nested fields.
- *   fieldType [string]: Field type - determines which filter should be applied
- *                       to the field value (e.g. "money" or "date").
- *   originalValue [string]: Original value of the field being edited.
- *   editingValue [string]: Current value of the field being edited.
- *   editing [boolean]: Whether or not the field is being edited.
- *   id [string]: [Optional] Id of the parent object, used if the object is in
- *                           a list of objects, such as for experience objects.
+ *   fieldType [string]: Type of the underlying value. Determines which filter
+ *                       should be applied. This should be immutable. Options:
+ *                       'string', 'number', 'money', 'date', 'image', 'text',
+ *                       'model'
+ *   originalValue [string]: Initial value of the field.
  *   placeholder [string]: [Optional] String to display if field value is
- *                                    empty.
+ *                                    empty. This should be immutable.
  *
- *   editField [function]: Function to enter editing mode.
- *     f([field name], [id, optional]) => null
- *   updateInput [function]: Function to update field based on user input.
- *     f([field name], [field value], [id, optional]) => null
- *   saveInput [function]: Function to write updated field to database.
- *     f([field name], [field value], [id, optional]) => null
+ *   onSave [function]: Function that lets the parent component respond to
+ *                      "save" events in the data.
+ *     f([string: field value]) => null
+ *   onUpdate [function]: [Optional] Function that lets the parent component
+ *                        respond to changes in the underlying data.
+ *     f([string: field value]) => null
  */
-class EditField extends React.Component {
+class BaseEditField extends React.Component {
   constructor(props) {
     super(props);
 
-    this._stopPropagation = this._stopPropagation.bind(this);
-    this.editField = this.editField.bind(this);
-    this.updateInput = this.updateInput.bind(this);
-    this.saveInput = this.saveInput.bind(this);
+    this.state = {
+      editing: false,
+      value: this.props.originalValue || ''
+    };
 
+    this._PLACEHOLDER = this.props.placeholder || '';
+
+    this.enterEditMode = this.enterEditMode.bind(this);
+    this.cancelEditMode = this.cancelEditMode.bind(this);
+
+    this.onUpdate = this.onUpdate.bind(this);
+    this.onSave = this.onSave.bind(this);
+
+    // Display filters
     this.filterInputValue = this.createInputFilter(this.props.fieldType);
     this.unfilterInputValue = this.createReverseInputFilter(this.props.fieldType);
     this.filterDisplayValue = this.createDisplayFilter(this.props.fieldType);
     this.unfilterDisplayValue = this.createReverseDisplayFilter(this.props.fieldType);
   }
 
-  _stopPropagation(e) {
+  enterEditMode(e) {
     e.stopPropagation();
+    this.setState({ editing: true });
   }
 
-  editField(e) {
+  cancelEditMode(e) {
     e.stopPropagation();
-    // this.props.id is passed for nested fields but is undefined for others
-    this.props.editField(this.props.field, this.props.id);
+    this.setState({ editing: false });
   }
 
-  updateInput(e) {
-    // this.props.id is passed for nested fields but is undefined for others
-    this.props.updateInput(this.props.field,
-                           this.unfilterInputValue(e.currentTarget.value),
-                           this.props.id);
+  onUpdate(e) {
+    const unfilteredValue = this.unfilterInputValue(e.currentTarget.value);
+    this.setState({ value: unfilteredValue });
+
+    // Propagate to parent
+    if (this.props.onUpdate) {
+      this.props.onUpdate(unfilteredValue);
+    }
   }
 
-  saveInput(e) {
+  onSave(e) {
     // Force-convert numbers so all inputs can be trimmed
-    const trimmedValue = this.props.editingValue.toString().trim();
+    const trimmedValue = this.state.value.toString().trim();
     // Only submit if there is text; allow shift+enter to create a new line
     if (e.key === 'Enter' && trimmedValue !== '' && !e.shiftKey) {
-      // this.props.id is passed for nested fields but is undefined for others
-      this.props.saveInput(this.props.field,
-                           this.unfilterDisplayValue(trimmedValue),
-                           this.props.id);
+      this.cancelEditMode(e);
+
+      // Propagate to parent
+      this.props.onSave(this.unfilterDisplayValue(trimmedValue));
     }
   }
 
   /*
+   * Filters:
+   *
    * Filter logic
    * 1. Always filter/unfilter numbers (underlying representation should never
    *    see the numeric display format)
@@ -137,28 +147,28 @@ class EditField extends React.Component {
   render() {
     let editComponent, fieldFilter;
 
-    if (this.props.editing) {
+    if (this.state.editing) {
       switch (this.props.fieldType) {
         case 'text':
         case 'text truncated':
           editComponent = (
             <textarea rows="8"
                       className="ovc-edit-field" autoFocus
-                      placeholder={this.props.placeholder}
-                      value={this.filterInputValue(this.props.editingValue)}
-                      onChange={this.updateInput}
-                      onKeyPress={this.saveInput}
-                      onClick={this._stopPropagation} />
+                      placeholder={this._PLACEHOLDER}
+                      value={this.filterInputValue(this.state.value)}
+                      onChange={this.onUpdate}
+                      onKeyPress={this.onSave}
+                      onBlur={this.cancelEditMode} />
           );
           break;
         default:
           editComponent = (
             <input className="ovc-edit-field" autoFocus
-                   placeholder={this.props.placeholder}
-                   value={this.filterInputValue(this.props.editingValue)}
-                   onChange={this.updateInput}
-                   onKeyPress={this.saveInput}
-                   onClick={this._stopPropagation} />
+                   placeholder={this._PLACEHOLDER}
+                   value={this.filterInputValue(this.state.value)}
+                   onChange={this.onUpdate}
+                   onKeyPress={this.onSave}
+                   onBlur={this.cancelEditMode} />
           );
           break;
       }
@@ -168,7 +178,7 @@ class EditField extends React.Component {
         case 'image':
           editComponent = (
             <img className="ovc-edit-field"
-                 onClick={this.editField}
+                 onClick={this.enterEditMode}
                  src={this.props.originalValue}>
             </img>
           );
@@ -176,11 +186,11 @@ class EditField extends React.Component {
         case 'text truncated':
           editComponent = (
             <span className="ovc-edit-field"
-                  onClick={this.editField}>
+                  onClick={this.enterEditMode}>
               {this.filterDisplayValue(
                  truncateString(this.props.originalValue
                                 ? this.props.originalValue
-                                : this.props.placeholder), 30
+                                : this._PLACEHOLDER), 30
                )}
             </span>
           );
@@ -188,10 +198,10 @@ class EditField extends React.Component {
         default:
           editComponent = (
             <span className="ovc-edit-field"
-                  onClick={this.editField}>
+                  onClick={this.enterEditMode}>
               {this.filterDisplayValue((this.props.originalValue
                                         ? this.props.originalValue
-                                        : this.props.placeholder))}
+                                        : this._PLACEHOLDER))}
             </span>
           );
           break;
@@ -201,5 +211,63 @@ class EditField extends React.Component {
   }
 }
 
-export default EditField;
+/*
+ * Same as the BaseEditField component, but wraps the onSave and onUpdate
+ * methods in a more flexible API to allow parent components to more easily
+ * interact:
+ *   onSave [function]: f([string: field name], [string: field value],
+ *                        [string: object id]) => null
+ *   onUpdate [function]: f([string: field name], [string: field value],
+ *                          [string: object id]) => null
+ *
+ * Adds the following props to the EditField component:
+ *   field [string]: Field name that's being edited.
+ *   id [string]: [Optional] Id of the object that's being updated. Undefined
+ *                for new row
+ *                table cells that create new objects.
+ *
+ * Inherited props:
+ *   fieldType [string]: Type of the underlying value. Determines which filter
+ *                       should be applied. This should be immutable. Options:
+ *                       'string', 'number', 'money', 'date', 'image', 'text',
+ *                       'model'
+ *   originalValue [string]: Initial value of the field.
+ *   placeholder [string]: [Optional] String to display if field value is
+ *                                    empty. This should be immutable.
+ *
+ *   onSave [function]: Function that lets the parent component respond to
+ *                      "save" events in the data.
+ *     f([string: field value]) => null
+ *   onUpdate [function]: [Optional] Function that lets the parent component
+ *                        respond to changes in the underlying data.
+ *     f([string: field value]) => null
+ */
+class EditField extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.onSave = this.onSave.bind(this);
+    this.onUpdate = this.onUpdate.bind(this);
+  }
+
+  onSave(value) {
+    this.props.onSave(this.props.field, value, this.props.id);
+  }
+
+  onUpdate(value) {
+    if (this.props.onUpdate)
+      this.props.onUpdate(this.props.field, value, this.props.id);
+  }
+
+  render() {
+    // Override onSave and onUpdate with wrapped method.
+    return (
+      <BaseEditField {...this.props}
+                     onSave={this.onSave}
+                     onUpdate={this.onUpdate} />
+    );
+  }
+}
+
+export {BaseEditField, EditField};
 

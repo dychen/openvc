@@ -1,6 +1,11 @@
 from django.db import connection
 from data.models import Person, Company
 
+def jaccard(s1, s2):
+    set_s1 = set(s1)
+    set_s2 = set(s2)
+    return float(len(set_s1.intersection(set_s2))) / len(set_s1.union(set_s2))
+
 def levenshtein(s1, s2, limit=100):
     # Compare s2 (comparator, possible match) against s1 (target, string being
     # matched against). Skip if the target is empty, proceed with comparison
@@ -22,7 +27,7 @@ def levenshtein(s1, s2, limit=100):
         previous_row = current_row
     return previous_row[-1]
 
-def match_person(data, count=1):
+def match_person(data, account, count=1):
     """
     Args:
         data [dict]: {
@@ -40,12 +45,12 @@ def match_person(data, count=1):
                 the input @data: [<Person>, <Person>, ...].
     """
 
-    def threshold(data, comp_data):
+    def threshold(target_data, comp_data):
         """Filters dataset to only attempt to match most relevant ones"""
-        return (data['first_name'] == comp_data['first_name']
-                or data['last_name'] == comp_data['last_name']
-                or data['company'] == comp_data['company']
-                or data['linkedin_url'] == comp_data['linkedin_url'])
+        return (target_data['first_name'] == comp_data['first_name']
+                or target_data['last_name'] == comp_data['last_name']
+                or target_data['company'] == comp_data['company']
+                or target_data['linkedin_url'] == comp_data['linkedin_url'])
 
     def calculate_similarity(target_data, comp_data):
         return (
@@ -74,9 +79,10 @@ SELECT p.id, p.first_name, p.last_name, p.email, p.location, c.name, p.linkedin_
 FROM data_person p
 JOIN data_employment e ON p.id=e.person_id
 JOIN data_company c on c.id=e.company_id
+WHERE p.account_id=%s
 '''
     cursor = connection.cursor()
-    cursor.execute(RAW_SQL)
+    cursor.execute(RAW_SQL, str(account.id))
 
     target_data = {
         'first_name': data['first_name'],
@@ -101,12 +107,12 @@ JOIN data_company c on c.id=e.company_id
         }
         if threshold(target_data, comp_data):
             matches.append((calculate_similarity(target_data, comp_data),
-                           comp_data))
+                            comp_data))
 
     # Sort matches in ascending order (best matches have smaller scores)
     return get_records(sorted(matches, key=lambda x: x[0]), count)
 
-def match_company(data, count=1):
+def match_company(data, account, count=1):
     """
     Args:
         data [dict]: {
@@ -122,9 +128,9 @@ def match_company(data, count=1):
                 the input @data: [<Company>, <Company>, ...].
     """
 
-    def threshold(data, comp_data):
+    def threshold(target_data, comp_data):
         """Filters dataset to only attempt to match most relevant ones"""
-        return True
+        return jaccard(target_data['name'], comp_data['name']) > 0.9
 
     def calculate_similarity(target_data, comp_data):
         return (
@@ -150,9 +156,10 @@ def match_company(data, count=1):
     # TODO: Cache this query in a materialized view
     RAW_SQL = '''
 SELECT c.id, c.name, c.segment, c.sector, c.location FROM data_company c
+WHERE c.account_id=%s
 '''
     cursor = connection.cursor()
-    cursor.execute(RAW_SQL)
+    cursor.execute(RAW_SQL, str(account.id))
 
     target_data = {
         'name': data['name'],
@@ -162,7 +169,7 @@ SELECT c.id, c.name, c.segment, c.sector, c.location FROM data_company c
     }
 
     for row in cursor.fetchall():
-        company_id, name, segment, sector, location, = row
+        company_id, name, segment, sector, location = row
         comp_data = {
             'id': company_id,
             'name': name,
@@ -172,7 +179,7 @@ SELECT c.id, c.name, c.segment, c.sector, c.location FROM data_company c
         }
         if threshold(target_data, comp_data):
             matches.append((calculate_similarity(target_data, comp_data),
-                           comp_data))
+                            comp_data))
 
     # Sort matches in ascending order (best matches have smaller scores)
     return get_records(sorted(matches, key=lambda x: x[0]), count)

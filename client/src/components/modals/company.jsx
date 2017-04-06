@@ -176,8 +176,8 @@ const CreateCompanyModal = createEntityModalWrapper(CreateCompanyModalBase, {
   },
   matchUrl: `${SERVER_URL}/api/v1/match/company`,
   matchCondition: ((data) => data.name),
-  CREATE_HEADLINE: 'Create a new company',
-  UPDATE_HEADLINE: 'Add an existing company'
+  CREATE_HEADLINE: 'Add a company',
+  UPDATE_HEADLINE: 'Select an existing company'
 });
 
 export default CreateCompanyModal;

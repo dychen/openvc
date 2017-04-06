@@ -223,8 +223,7 @@ class BaseEditField extends React.Component {
  * Adds the following props to the EditField component:
  *   field [string]: Field name that's being edited.
  *   id [string]: [Optional] Id of the object that's being updated. Undefined
- *                for new row
- *                table cells that create new objects.
+ *                for new row table cells that create new objects.
  *
  * Inherited props:
  *   fieldType [string]: Type of the underlying value. Determines which filter

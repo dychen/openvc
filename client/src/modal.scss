@@ -1,3 +1,4 @@
+@import './constants.scss';
 
 /* The Modal (background) */
 .ovc-modal-background {
@@ -17,6 +18,7 @@
   width: 60%;
   max-height: 80%;
   margin: 5% auto;
+  color: $OVC_DARK_GRAY;
 
   background-color: $OVC_WHITE;
   border: 1px solid $OVC_GRAY;

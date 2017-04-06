@@ -1,6 +1,16 @@
 @mixin hvr-fade($color, $bg-color) {
-  -webkit-transform: perspective(1px) translateZ(0);
-  transform: perspective(1px) translateZ(0);
+  /*
+   * Remove transforms for now because they affect the bounding viewport for
+   * modals that otherwise need to be positioned relative to the document
+   * window.
+   * References:
+   * http://stackoverflow.com/questions/21091958/
+   *   css-fixed-child-element-positions-relative
+   *   -to-parent-element-not-to-the-viewpo
+   * https://developer.mozilla.org/en-US/docs/Web/CSS/position#Fixed_positioning
+   */
+  //-webkit-transform: perspective(1px) translateZ(0);
+  //transform: perspective(1px) translateZ(0);
   box-shadow: 0 0 1px transparent;
   overflow: hidden;
   -webkit-transition-duration: 0.3s;
@@ -32,8 +42,8 @@
 }
 
 @mixin hvr-color($color) {
-  -webkit-transform: perspective(1px) translateZ(0);
-  transform: perspective(1px) translateZ(0);
+  //-webkit-transform: perspective(1px) translateZ(0);
+  //transform: perspective(1px) translateZ(0);
   box-shadow: 0 0 1px transparent;
   overflow: hidden;
   -webkit-transition-duration: 0.3s;
@@ -48,8 +58,8 @@
 }
 
 @mixin hvr-shadow($color) {
-  -webkit-transform: perspective(1px) translateZ(0);
-  transform: perspective(1px) translateZ(0);
+  //-webkit-transform: perspective(1px) translateZ(0);
+  //transform: perspective(1px) translateZ(0);
   overflow: hidden;
   -webkit-transition-duration: 0.3s;
   transition-duration: 0.3s;
@@ -63,8 +73,8 @@
 }
 
 @mixin hvr-outline($base-color, $hvr-color) {
-  -webkit-transform: perspective(1px) translateZ(0);
-  transform: perspective(1px) translateZ(0);
+  //-webkit-transform: perspective(1px) translateZ(0);
+  //transform: perspective(1px) translateZ(0);
   box-shadow: 0 0 1px transparent;
   overflow: hidden;
   -webkit-transition-duration: 0.3s;
@@ -80,8 +90,8 @@
 }
 
 @mixin hvr-grow($scale) {
-  -webkit-transform: perspective(1px) translateZ(0);
-  transform: perspective(1px) translateZ(0);
+  //-webkit-transform: perspective(1px) translateZ(0);
+  //transform: perspective(1px) translateZ(0);
   box-shadow: 0 0 1px transparent;
   -webkit-transition-duration: 0.3s;
   transition-duration: 0.3s;

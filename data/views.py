@@ -12,6 +12,12 @@ from shared.auth import check_authentication
 
 
 class MatchPerson(APIView):
+    """
+    WARNING: Matching is a slow process (O(MN^2), where M is the number of
+             results and N is the average length of the result). This could
+             block server threads, especially if the frontend makes repeated
+             calls as the user updates input data.
+    """
 
     authentication_classes = (TokenAuthentication,)
 
@@ -27,6 +33,8 @@ class MatchPerson(APIView):
 
     def get(self, request, format=None):
         try:
+            user = check_authentication(request)
+            account = user.account
             person_data = {
                 self._VALID_FIELD_MAP[k]: request.query_params[k]
                 if k in request.query_params else ''
@@ -34,7 +42,7 @@ class MatchPerson(APIView):
             }
             return Response([
                 person.get_api_format()
-                for person in match_person(person_data,
+                for person in match_person(person_data, account,
                                            count=self._NUM_RESULTS)
             ], status=status.HTTP_200_OK)
         except ValueError:
@@ -55,6 +63,8 @@ class MatchCompany(APIView):
 
     def get(self, request, format=None):
         try:
+            user = check_authentication(request)
+            account = user.account
             company_data = {
                 self._VALID_FIELD_MAP[k]: request.query_params[k]
                 if k in request.query_params else ''
@@ -62,7 +72,7 @@ class MatchCompany(APIView):
             }
             return Response([
                 company.get_api_format()
-                for company in match_company(company_data,
+                for company in match_company(company_data, account,
                                              count=self._NUM_RESULTS)
             ], status=status.HTTP_200_OK)
         except ValueError:

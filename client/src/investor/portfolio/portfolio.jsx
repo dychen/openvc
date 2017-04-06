@@ -167,7 +167,6 @@ class InvestorPorfolioPage extends React.Component {
       json = preprocessJSON(json);
       const newState = Immutable.fromJS(this.state)
         .update('companies', companies => companies.push(json));
-      console.log(json, newState);
       this.setState(newState.toJS());
     })
     .catch(err => {

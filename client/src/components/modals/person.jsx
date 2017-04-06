@@ -189,8 +189,8 @@ const CreateContactModal = createEntityModalWrapper(CreatePersonModalBase, {
   },
   matchUrl: `${SERVER_URL}/api/v1/match/person`,
   matchCondition: ((data) => (data.firstName && data.lastName || data.company)),
-  CREATE_HEADLINE: 'Create a new contact',
-  UPDATE_HEADLINE: 'Add an existing contact'
+  CREATE_HEADLINE: 'Add a contact',
+  UPDATE_HEADLINE: 'Select an existing contact'
 });
 
 const CreateTeamMemberModal = createEntityModalWrapper(CreatePersonModalBase, {

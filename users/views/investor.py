@@ -748,7 +748,7 @@ class InvestorDeals(APIView):
             request_json = json.loads(request.body)
 
             deal = Deal.objects.get(account=user.account, id=deal_id)
-            deal = deal.update_from_api(request_json)
+            deal = deal.update_from_api(user.account, request_json)
             return Response(deal.get_api_format(),
                             status=status.HTTP_201_CREATED)
 

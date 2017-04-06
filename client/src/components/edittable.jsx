@@ -3,6 +3,7 @@ import Immutable from 'immutable';
 import {authFetch, formatAPIJSON, preprocessJSON} from '../utils/api.js';
 
 import {EditField} from './editfield.jsx';
+import {ModalField} from './modalfield.jsx';
 
 import './edittable.scss';
 
@@ -259,14 +260,27 @@ class EditTable extends React.Component {
     const rows = this.state.data.map((row) => {
       const elements = this.props.FIELDS.map((field) => {
         const uniqueKey = `${row.id.toString()}-${field}`;
-        return (
-          <td key={uniqueKey}>
-            <EditField field={field} id={row.id}
-                       fieldType={this.props.FIELD_MAP[field].type}
-                       originalValue={row[field]}
-                       onSave={this.handleUpdateEntity} />
-          </td>
-        );
+        if (this.props.FIELD_MAP[field].type === 'model') {
+          return (
+            <td key={uniqueKey}>
+              <ModalField field={field} id={row.id}
+                          modelType={this.props.FIELD_MAP[field].modelType}
+                          API_URL={this.props.API_URL}
+                          originalValue={row[field]}
+                          onSave={this.handleUpdateEntity} />
+            </td>
+          );
+        }
+        else {
+          return (
+            <td key={uniqueKey}>
+              <EditField field={field} id={row.id}
+                         fieldType={this.props.FIELD_MAP[field].type}
+                         originalValue={row[field]}
+                         onSave={this.handleUpdateEntity} />
+            </td>
+          );
+        }
       });
       return (
         <tr key={row.id}>

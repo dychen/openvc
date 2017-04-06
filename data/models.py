@@ -1299,7 +1299,7 @@ class Deal(models.Model):
         deal = Deal.objects.create(account=account, **deal_dict)
         return deal
 
-    def update_from_api(self, request_json):
+    def update_from_api(self, account, request_json):
         """
         Expected request body:
         {
@@ -1315,7 +1315,6 @@ class Deal(models.Model):
             'stage': [float]
         }
         """
-        # TODO: Foreign key relationships
         if request_json.get('name'):
             self.name = request_json.get('name')
         if request_json.get('date'):
@@ -1328,6 +1327,16 @@ class Deal(models.Model):
             self.status = request_json.get('status')
         if request_json.get('stage'):
             self.stage = request_json.get('stage')
+
+        if request_json.get('companyId'):
+            company = Company.objects.get(id=request_json.get('companyId'),
+                                          account=account)
+            self.company = company
+        if request_json.get('ownerId'):
+            owner = Person.objects.get(id=request_json.get('ownerId'),
+                                       account=account)
+            self.owner = owner
+
         self.save()
         return self
 

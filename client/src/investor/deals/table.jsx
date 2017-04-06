@@ -5,16 +5,29 @@ class DealTableSection extends React.Component {
   constructor(props) {
     super(props);
 
-    this.FIELDS = ['name', 'date', 'source', 'type', 'status', 'stage'];
+    this.FIELDS = ['name', 'companyId', 'date', 'ownerId', 'source', 'type',
+                   'status', 'stage'];
     this.FIELD_MAP = {
       name: {
         display: 'Name',
         type: 'string',
         required: true
       },
+      companyId: {
+        display: 'Company',
+        type: 'model',
+        modelType: 'company',
+        required: false
+      },
       date: {
         display: 'Date',
         type: 'date',
+        required: false
+      },
+      ownerId: {
+        display: 'Person',
+        type: 'model',
+        modelType: 'person',
         required: false
       },
       source: {

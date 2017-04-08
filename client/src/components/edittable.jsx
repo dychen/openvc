@@ -11,20 +11,27 @@ import './edittable.scss';
  * props:
  *   API_URL [string]: Backend API endpoint to hit.
  *   FIELDS [Array]: List of API fields to show as table columns.
- *   FIELD_MAP [Object]: Mapping between API field names and field properties:
+ *   FIELD_MAP [Object]: Mapping between table field names and field properties.
  *   {
  *     [fieldName]: {
- *       display: [displayName], // Column display text
- *       type: [fieldType],      // Data type
- *       model: [modelname],     // TODO: Model the field belongs to
+ *       display: [string],      // Column display text
+ *       type: [string],         // Data type - see below
  *       required: [boolean],    // Whether the value is required to create a
  *                               // new object
  *       editable: [boolean]     // TODO: Whether the field is editable
  *     }
  *   }
+ *   MODEL_MAP [Object]: Mapping between table field names and model properties
+ *                       if part of a related object.
+ *   {
+ *     [fieldName]: {
+ *       type: [string]  // Model type ('company', 'person')
+ *       group: [string] // Model name in API data, e.g. 'owner', 'company'
+ *       field: [string] // Field name in API data, e.g. 'firstName', 'sector'
+ *     }
+ *   }
  *
- *   fieldType [string]: 'string', 'number', 'money', 'date', 'image', 'text',
- *                       'model'
+ *   Field type is one of: 'string', 'number', 'money', 'date', 'image', 'text'
  */
 class EditTable extends React.Component {
   constructor(props) {
@@ -47,6 +54,7 @@ class EditTable extends React.Component {
 
     // Update existing row handlers
     this.handleUpdateEntity = this.handleUpdateEntity.bind(this);
+    this.handleUpdateModalEntity = this.handleUpdateModalEntity.bind(this);
     this.handleDeleteEntity = this.handleDeleteEntity.bind(this);
 
     // Entity API
@@ -115,6 +123,31 @@ class EditTable extends React.Component {
     });
   }
 
+  /*
+   * modelKey [string]: modelKey in the API response (e.g. 'company', 'owner')
+   * obj [Object]: Updated model object
+   * entityId [string]: Row id
+   */
+  handleUpdateModalEntity(modelKey, obj, entityId) {
+    // Optimistic update, update all matching entities
+    const entityIdx = this.state.data.findIndex(entity =>
+      entity.id === entityId
+    );
+    const newState = Immutable.fromJS(this.state)
+      .setIn(['data', entityIdx, modelKey], obj);
+    /* TODO: Update all other objects in the list with the same nested id
+    const newState = Immutable.fromJS(this.state)
+      .update('data', (row) => {
+        console.log(row, row[modelKey]);
+        if (row[modelKey].id === obj.id) {
+          row[modelKey] = obj;
+        }
+        return row
+      });
+    */
+    this.setState(newState.toJS());
+  }
+
   handleDeleteEntity(e) {
     this.deleteEntity(e.currentTarget.id);
   }
@@ -137,7 +170,7 @@ class EditTable extends React.Component {
     })
     .then(json => {
       // Success
-      json = formatAPIJSON(preprocessJSON(json), this.props.FIELDS);
+      json = preprocessJSON(json);
       this.setState({ data: json });
     })
     .catch(err => {
@@ -168,7 +201,7 @@ class EditTable extends React.Component {
     })
     .then(json => {
       // Success
-      json = formatAPIJSON(preprocessJSON(json), this.props.FIELDS);
+      json = preprocessJSON(json);
       const newState = Immutable.fromJS(this.state)
         .update('data', data => data.push(json));
 
@@ -203,7 +236,7 @@ class EditTable extends React.Component {
     })
     .then(json => {
       // Success
-      json = formatAPIJSON(preprocessJSON(json), this.props.FIELDS);
+      json = preprocessJSON(json);
       const entityIdx = this.state.data.findIndex(entity =>
         entity.id === json.id
       );
@@ -252,6 +285,17 @@ class EditTable extends React.Component {
     });
   }
 
+  /*
+   * EditField row format:
+   *   { [field name]: [field value] }
+   * E.g.:
+   *   { segment: 'Enterprise', ... }
+   *
+   * ModalField row format:
+   *   { [model group name]: { [field name]: [field value] }
+   * E.g.:
+   *   { owner: { id: 123, firstName: 'John', ... } }
+   */
   render() {
     const headers = this.props.FIELDS.map((field) => {
       return (<td key={field}>{this.props.FIELD_MAP[field].display}</td>);
@@ -260,14 +304,39 @@ class EditTable extends React.Component {
     const rows = this.state.data.map((row) => {
       const elements = this.props.FIELDS.map((field) => {
         const uniqueKey = `${row.id.toString()}-${field}`;
-        if (this.props.FIELD_MAP[field].type === 'model') {
+        if (this.props.FIELD_MAP[field].model
+            && this.props.MODEL_MAP[this.props.FIELD_MAP[field].model]) {
+          const modelKey = this.props.FIELD_MAP[field].model;
+          /*
+           * Input:
+           *   field [Object]: {
+           *     fieldMapName: [internal name],
+           *     apiName: [external name]
+           *   }
+           * Output:
+           *   FIELDS [Array]: [[external name 1], [external name 2], ...]
+           *   FIELD_MAP [Object]: {
+           *     [external name 1]: { display: [string], type: [string], ... },
+           *     ...
+           *   }
+           */
+          const FIELDS = this.props.MODEL_MAP[modelKey].fields.map((field) =>
+            field.apiName
+          );
+          let FIELD_MAP = {};
+          this.props.MODEL_MAP[modelKey].fields.forEach((field) => {
+            FIELD_MAP[field.apiName] = this.props.FIELD_MAP[field.fieldMapName];
+          });
           return (
             <td key={uniqueKey}>
-              <ModalField field={field} id={row.id}
-                          modelType={this.props.FIELD_MAP[field].modelType}
-                          API_URL={this.props.API_URL}
-                          originalValue={row[field]}
-                          onSave={this.handleUpdateEntity} />
+              <ModalField API_URL={this.props.API_URL} rowId={row.id}
+                          modelType={this.props.MODEL_MAP[modelKey].type}
+                          modelKey={modelKey}
+                          FIELDS={FIELDS}
+                          FIELD_MAP={FIELD_MAP}
+                          field={this.props.FIELD_MAP[field].modelField}
+                          data={row[modelKey]}
+                          onSave={this.handleUpdateModalEntity} />
             </td>
           );
         }
@@ -318,7 +387,7 @@ class EditTable extends React.Component {
           {this.state.addRow ? <i className="ion-minus" /> : <i className="ion-plus" />}
         </td>
       </tr>
-    )
+    );
 
     return (
       <table className="ovc-edit-table">

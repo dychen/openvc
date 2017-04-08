@@ -6,6 +6,187 @@ import {truncateString} from '../utils/format.js';
 import './editfield.scss';
 
 /*
+ * Input/Output filters
+ *
+ * All functions have the following signature:
+ *   f([string: field type]) => [function: function that converts an input]
+ *   The output function has the signature:
+ *     f([string: initial value]) => [string: filtered value]
+ *
+ * Filter logic
+ * 1. Always filter/unfilter numbers (underlying representation should never
+ *    see the numeric display format)
+ * 2. Only filter/unfilter dates when switching between input/display modes
+ *    (only try to convert dates after user is done inputting the date)
+ */
+const createInputFilter = function(fieldType) {
+  switch (fieldType) {
+    case 'money':
+      numeral.zeroFormat('-');
+      return ((value) => numeral(value).format('($0,0)'));
+    case 'date':
+      return ((value) => value);
+    // #nofilter
+    default:
+      return ((value) => value);
+  }
+}
+
+const createReverseInputFilter = function(fieldType) {
+  switch (fieldType) {
+    case 'money':
+      return ((value) => numeral(value).value());
+    case 'date':
+      return ((value) => value);
+    // #nofilter
+    default:
+      return ((value) => value);
+  }
+}
+
+const createDisplayFilter = function(fieldType) {
+  switch (fieldType) {
+    case 'money':
+      numeral.zeroFormat('-');
+      return ((value) => numeral(value).format('($0,0)'));
+    case 'date':
+      return ((value) => {
+        const momentValue = moment(value);
+        if (value && momentValue.isValid())
+          return value ? moment(value).format('ll') : '';
+        else
+          return value; // Allow null/empty values and placeholder values
+      });
+    // #nofilter
+    default:
+      return ((value) => value);
+  }
+}
+
+const createReverseDisplayFilter = function(fieldType) {
+  switch (fieldType) {
+    case 'money':
+      return ((value) => numeral(value).value());
+    case 'date':
+      return ((value) => moment(value)); // Ensure it's a date
+    // #nofilter
+    default:
+      return ((value) => value);
+  }
+}
+
+/*
+ * Abstraction:
+ *   <EditField>
+ *     <InputField> // If field is in edit mode
+ *     <StaticField> // If field is not in edit mode
+ *   </EditField>
+ */
+
+/*
+ * props:
+ *   fieldType [string]: Type of the underlying data (e.g. 'string', 'image')
+ *   placeholder [string]: Value of show if the data is empty
+ *   value [string]: Underlying data
+ *
+ *   onUpdate [function]: Action when the data is changed
+ *     f([Object: Event]) => null
+ *   onSave [function]: Action when the enter key is pressed
+ *     f([Object: Event]) => null
+ *   cancelEditMode [function]: Action when the input is blurred
+ *     f([Object: Event]) => null
+ */
+class InputField extends React.Component {
+  constructor(props) {
+    super(props);
+
+    // Display filters
+    this.filterInputValue = createInputFilter(this.props.fieldType);
+  }
+
+  render() {
+    switch (this.props.fieldType) {
+      case 'text':
+      case 'text truncated':
+        return (
+          <textarea rows="8" className="ovc-edit-field" autoFocus
+                    placeholder={this.props.placeholder}
+                    value={this.filterInputValue(this.props.value)}
+                    onChange={this.props.onUpdate}
+                    onKeyPress={this.props.onSave}
+                    onBlur={this.props.cancelEditMode} />
+        );
+      default:
+        return (
+          <input className="ovc-edit-field" autoFocus
+                 placeholder={this.props.placeholder}
+                 value={this.filterInputValue(this.props.value)}
+                 onChange={this.props.onUpdate}
+                 onKeyPress={this.props.onSave}
+                 onBlur={this.props.cancelEditMode} />
+        );
+    }
+  }
+}
+
+/*
+ * props:
+ *   fieldType [string]: Type of the underlying data (e.g. 'string', 'image')
+ *   placeholder [string]: Value of show if the data is empty
+ *   originalValue [string]: Underlying data
+ *
+ *   enterEditMode [function]: [Optional] Action when the element is clicked
+ *     f([Object: Event]) => null
+ */
+class StaticField extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.enterEditMode = this.enterEditMode.bind(this);
+    // Display filters
+    this.filterDisplayValue = createDisplayFilter(this.props.fieldType);
+  }
+
+  enterEditMode(e) {
+    // Optional - do nothing if this is undefined
+    if (this.props.enterEditMode)
+      this.props.enterEditMode(e);
+  }
+
+  render() {
+    switch (this.props.fieldType) {
+      case 'image':
+        return (
+          <img className="ovc-edit-field"
+               onClick={this.enterEditMode}
+               src={this.props.originalValue}>
+          </img>
+        );
+      case 'text truncated':
+        return (
+          <span className="ovc-edit-field"
+                onClick={this.enterEditMode}>
+            {this.filterDisplayValue(
+               truncateString(this.props.originalValue
+                              ? this.props.originalValue
+                              : this.props.placeholder), 30
+             )}
+          </span>
+        );
+      default:
+        return (
+          <span className="ovc-edit-field"
+                onClick={this.enterEditMode}>
+            {this.filterDisplayValue((this.props.originalValue
+                                      ? this.props.originalValue
+                                      : this.props.placeholder))}
+          </span>
+        );
+    }
+  }
+}
+
+/*
  * props:
  *   fieldType [string]: Type of the underlying value. Determines which filter
  *                       should be applied. This should be immutable. Options:
@@ -31,19 +212,17 @@ class BaseEditField extends React.Component {
       value: this.props.originalValue || ''
     };
 
-    this._PLACEHOLDER = this.props.placeholder || '';
-
+    // StaticField method
     this.enterEditMode = this.enterEditMode.bind(this);
-    this.cancelEditMode = this.cancelEditMode.bind(this);
 
+    // InputField methods
+    this.cancelEditMode = this.cancelEditMode.bind(this);
     this.onUpdate = this.onUpdate.bind(this);
     this.onSave = this.onSave.bind(this);
 
-    // Display filters
-    this.filterInputValue = this.createInputFilter(this.props.fieldType);
-    this.unfilterInputValue = this.createReverseInputFilter(this.props.fieldType);
-    this.filterDisplayValue = this.createDisplayFilter(this.props.fieldType);
-    this.unfilterDisplayValue = this.createReverseDisplayFilter(this.props.fieldType);
+    // Filters
+    this.unfilterInputValue = createReverseInputFilter(this.props.fieldType);
+    this.unfilterDisplayValue = createReverseDisplayFilter(this.props.fieldType);
   }
 
   enterEditMode(e) {
@@ -78,134 +257,26 @@ class BaseEditField extends React.Component {
     }
   }
 
-  /*
-   * Filters:
-   *
-   * Filter logic
-   * 1. Always filter/unfilter numbers (underlying representation should never
-   *    see the numeric display format)
-   * 2. Only filter/unfilter dates when switching between input/display modes
-   *    (only try to convert dates after user is done inputting the date)
-   */
-
-  createInputFilter(fieldType) {
-    switch (fieldType) {
-      case 'money':
-        numeral.zeroFormat('-');
-        return ((value) => numeral(value).format('($0,0)'));
-      case 'date':
-        return ((value) => value);
-      // #nofilter
-      default:
-        return ((value) => value);
-    }
-  }
-
-  createReverseInputFilter(fieldType) {
-    switch (fieldType) {
-      case 'money':
-        return ((value) => numeral(value).value());
-      case 'date':
-        return ((value) => value);
-      // #nofilter
-      default:
-        return ((value) => value);
-    }
-  }
-
-  createDisplayFilter(fieldType) {
-    switch (fieldType) {
-      case 'money':
-        numeral.zeroFormat('-');
-        return ((value) => numeral(value).format('($0,0)'));
-      case 'date':
-        return ((value) => {
-          const momentValue = moment(value);
-          if (value && momentValue.isValid())
-            return value ? moment(value).format('ll') : '';
-          else
-            return value; // Allow null/empty values and placeholder values
-        });
-      // #nofilter
-      default:
-        return ((value) => value);
-    }
-  }
-
-  createReverseDisplayFilter(fieldType) {
-    switch (fieldType) {
-      case 'money':
-        return ((value) => numeral(value).value());
-      case 'date':
-        return ((value) => moment(value)); // Ensure it's a date
-      // #nofilter
-      default:
-        return ((value) => value);
-    }
-  }
-
   render() {
     let editComponent, fieldFilter;
 
     if (this.state.editing) {
-      switch (this.props.fieldType) {
-        case 'text':
-        case 'text truncated':
-          editComponent = (
-            <textarea rows="8"
-                      className="ovc-edit-field" autoFocus
-                      placeholder={this._PLACEHOLDER}
-                      value={this.filterInputValue(this.state.value)}
-                      onChange={this.onUpdate}
-                      onKeyPress={this.onSave}
-                      onBlur={this.cancelEditMode} />
-          );
-          break;
-        default:
-          editComponent = (
-            <input className="ovc-edit-field" autoFocus
-                   placeholder={this._PLACEHOLDER}
-                   value={this.filterInputValue(this.state.value)}
-                   onChange={this.onUpdate}
-                   onKeyPress={this.onSave}
-                   onBlur={this.cancelEditMode} />
-          );
-          break;
-      }
+      editComponent = (
+        <InputField fieldType={this.props.fieldType}
+                    placeholder={this.props.placeholder || ''}
+                    value={this.state.value}
+                    onUpdate={this.onUpdate}
+                    onSave={this.onSave}
+                    cancelEditMode={this.cancelEditMode} />
+      );
     }
     else {
-      switch (this.props.fieldType) {
-        case 'image':
-          editComponent = (
-            <img className="ovc-edit-field"
-                 onClick={this.enterEditMode}
-                 src={this.props.originalValue}>
-            </img>
-          );
-          break;
-        case 'text truncated':
-          editComponent = (
-            <span className="ovc-edit-field"
-                  onClick={this.enterEditMode}>
-              {this.filterDisplayValue(
-                 truncateString(this.props.originalValue
-                                ? this.props.originalValue
-                                : this._PLACEHOLDER), 30
-               )}
-            </span>
-          );
-          break;
-        default:
-          editComponent = (
-            <span className="ovc-edit-field"
-                  onClick={this.enterEditMode}>
-              {this.filterDisplayValue((this.props.originalValue
-                                        ? this.props.originalValue
-                                        : this._PLACEHOLDER))}
-            </span>
-          );
-          break;
-      }
+      editComponent = (
+        <StaticField fieldType={this.props.fieldType}
+                     placeholder={this.props.placeholder || ''}
+                     originalValue={this.props.originalValue}
+                     enterEditMode={this.enterEditMode} />
+      );
     }
     return editComponent;
   }
@@ -268,5 +339,5 @@ class EditField extends React.Component {
   }
 }
 
-export {BaseEditField, EditField};
+export {BaseEditField, EditField, InputField, StaticField};
 

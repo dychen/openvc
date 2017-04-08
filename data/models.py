@@ -1251,7 +1251,7 @@ class Deal(models.Model):
         return {
             'id': self.id,
             'name': self.name,
-            'company': self.company.name if self.company else None,
+            'company': self.company.get_api_format() if self.company else {},
             'companyId': self.company.id if self.company else None,
             'investment': self.investment.series if self.investment else None,
             'investmentId': self.investment.id if self.investment else None,
@@ -1332,6 +1332,17 @@ class Deal(models.Model):
             company = Company.objects.get(id=request_json.get('companyId'),
                                           account=account)
             self.company = company
+
+            company_json = request_json.get('company')
+            if company_json:
+                if company_json.get('name'):
+                    company.name = company_json.get('name')
+                if company_json.get('logoUrl'):
+                    company.logo_url = company_json.get('logoUrl')
+                if company_json.get('sector'):
+                    company.sector = company_json.get('sector')
+                company.save()
+
         if request_json.get('ownerId'):
             owner = Person.objects.get(id=request_json.get('ownerId'),
                                        account=account)

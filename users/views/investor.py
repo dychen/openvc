@@ -473,8 +473,6 @@ class CompanyInvestors(APIView):
             return Response(investment.get_api_investors(),
                             status=status.HTTP_200_OK)
 
-        except Exception as e:
-            print e
         except (Account.DoesNotExist, Company.DoesNotExist,
                 Investment.DoesNotExist) as e:
             return Response({ 'error': str(e) },

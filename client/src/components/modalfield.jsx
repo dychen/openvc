@@ -6,6 +6,8 @@ import {authFetch, preprocessJSON} from '../utils/api.js';
 
 import {EditField, StaticField} from './editfield.jsx';
 
+import './modalfield.scss';
+
 /*
  * props:
  *   FIELDS [Array]: List of API fields to show as edit fields.
@@ -42,9 +44,13 @@ class CompanyTableModal extends React.Component {
     this._preventModalClose = this._preventModalClose.bind(this);
     // Called when EditField inputs are saved
     this.handleUpdateEntity = this.handleUpdateEntity.bind(this);
+
+    this.getEntityList = this.getEntityList.bind(this);
     // Called when the "Save" button is clicked
     this.createEntity = this.createEntity.bind(this);
     this.updateEntity = this.updateEntity.bind(this);
+
+    this.getEntityList();
   }
 
   _preventModalClose(e) {
@@ -54,6 +60,11 @@ class CompanyTableModal extends React.Component {
   handleUpdateEntity(field, value) {
     const newState = Immutable.fromJS(this.state).setIn(['data', field], value);
     this.setState(newState.toJS());
+  }
+
+  // TODO
+  getEntityList() {
+    return;
   }
 
   createEntity(e) {
@@ -75,25 +86,33 @@ class CompanyTableModal extends React.Component {
 
     const inputFields = this.props.FIELDS.map((field) => {
       return (
-        <EditField className="entity-input"
-                   field={field} id={this.props.modelId} key={field}
-                   fieldType={this.props.FIELD_MAP[field].type}
-                   originalValue={this.state.data[field]}
-                   onSave={this.handleUpdateEntity} />
+        <div className="modal-input-field">
+          <div className="modal-input-title">
+            {this.props.FIELD_MAP[field].display}
+          </div>
+          <EditField field={field} id={this.props.modelId} key={field}
+                     fieldType={this.props.FIELD_MAP[field].type}
+                     originalValue={this.state.data[field]}
+                     onSave={this.handleUpdateEntity} />
+        </div>
       );
     });
 
     return (
       <div className={modalShowClass} onClick={this.props.hideModal}>
-        <div className="ovc-modal create-entity-modal"
+        <div className="ovc-modal modal-field-modal"
              onClick={this._preventModalClose}>
-          <div className="create-entity-modal-header">
+          <div className="modal-field-modal-header">
             Update a related company
           </div>
-          <div className="create-entity-modal-body">
-            {inputFields}
+          <div className="modal-field-modal-body">
+            <div className="modal-body-section left">
+            </div>
+            <div className="modal-body-section right">
+              {inputFields}
+            </div>
           </div>
-          <div className="create-entity-modal-footer">
+          <div className="modal-field-modal-footer">
             <div className="modal-footer-button left"
                  onClick={this.props.hideModal}>
               <i className="ion-close" />
@@ -274,7 +293,7 @@ class ModalField extends React.Component {
     }
 
     return (
-      <span className="ovc-edit-field">
+      <span className="ovc-modal-field">
         <StaticField originalValue={this.props.data[this.props.field]}
                      fieldType={this.props.FIELD_MAP[this.props.field].type}
                      enterEditMode={this.showModal} />

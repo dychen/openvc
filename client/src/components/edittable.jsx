@@ -63,6 +63,9 @@ class EditTable extends React.Component {
     this.updateEntity = this.updateEntity.bind(this);
     this.deleteEntity = this.deleteEntity.bind(this);
 
+    // Helpers
+    this._generateModalFieldCell = this._generateModalFieldCell.bind(this);
+
     this.getEntityList();
   }
 
@@ -286,6 +289,42 @@ class EditTable extends React.Component {
   }
 
   /*
+   * Args:
+   *   field [string]: Field name (e.g. 'stage', 'date', 'name').
+   *   row [Array]: Row data.
+   *   uniqueKey [string]: Unique identifier for the cell.
+   *
+   * Generated objects using this.props.FIELD_MAP and this.props.MODEL_MAP:
+   *   FIELDS [Array]: [[external name 1], [external name 2], ...]
+   *   FIELD_MAP [Object]: {
+   *     [external name 1]: { display: [string], type: [string], ... },
+   *     ...
+   *   }
+   */
+  _generateModalFieldCell(field, row, uniqueKey) {
+    const modelKey = this.props.FIELD_MAP[field].model;
+    const FIELDS = this.props.MODEL_MAP[modelKey].fields.map((field) =>
+      field.apiName
+    );
+    let FIELD_MAP = {};
+    this.props.MODEL_MAP[modelKey].fields.forEach((field) => {
+      FIELD_MAP[field.apiName] = this.props.FIELD_MAP[field.fieldMapName];
+    });
+    return (
+      <td key={uniqueKey}>
+        <ModalField API_URL={this.props.API_URL} rowId={row.id}
+                    modelType={this.props.MODEL_MAP[modelKey].type}
+                    modelKey={modelKey}
+                    FIELDS={FIELDS}
+                    FIELD_MAP={FIELD_MAP}
+                    field={this.props.FIELD_MAP[field].modelField}
+                    data={row[modelKey]}
+                    onSave={this.handleUpdateModalEntity} />
+      </td>
+    );
+  }
+
+  /*
    * EditField row format:
    *   { [field name]: [field value] }
    * E.g.:
@@ -306,39 +345,7 @@ class EditTable extends React.Component {
         const uniqueKey = `${row.id.toString()}-${field}`;
         if (this.props.FIELD_MAP[field].model
             && this.props.MODEL_MAP[this.props.FIELD_MAP[field].model]) {
-          const modelKey = this.props.FIELD_MAP[field].model;
-          /*
-           * Input:
-           *   field [Object]: {
-           *     fieldMapName: [internal name],
-           *     apiName: [external name]
-           *   }
-           * Output:
-           *   FIELDS [Array]: [[external name 1], [external name 2], ...]
-           *   FIELD_MAP [Object]: {
-           *     [external name 1]: { display: [string], type: [string], ... },
-           *     ...
-           *   }
-           */
-          const FIELDS = this.props.MODEL_MAP[modelKey].fields.map((field) =>
-            field.apiName
-          );
-          let FIELD_MAP = {};
-          this.props.MODEL_MAP[modelKey].fields.forEach((field) => {
-            FIELD_MAP[field.apiName] = this.props.FIELD_MAP[field.fieldMapName];
-          });
-          return (
-            <td key={uniqueKey}>
-              <ModalField API_URL={this.props.API_URL} rowId={row.id}
-                          modelType={this.props.MODEL_MAP[modelKey].type}
-                          modelKey={modelKey}
-                          FIELDS={FIELDS}
-                          FIELD_MAP={FIELD_MAP}
-                          field={this.props.FIELD_MAP[field].modelField}
-                          data={row[modelKey]}
-                          onSave={this.handleUpdateModalEntity} />
-            </td>
-          );
+          return this._generateModalFieldCell(field, row, uniqueKey);
         }
         else {
           return (

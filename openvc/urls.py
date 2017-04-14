@@ -20,7 +20,8 @@ from users.views import user as user_views
 from users.views import founder as founder_views
 from users.views import investor as investor_views
 from contacts import views as contact_views
-from data import views as data_views
+from data.views import entity as entity_views
+from data.views import match as match_views
 
 urlpatterns = [
     # Admin API
@@ -108,13 +109,16 @@ urlpatterns = [
         contact_views.ContactInteractions.as_view()),
 
     # Data API
+    url(r'^api/v1/data/company$', entity_views.CompanyView.as_view()),
+    url(r'^api/v1/data/company/(?P<id>[0-9]+)$',
+        entity_views.CompanyView.as_view()),
     url(r'^api/v1/data/person/(?P<person_id>[0-9]+)/experience$',
-        data_views.PersonEmployment.as_view()),
+        entity_views.PersonEmployment.as_view()),
     url(r'^api/v1/data/person/(?P<person_id>[0-9]+)/experience/'
          '(?P<employment_id>[0-9]+)$',
-        data_views.PersonEmployment.as_view()),
+        entity_views.PersonEmployment.as_view()),
 
     # Entity resolution API
-    url(r'^api/v1/match/person$', data_views.MatchPerson.as_view()),
-    url(r'^api/v1/match/company$', data_views.MatchCompany.as_view()),
+    url(r'^api/v1/match/person$', match_views.MatchPerson.as_view()),
+    url(r'^api/v1/match/company$', match_views.MatchCompany.as_view()),
 ]

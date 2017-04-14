@@ -3,8 +3,16 @@
 
 $FONT_SIZE_HEADER: 1.5em;
 $FONT_WEIGHT_HEADER: 900;
-$CREATE_ENTITY_PANEL_HEIGHT: 80px;
-$MATCH_LIST_HEIGHT: 200px;
+$ENTITY_SEARCH_WIDTH: 300px;
+$ENTITY_SEARCH_HEIGHT: 30px;
+
+span.ovc-modal-field {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+/* Modal component styles */
 
 .ovc-modal.modal-field-modal {
   //max-height: 700px;
@@ -20,6 +28,23 @@ $MATCH_LIST_HEIGHT: 200px;
   .modal-field-modal-body {
     height: 100%;
     width: 100%;
+
+    input.ovc-edit-field, textarea.ovc-edit-field {
+      border: 1px solid $OVC_GRAY;
+      border-radius: 5px;
+      padding: 5px;
+      font-size: 0.9em;
+    }
+    textarea.ovc-edit-field {
+      min-height: 200px;
+      min-width: 400px;
+      resize: none;
+    }
+    img.ovc-edit-field {
+      height: 40px;
+      width: 40px;
+      border-radius: 20px;
+    }
   }
 
   .modal-field-modal-footer {
@@ -47,7 +72,7 @@ $MATCH_LIST_HEIGHT: 200px;
     width: 100%;
   }
   > .modal-body-section.right {
-    flex: 0 0 150px;
+    flex: 0 0 200px;
     border-left: 1px solid $OVC_LIGHT_GRAY;
   }
   > .modal-body-section {
@@ -72,31 +97,70 @@ $MATCH_LIST_HEIGHT: 200px;
   }
 }
 
-span.ovc-modal-field {
-  width: 100%;
-  height: 100%;
-  display: flex;
-
-  /* Modal component styles */
-  input.ovc-edit-field, textarea.ovc-edit-field {
-    border: 1px solid $OVC_GRAY;
-    border-radius: 5px;
+/* Left body column (match entity) */
+.modal-field-modal-body {
+  > .modal-body-section.left {
+    display: block;
+    //overflow-y: auto;
     padding: 5px;
-    font-size: 0.9em;
-  }
-  textarea.ovc-edit-field {
-    min-height: 200px;
-    min-width: 400px;
-    resize: none;
-  }
-  img.ovc-edit-field {
-    height: 40px;
-    width: 40px;
-    border-radius: 20px;
+
+    @include ovc-nav-input($ENTITY_SEARCH_WIDTH, $ENTITY_SEARCH_HEIGHT,
+                           $OVC_LIGHT_GRAY, $OVC_GRAY);
+
+    .modal-field-modal-matches {
+      height: 100%;
+      overflow-y: auto;
+      padding: 1px;
+    }
+    // Create new entity match should not be in the .modal-field-modal-matches
+    // scroll box, but is styled the same
+    .modal-field-match {
+      height: 60px;
+      margin-top: 2px;
+      margin-bottom: 2px;
+      margin-right: 1px; // Buffer the scroll box so the right border appears
+
+      display: flex;
+      flex-direction: row;
+      border: 1px solid $OVC_LIGHT_GRAY;
+
+      @include hvr-outline($OVC_LIGHT_GRAY, $OVC_GRAY);
+
+      > img {
+        height: 60px;
+        width: 60px;
+        flex: 0 0 60px;
+      }
+      > span.modal-field-create-new-icon {
+        height: 60px;
+        width: 60px;
+        flex: 0 0 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 40px;
+      }
+      > div.modal-field-match-text {
+        padding-left: 20px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+
+        > .bold {
+          font-weight: 900;
+        }
+        > .gray {
+          color: $OVC_GRAY;
+        }
+        > .small {
+          font-size: 0.8em;
+        }
+      }
+    }
   }
 }
 
-/* Modal component styles */
+/* Right body column (update entity) */
 
 // Same as in modals/create.scss
 .modal-field-modal-footer {

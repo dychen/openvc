@@ -1303,11 +1303,14 @@ class Deal(models.Model):
         """
         Expected request body:
         {
-            'companyId': [int],
-            'investmentId': [int],
+            # Foreign keyds
+            'company': [int],
+            'investment': [int],
+            'referrer': [int],
+            'owner': [int],
+
+            # Fields
             'name': [string],
-            'referrerId': [int],
-            'ownerId': [int],
             'date': [datetime.date],
             'source': [float],
             'type': [float],
@@ -1328,23 +1331,13 @@ class Deal(models.Model):
         if request_json.get('stage'):
             self.stage = request_json.get('stage')
 
-        if request_json.get('companyId'):
-            company = Company.objects.get(id=request_json.get('companyId'),
+        if request_json.get('company'):
+            company = Company.objects.get(id=request_json.get('company'),
                                           account=account)
             self.company = company
 
-            company_json = request_json.get('company')
-            if company_json:
-                if company_json.get('name'):
-                    company.name = company_json.get('name')
-                if company_json.get('logoUrl'):
-                    company.logo_url = company_json.get('logoUrl')
-                if company_json.get('sector'):
-                    company.sector = company_json.get('sector')
-                company.save()
-
-        if request_json.get('ownerId'):
-            owner = Person.objects.get(id=request_json.get('ownerId'),
+        if request_json.get('owner'):
+            owner = Person.objects.get(id=request_json.get('owner'),
                                        account=account)
             self.owner = owner
 

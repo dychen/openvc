@@ -35,27 +35,27 @@ def get_api_field_format(s):
 def get_db_field_format(s):
     return camel_to_snake(s)
 
-def get_api_format(company, fields):
+def get_api_format(obj, fields):
     return {
-        snake_to_camel(field): getattr(company, field)
-        for field in (fields + ['id']) if hasattr(company, field)
+        snake_to_camel(field): getattr(obj, field)
+        for field in (fields + ['id']) if hasattr(obj, field)
     }
 
-def create_from_api(account, fields, request_json):
-    company_dict = {}
+def create_from_api(model, account, fields, request_json):
+    obj_dict = {}
     for field in fields:
         api_field = get_api_field_format(field)
         if api_field in request_json:
-            company_dict[field] = request_json.get(api_field)
-    return Company.objects.create(account=account, **company_dict)
+            obj_dict[field] = request_json.get(api_field)
+    return model.objects.create(account=account, **obj_dict)
 
-def update_from_api(company, account, fields, request_json):
+def update_from_api(obj, account, fields, request_json):
     for field in fields:
         api_field = get_api_field_format(field)
         if api_field in request_json:
-            setattr(company, field, request_json.get(api_field))
-    company.save()
-    return company
+            setattr(obj, field, request_json.get(api_field))
+    obj.save()
+    return obj
 
 class CompanyView(APIView):
 
@@ -114,7 +114,7 @@ class CompanyView(APIView):
             account = user.account
             fields = get_fields(request)
             request_json = validate(json.loads(request.body))
-            company = create_from_api(account, fields, request_json)
+            company = create_from_api(Company, account, fields, request_json)
 
             return Response(get_api_format(company, fields),
                             status=status.HTTP_201_CREATED)
@@ -131,12 +131,7 @@ class CompanyView(APIView):
         """
         Expected request body:
         {
-            'company': [str],
-            'title': [str],
-            'location': [str],
-            'startDate': [str],
-            'endDate': [str],
-            'notes': [str]
+            ... // All fields are user-configured and optional
         }
         """
         try:
@@ -176,6 +171,126 @@ class CompanyView(APIView):
         except (Account.DoesNotExist, Company.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
+
+class PersonView(APIView):
+
+    authentication_classes = (TokenAuthentication,)
+
+    # GET /data/person
+    def __get_list(self, request, format=None):
+        try:
+            user = check_authentication(request)
+            account = user.account
+            people = Person.objects.filter(account=account)
+            return Response([
+                get_api_format(person, get_fields(request))
+                for person in people
+            ], status=status.HTTP_200_OK)
+
+        except Account.DoesNotExist as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # GET /data/person/:id
+    def __get_one(self, request, person_id, format=None):
+        try:
+            user = check_authentication(request)
+            account = user.account
+            person = Person.objects.get(account=account, id=person_id)
+            return Response(get_api_format(person, get_fields(request)),
+                            status=status.HTTP_200_OK)
+
+        except (Account.DoesNotExist, Person.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, id=None, format=None):
+        if id:
+            return self.__get_one(request, id, format=format)
+        else:
+            return self.__get_list(request, format=format)
+
+    # POST /data/person
+    def __post_create(self, request, format=None):
+        """
+        Expected request body:
+        {
+            'firstName': [required] [str],
+            'lastName': [required] [str],
+            ... // All fields are user-configured and optional
+        }
+        """
+        def validate(request_json):
+            if not (request_json.get('firstName')
+                    and request_json.get('lastName')):
+                raise ValidationError('First and last name are required.')
+            return request_json
+
+        try:
+            user = check_authentication(request)
+            account = user.account
+            fields = get_fields(request)
+            request_json = validate(json.loads(request.body))
+            person = create_from_api(Person, account, fields, request_json)
+
+            return Response(get_api_format(person, fields),
+                            status=status.HTTP_201_CREATED)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except Account.DoesNotExist as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # POST /data/person/:id
+    def __post_update(self, request, person_id, format=None):
+        """
+        Expected request body:
+        {
+            'firstName': [str],
+            'lastName': [str],
+            ... // Other fields are user-configured and optional
+        }
+        """
+        try:
+            user = check_authentication(request)
+            account = user.account
+            fields = get_fields(request)
+            request_json = json.loads(request.body)
+            person = Person.objects.get(account=account, id=person_id)
+            person = update_from_api(person, account, fields, request_json)
+
+            return Response(get_api_format(person, fields),
+                            status=status.HTTP_200_OK)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (Account.DoesNotExist, Person.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, id=None, format=None):
+        if id:
+            return self.__post_update(request, id, format=format)
+        else:
+            return self.__post_create(request, format=format)
+
+    # DELETE /data/person/:id
+    def delete(self, request, id=None, format=None):
+        try:
+            # TODO
+            return Response({ 'id': int(id) },
+                            status=status.HTTP_200_OK)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (Account.DoesNotExist, Person.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
 
 class PersonEmployment(APIView):
 

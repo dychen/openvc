@@ -1,5 +1,4 @@
 import React from 'react';
-import CreateCompanyModal from './modals/company.jsx';
 import Immutable from 'immutable';
 import {authFetch, preprocessJSON} from '../utils/api.js';
 
@@ -8,7 +7,129 @@ import {EditField, StaticField} from './editfield.jsx';
 import './modalfield.scss';
 
 /*
+ * "Create New" and "Match Existing" panels
+ */
+
+/* Company panels */
+
+/*
  * props:
+ *   handleSelectNewEntity [function]: Function to respond to click events.
+ *     f([Object: Event object]) => null
+ */
+class CompanyNewPanel extends React.Component {
+  render() {
+    return (
+      <div className="modal-field-match"
+           onClick={this.props.handleSelectNewEntity}>
+        <span className="modal-field-create-new-icon">
+          <i className="ion-plus" />
+        </span>
+        <div className="modal-field-match-text">
+          <span className="bold">Click to create a new company</span>
+          <span className="small gray">Website</span>
+          <span className="small">Location</span>
+        </div>
+      </div>
+    );
+  }
+}
+
+/*
+ * props:
+ *   entity [Object]: {
+ *     id: [int],
+ *     name: [string],
+ *     website: [string],
+ *     location: [string],
+ *     logoUrl: [string]
+ *   }
+ *   handleSelectEntity [function]: Function to respond to click events.
+ *     f([Object: Event object]) => null
+ */
+class CompanyMatchPanel extends React.Component {
+  render() {
+    return (
+      <div className="modal-field-match" id={this.props.entity.id}
+           onClick={this.props.handleSelectEntity}>
+        <img src={this.props.entity.logoUrl} />
+        <div className="modal-field-match-text">
+          <span className="bold">{this.props.entity.name}</span>
+          <span className="small gray">{this.props.entity.website}</span>
+          <span className="small">{this.props.entity.location}</span>
+        </div>
+      </div>
+    );
+  }
+}
+
+/* Person panels */
+
+/*
+ * props:
+ *   handleSelectNewEntity [function]: Function to respond to click events.
+ *     f([Object: Event object]) => null
+ */
+class PersonNewPanel extends React.Component {
+  render() {
+    return (
+      <div className="modal-field-match"
+           onClick={this.props.handleSelectNewEntity}>
+        <span className="modal-field-create-new-icon">
+          <i className="ion-plus" />
+        </span>
+        <div className="modal-field-match-text">
+          <span className="bold">Click to create a new person</span>
+          <span className="small gray">Title, Company</span>
+          <span className="small">Location</span>
+        </div>
+      </div>
+    );
+  }
+}
+
+/*
+ * props:
+ *   entity [Object]: {
+ *     id: [int],
+ *     firstName: [string],
+ *     lastName: [string],
+ *     title: [string],
+ *     company: [string],
+ *     location: [string],
+ *     photoUrl: [string]
+ *   }
+ *   handleSelectEntity [function]: Function to respond to click events.
+ *     f([Object: Event object]) => null
+ */
+class PersonMatchPanel extends React.Component {
+  render() {
+    return (
+      <div className="modal-field-match" id={this.props.entity.id}
+           onClick={this.props.handleSelectEntity}>
+        <img src={this.props.entity.photoUrl} />
+        <div className="modal-field-match-text">
+          <span className="bold">
+            {this.props.entity.firstName}
+            &nbsp;{this.props.entity.lastName}
+          </span>
+          <span className="small gray">
+            {this.props.entity.title},
+            &nbsp;{this.props.entity.company}
+          </span>
+          <span className="small">
+            {this.props.entity.location}
+          </span>
+        </div>
+      </div>
+    );
+  }
+}
+
+/*
+ * props:
+ *   modelType [string]: Entity type: 'company', 'person', etc.
+ *   MATCH_FIELDS [Array]: List of API fields to show on match panels.
  *   FIELDS [Array]: List of API fields to show as edit fields.
  *   FIELD_MAP [Object]: Mapping between table field names and field properties.
  *   {
@@ -29,12 +150,11 @@ import './modalfield.scss';
  *                      "save" events in the data.
  *     f([Object: new object data]) => null
  */
-class CompanyTableModal extends React.Component {
+class ModalFieldModal extends React.Component {
   constructor(props) {
     super(props);
 
-    this._API_URL = `${SERVER_URL}/api/v1/data/company`;
-    this._MATCH_FIELDS = ['name', 'location', 'website', 'logoUrl'];
+    this._API_URL = `${SERVER_URL}/api/v1/data/${this.props.modelType}`;
     this._MATCH_LIMIT = 100;
 
     this.state = {
@@ -128,7 +248,7 @@ class CompanyTableModal extends React.Component {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      params: { fields: this._MATCH_FIELDS }
+      params: { fields: this.props.MATCH_FIELDS }
     })
     .then(function(response) {
       if (response.ok) {
@@ -251,16 +371,21 @@ class CompanyTableModal extends React.Component {
 
   _filterMatches(matches) {
     if (this.state.searchInput) {
+      // Returns if the searchInput matches any of the MATCH_FIELDS.
       return matches.filter((match) => {
-        return ((match.name
-                 && match.name.toLowerCase()
-                              .indexOf(this.state.searchInput) > -1)
-                || (match.website
-                    && match.website.toLowerCase()
-                                    .indexOf(this.state.searchInput) > -1)
-                || (match.location
-                    && match.location.toLowerCase()
-                                     .indexOf(this.state.searchInput) > -1));
+        /*
+         * acc [boolean]: If one of the filters matched.
+         * matchField [string]: Next item in the list (a field name).
+         */
+        return this.props.MATCH_FIELDS.reduce((acc, matchField) => {
+          return (
+            acc
+            || (match[matchField]
+                && match[matchField].toLowerCase()
+                                    .indexOf(this.state.searchInput
+                                                       .toLowerCase()) > -1)
+          );
+        }, false);
       });
     }
     return matches;
@@ -272,6 +397,42 @@ class CompanyTableModal extends React.Component {
       ? 'ovc-modal-background show'
       : 'ovc-modal-background'
     );
+
+    /* Match panels */
+
+    let createNewEntity;
+    let matchedEntities;
+    switch (this.props.modelType) {
+      case 'person':
+        createNewEntity = (
+          <PersonNewPanel handleSelectNewEntity={this.handleSelectNewEntity} />
+        );
+        matchedEntities = this._filterMatches(this.state.matches)
+                              .slice(0, this._MATCH_LIMIT)
+                              .map((entity) => {
+          return (
+            <PersonMatchPanel entity={entity} key={entity.id}
+                              handleSelectEntity={this.handleSelectEntity} />
+          );
+        });
+        break;
+      case 'company':
+      default:
+        createNewEntity = (
+          <CompanyNewPanel handleSelectNewEntity={this.handleSelectNewEntity} />
+        );
+        matchedEntities = this._filterMatches(this.state.matches)
+                              .slice(0, this._MATCH_LIMIT)
+                              .map((entity) => {
+          return (
+            <CompanyMatchPanel entity={entity} key={entity.id}
+                               handleSelectEntity={this.handleSelectEntity} />
+          );
+        });
+        break;
+    }
+
+    /* Selected entity input fields */
 
     const inputFields = this.props.FIELDS.map((field) => {
       return (
@@ -288,41 +449,12 @@ class CompanyTableModal extends React.Component {
       );
     });
 
-    const createNewEntity = (
-      <div className="modal-field-match"
-           onClick={this.handleSelectNewEntity}>
-        <span className="modal-field-create-new-icon">
-          <i className="ion-plus" />
-        </span>
-        <div className="modal-field-match-text">
-          <span className="bold">Click to create a new Company</span>
-          <span className="small gray">Website</span>
-          <span className="small">Location</span>
-        </div>
-      </div>
-    );
-    const matchedEntities = this._filterMatches(this.state.matches)
-                                .slice(0, this._MATCH_LIMIT)
-                                .map((entity) => {
-      return (
-        <div className="modal-field-match" key={entity.id} id={entity.id}
-             onClick={this.handleSelectEntity}>
-          <img src={entity.logoUrl} />
-          <div className="modal-field-match-text">
-            <span className="bold">{entity.name}</span>
-            <span className="small gray">{entity.website}</span>
-            <span className="small">{entity.location}</span>
-          </div>
-        </div>
-      );
-    });
-
     return (
       <div className={modalShowClass} onClick={this.props.hideModal}>
         <div className="ovc-modal modal-field-modal"
              onClick={this._preventModalClose}>
           <div className="modal-field-modal-header">
-            Update a related company
+            Update a related {this.props.modelType}
           </div>
           <div className="modal-field-modal-body">
             <div className="modal-body-section left">
@@ -455,18 +587,34 @@ class ModalField extends React.Component {
 
   render() {
     let modal;
+    let matchFields;
     switch (this.props.modelType) {
       case 'person':
+        matchFields = ['firstName', 'lastName', 'company', 'title', 'location',
+                       'photoUrl'];
+        modal = (
+          <ModalFieldModal modelType={this.props.modelType}
+                           MATCH_FIELDS={matchFields}
+                           FIELDS={this.props.FIELDS}
+                           FIELD_MAP={this.props.FIELD_MAP}
+                           data={this.props.data}
+                           visible={this.state.modalVisible}
+                           hideModal={this.hideModal}
+                           onSave={this.updateEntity} />
+        );
         break;
       case 'company':
       default:
+        matchFields = ['name', 'location', 'website', 'logoUrl'];
         modal = (
-          <CompanyTableModal FIELDS={this.props.FIELDS}
-                             FIELD_MAP={this.props.FIELD_MAP}
-                             data={this.props.data}
-                             visible={this.state.modalVisible}
-                             hideModal={this.hideModal}
-                             onSave={this.updateEntity} />
+          <ModalFieldModal modelType={this.props.modelType}
+                           MATCH_FIELDS={matchFields}
+                           FIELDS={this.props.FIELDS}
+                           FIELD_MAP={this.props.FIELD_MAP}
+                           data={this.props.data}
+                           visible={this.state.modalVisible}
+                           hideModal={this.hideModal}
+                           onSave={this.updateEntity} />
         );
         break;
     }

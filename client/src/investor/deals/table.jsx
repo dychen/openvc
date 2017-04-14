@@ -6,7 +6,8 @@ class DealTableSection extends React.Component {
     super(props);
 
     this.FIELDS = ['name', 'companyName', 'companyLogoUrl', 'companySector',
-                   'date', 'source', 'type', 'status', 'stage'];
+                   'date', 'ownerFirstName', 'ownerLastName', 'ownerPhotoUrl',
+                   'source', 'type', 'status', 'stage'];
     this.FIELD_MAP = {
       name: {
         display: 'Name',
@@ -39,6 +40,27 @@ class DealTableSection extends React.Component {
         type: 'date',
         required: false
       },
+      ownerFirstName: {
+        display: 'Owner First Name',
+        type: 'string',
+        model: 'owner',
+        modelField: 'firstName',
+        required: false
+      },
+      ownerLastName: {
+        display: 'Owner Last Name',
+        type: 'string',
+        model: 'owner',
+        modelField: 'lastName',
+        required: false
+      },
+      ownerPhotoUrl: {
+        display: 'Owner Photo',
+        type: 'image',
+        model: 'owner',
+        modelField: 'photoUrl',
+        required: false
+      },
       source: {
         display: 'Source',
         type: 'string',
@@ -67,6 +89,14 @@ class DealTableSection extends React.Component {
           { fieldMapName: 'companyName', apiName: 'name' },
           { fieldMapName: 'companyLogoUrl', apiName: 'logoUrl' },
           { fieldMapName: 'companySector', apiName: 'sector' }
+        ]
+      },
+      owner: {
+        type: 'person',
+        fields: [
+          { fieldMapName: 'ownerFirstName', apiName: 'firstName' },
+          { fieldMapName: 'ownerLastName', apiName: 'lastName' },
+          { fieldMapName: 'ownerPhotoUrl', apiName: 'photoUrl' }
         ]
       }
     };

@@ -112,6 +112,10 @@ urlpatterns = [
     url(r'^api/v1/data/company$', entity_views.CompanyView.as_view()),
     url(r'^api/v1/data/company/(?P<id>[0-9]+)$',
         entity_views.CompanyView.as_view()),
+    url(r'^api/v1/data/person$', entity_views.PersonView.as_view()),
+    url(r'^api/v1/data/person/(?P<id>[0-9]+)$',
+        entity_views.PersonView.as_view()),
+
     url(r'^api/v1/data/person/(?P<person_id>[0-9]+)/experience$',
         entity_views.PersonEmployment.as_view()),
     url(r'^api/v1/data/person/(?P<person_id>[0-9]+)/experience/'

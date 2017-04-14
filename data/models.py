@@ -1257,7 +1257,7 @@ class Deal(models.Model):
             'investmentId': self.investment.id if self.investment else None,
             'referrer': self.referrer.full_name if self.referrer else None,
             'referrerId': self.referrer.id if self.referrer else None,
-            'owner': self.owner.full_name if self.owner else None,
+            'owner': self.owner.get_api_format() if self.owner else None,
             'ownerId': self.owner.id if self.owner else None,
             'date': self.date,
             'source': self.source,

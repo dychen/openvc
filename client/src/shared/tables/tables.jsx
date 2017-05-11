@@ -1,11 +1,11 @@
 import React from 'react';
+
+import {getTableList} from './api.js';
+
 import EditTable from '../../components/edittable.jsx';
-import {Subnav, SubnavDropdown,
+import {Subnav, SubnavButton, SubnavDropdown,
         SubnavFilters} from '../../components/subnav.jsx';
-
-import {getTableList, createTable, updateTable, deleteTable} from './api.js';
-
-import '../../components/subnav.scss';
+import TableModal from './modal.jsx';
 
 class UserTablesPage extends React.Component {
   constructor(props) {
@@ -14,17 +14,33 @@ class UserTablesPage extends React.Component {
     this.state = {
       table: { apiName: 'deals-table', displayName: 'Deals Table' },
       tableFields: [
-        { apiName: 'name', displayName: 'Name' },
-        { apiName: 'date', displayName: 'Date' }
+        { apiName: 'name', displayName: 'Name', type: 'string' },
+        { apiName: 'date', displayName: 'Date', type: 'date' },
+        { apiName: 'source', displayName: 'Source', type: 'string' },
+        { apiName: 'amount-raising', displayName: 'Amount Raising', type: 'number' }
       ],
       tables: [
         { apiName: 'deals-table', displayName: 'Deals Table' },
         { apiName: 'pipeline-table', displayName: 'Pipeline Table' },
         { apiName: 'investments-table', displayName: 'Investments Table' }
       ],
+      modalVisible: false
     };
 
+    this.showModal = this.showModal.bind(this);
+    this.hideModal = this.hideModal.bind(this);
+
     //getTableList().then((results) => console.log(results));
+  }
+
+  showModal(e) {
+    e.stopPropagation(); // Don't propagate to hideModal() handlers
+    this.setState({ modalVisible: true });
+  }
+
+  hideModal(e) {
+    e.stopPropagation(); // Don't propagate to showModal() handlers
+    this.setState({ modalVisible: false });
   }
 
   render() {
@@ -46,12 +62,19 @@ class UserTablesPage extends React.Component {
     return (
       <div className="ovc-subnav-view-container">
         <Subnav>
+          <SubnavButton iconClass="ion-plus"
+                        text="New Table"
+                        onClick={this.showModal} />
           <SubnavDropdown title="Select a Table"
                           selectedItem={selectedItem}
-                          menuItems={menuItems}
-                          onSelect={} />
+                          menuItems={menuItems} />
           <SubnavFilters filterList={filterList} />
         </Subnav>
+
+        <TableModal table={this.state.table}
+                    tableFields={this.state.tableFields}
+                    visible={this.state.modalVisible}
+                    hideModal={this.hideModal} />
       </div>
     );
   }

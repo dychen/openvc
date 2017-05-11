@@ -2,6 +2,27 @@ import React from 'react';
 import Immutable from 'immutable';
 import {DropdownButton, MenuItem, Nav, NavItem} from 'react-bootstrap';
 
+import './subnav.scss';
+
+/*
+ * text [string]: [Optional] Text to display on button.
+ * iconClass [string]: [Optional] CSS class of the icon (e.g. 'ion-plus').
+ *
+ * onClick [function]: Function to be called when the button is clicked.
+ *                     f([Object: Event]) => null
+ */
+const SubnavButton = (props) => {
+  return (
+    <div className="ovc-component-subnav-button-container">
+      <div className="ovc-component-subnav-button"
+           onClick={props.onClick}>
+        <i className={`${props.iconClass} subnav-button-icon`} />
+        <span>{props.text}</span>
+      </div>
+    </div>
+  );
+};
+
 /*
  * title [string]: Title of the dropdown section.
  * selectedItem [string]: eventKey of the currently selected MenuItem.
@@ -150,7 +171,7 @@ const Subnav = (props) => {
       {props.children}
     </div>
   );
-}
+};
 
-export {Subnav, SubnavDropdown, SubnavFilters};
+export {Subnav, SubnavButton, SubnavDropdown, SubnavFilters};
 

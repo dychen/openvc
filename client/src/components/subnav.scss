@@ -37,6 +37,38 @@
   display: flex;
   flex-direction: column;
 
+  /* Component: SubnavButton */
+  .ovc-component-subnav-button-container {
+    width: 100%;
+    padding: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #E1E1E1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .ovc-component-subnav-button {
+      width: $SUBNAV_WIDTH - 20px;
+      height: 40px;
+      border: 1px solid $OVC_GRAY;
+      border-radius: 5px;
+
+      @include hvr-fade($OVC_LIGHT_GRAY, $OVC_DARK_GRAY);
+
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      i.subnav-button-icon {
+        position: absolute;
+        left: 10px;
+        font-size: 20px;
+      }
+    }
+  }
+
   /* TODO: Component: SubnavTabs */
   .ovc-component-subnav-tabs {
     display: flex;

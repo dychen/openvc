@@ -1,0 +1,55 @@
+@import '../../mixins';
+@import '../../constants.scss';
+
+.ovc-modal > .ovc-modal-header.ovc-table-modal-header {
+  height: 60px;
+  background-color: $OVC_SUBNAV_GRAY;
+
+  position: relative;
+  .delete-table-button {
+    position: absolute;
+    right: 20px;
+    top: 12px;
+    width: 35px;
+    height: 35px;
+    font-size: 1.2em;
+    color: $OVC_RED;
+    background: $OVC_WHITE;
+    border: 1px solid $OVC_RED;
+    border-radius: 5px;
+
+    @include hvr-fade($OVC_WHITE, $OVC_RED);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.ovc-modal > .ovc-modal-body {
+  > .ovc-table-modal-field-panel {
+    height: 60px;
+    padding: 5px;
+    margin: 5px;
+    box-shadow: 0 1px 3px 0 $OVC_GRAY;
+  }
+}
+
+.ovc-modal > .ovc-modal-footer.ovc-table-modal-footer {
+  padding: 0px;
+  width: 100%;
+  height: 60px;
+  background-color: $OVC_SUBNAV_GRAY;
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  i {
+    position: absolute;
+    left: 20px;
+    font-size: 20px;
+  }
+
+  @include hvr-fade($OVC_SUBNAV_GRAY, $OVC_DARK_GRAY);
+}

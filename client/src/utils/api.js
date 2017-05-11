@@ -73,5 +73,31 @@ const authFetch = function(url, options) {
   return fetch(urlObj, options);
 };
 
-export {authFetch, preprocessJSON, formatAPIJSON};
+/*
+ * Usage:
+ *   authFetch([URL string], [Options object])
+ *     .then(handleResponse)
+ *     .then((data) => { // Do something with the data });
+ */
+const handleResponse = (response) => {
+  return new Promise((resolve, reject) => {
+    if (response.ok) {
+      resolve(response.json());
+    }
+    else {
+      return response.json().then(json => {
+        reject(Error(json));
+      });
+    }
+  })
+  .then(json => {
+    return preprocessJSON(json);
+  })
+  .catch(err => {
+    console.log(err);
+    return err;
+  });
+};
+
+export {authFetch, preprocessJSON, formatAPIJSON, handleResponse};
 

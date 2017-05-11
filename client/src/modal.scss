@@ -22,6 +22,64 @@
 
   background-color: $OVC_WHITE;
   border: 1px solid $OVC_GRAY;
+
+  > .ovc-modal-header {
+    flex: 0 0 60px;
+    width: 100%;
+    border-bottom: 1px solid $OVC_LIGHT_GRAY;
+  }
+
+  .ovc-modal-body {
+    height: 100%;
+    width: 100%;
+  }
+
+  .ovc-modal-footer {
+    flex: 0 0 80px;
+    width: 100%;
+    border-top: 1px solid $OVC_LIGHT_GRAY;
+  }
+}
+
+.ovc-modal > .ovc-modal-header {
+  font-size: 1.5em;
+  font-weight: 900;
+  background-color: $OVC_SUBNAV_GRAY;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ovc-modal > .ovc-modal-footer {
+  width: 100%;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-left: 10px;
+  padding-right: 10px;
+
+  .modal-footer-button {
+    position: relative;
+    width: 170px;
+    height: 40px;
+    padding: 10px;
+    border: 1px solid $OVC_DARK_GRAY;
+    border-radius: 5px;
+
+    @include hvr-fade($OVC_LIGHT_GRAY, $OVC_DARK_GRAY);
+
+    //position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    i {
+      position: absolute;
+      left: 10px;
+      font-size: 20px;
+    }
+  }
 }
 
 .ovc-modal-background.show {

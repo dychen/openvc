@@ -1,15 +1,11 @@
 @import '../mixins';
 @import '../constants.scss';
 
-$VIEW_SEARCH_WIDTH: 200px;
-$VIEW_PANEL_HEIGHT: 100px;
-$VIEW_PANEL_WIDTH: 300px;
-
 /*
- * Base
+ * View with Subnav
  */
 
-.ovc-investor-view-container {
+.ovc-subnav-view-container {
   width: 100%;
   height: 100%;
   overflow-x: hidden;
@@ -17,8 +13,8 @@ $VIEW_PANEL_WIDTH: 300px;
 
   display: flex;
 
-  .ovc-view-search-menu {
-    flex: 0 0 $VIEW_SEARCH_WIDTH;
+  .ovc-component-subnav {
+    flex: 0 0 $SUBNAV_WIDTH;
     height: 100%;
     background-color: $OVC_SUBNAV_GRAY;
     border-right: 1px solid $OVC_LIGHT_GRAY;
@@ -26,7 +22,7 @@ $VIEW_PANEL_WIDTH: 300px;
     overflow-y: scroll;
   }
 
-  .ovc-investor-view-list {
+  .ovc-subnav-main {
     width: 100%;
     height: 100%;
     overflow-y: scroll;
@@ -37,37 +33,14 @@ $VIEW_PANEL_WIDTH: 300px;
   }
 }
 
-.ovc-investor-view-list {
-  margin: 20px;
-  padding: 10px;
-
-  h3 {
-    padding-top: 0px;
-    margin-top: 0px;
-  }
-
-  .ovc-investor-view-sublist {
-    width: 100%;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: flex-start;
-    align-items: flex-start;
-    flex-direction: row;
-    flex-wrap: wrap;
-  }
-}
-
-/*
- * Sidenav
- */
-
-.ovc-view-search-menu {
+.ovc-component-subnav {
   display: flex;
   flex-direction: column;
 
-  .ovc-view-search-section-tabs {
+  /* TODO: Component: SubnavTabs */
+  .ovc-component-subnav-tabs {
     display: flex;
-    .ovc-search-tab {
+    .ovc-subnav-tab {
       width: 100%;
       background-color: $OVC_SUBNAV_GRAY;
       text-align: center;
@@ -79,7 +52,8 @@ $VIEW_PANEL_WIDTH: 300px;
     }
   }
 
-  .ovc-view-search-dropdown {
+  /* Component: SubnavDropdown */
+  .ovc-component-subnav-dropdown {
     padding: 20px;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -94,17 +68,18 @@ $VIEW_PANEL_WIDTH: 300px;
     }
   }
 
-  .ovc-view-search-inputs {
+  /* Component: SubnavFilters */
+  .ovc-component-subnav-filter-inputs {
     padding: 20px;
     padding-top: 10px;
     padding-bottom: 10px;
     border-bottom: 1px solid $OVC_LIGHT_GRAY;
 
-    @include ovc-nav-input($VIEW_SEARCH_WIDTH - 40px, 30px,
+    @include ovc-nav-input($SUBNAV_WIDTH - 40px, 30px,
                            $OVC_GRAY, $OVC_DARK_GRAY);
   }
-
-  .ovc-view-search-tags {
+  /* Component: SubnavFilters */
+  .ovc-component-subnav-filter-tags {
     padding: 20px;
     padding-top: 10px;
     padding-bottom: 10px;

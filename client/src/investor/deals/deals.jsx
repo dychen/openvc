@@ -7,7 +7,7 @@ import SearchSection from './search.jsx';
 //import UserPortfolioSection from './user.jsx';
 import DealTableSection from './table.jsx';
 
-import '../view.scss';
+import '../../components/subnav.scss';
 
 class InvestorDealsPage extends React.Component {
   constructor(props) {
@@ -83,7 +83,7 @@ class InvestorDealsPage extends React.Component {
     }
 
     return (
-      <div className="ovc-investor-view-container">
+      <div className="ovc-subnav-view-container">
         <SearchSection section={this.state.section}
                        groupBy={this.state.groupBy}
                        filterInputs={this.state.filterInputs}

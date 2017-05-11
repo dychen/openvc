@@ -186,7 +186,7 @@ class ModalFieldModal extends React.Component {
     this.updateEntity = this.updateEntity.bind(this);
   }
 
-  componentWillUpdate(nextProps, nextState) {
+  componentWillReceiveProps(nextProps) {
     if (this.props.visible === false
         && nextProps.visible
         && nextProps.visible === true) {

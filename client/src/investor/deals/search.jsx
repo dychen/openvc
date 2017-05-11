@@ -76,23 +76,23 @@ class SearchSection extends React.Component {
     });
 
     return (
-      <div className="ovc-view-search-menu">
-        <Nav className="ovc-view-search-section-tabs"
+      <div className="ovc-component-subnav">
+        <Nav className="ovc-component-subnav-tabs"
              bsStyle="tabs"
              activeKey={this.props.section}
              onSelect={this.changeSection}>
-          <NavItem className="ovc-search-tab" eventKey="user">
+          <NavItem className="ovc-subnav-tab" eventKey="user">
             Pipeline
           </NavItem>
-          <NavItem className="ovc-search-tab" eventKey="table">
+          <NavItem className="ovc-subnav-tab" eventKey="table">
             Table
           </NavItem>
         </Nav>
-        <div className="ovc-view-search-dropdown">
+        <div className="ovc-component-subnav-dropdown">
           <label>Group by</label>
           <DropdownButton className="dropdown-button"
                           title={this._GROUP_BY_DISPLAY_MAP[this.props.groupBy]}
-                          id="ovc-view-search-dropdown">
+                          id="ovc-component-subnav-dropdown">
             <MenuItem eventKey="none" onSelect={this.selectGroupBy}>
               {this._GROUP_BY_DISPLAY_MAP.none}
             </MenuItem>
@@ -107,7 +107,7 @@ class SearchSection extends React.Component {
             </MenuItem>
           </DropdownButton>
         </div>
-        <div className="ovc-view-search-inputs">
+        <div className="ovc-component-subnav-filter-inputs">
           <label>Search by company</label>
           <input type="text" name="name"
                  value={this.props.filterInputs.name}
@@ -130,7 +130,7 @@ class SearchSection extends React.Component {
                  onKeyPress={this.addFilterTag} />
         </div>
 
-        <div className="ovc-view-search-tags">
+        <div className="ovc-component-subnav-filter-tags">
           {tags}
         </div>
       </div>

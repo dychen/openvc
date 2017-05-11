@@ -26,6 +26,7 @@ import InvestorComparePage from './investor/compare.jsx';
 import InvestorPorfolioPage from './investor/portfolio/portfolio.jsx';
 import InvestorDealsPage from './investor/deals/deals.jsx';
 
+import UserTablesPage from './shared/tables/tables.jsx';
 import ContactsPage from './shared/contacts/contacts.jsx';
 import {FounderCompanyPage, InvestorCompanyPage} from './shared/company/company.jsx';
 import {UserProfilePage, ContactProfilePage} from './shared/profile/wrapper.jsx';
@@ -85,6 +86,7 @@ class App extends React.Component {
                                               //topnav: InvestorTopnav,
                                               sidenav: InvestorSidenav}}>
             <IndexRoute component={InvestorDealsPage} />
+            <Route path="tables" component={UserTablesPage} />
             <Route path="deals" component={InvestorDealsPage} />
             <Route path="landscape" component={InvestorLandscapePage} />
             <Route path="compare" component={InvestorComparePage} />

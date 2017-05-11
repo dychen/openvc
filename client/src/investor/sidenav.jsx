@@ -30,12 +30,28 @@ class InvestorSidenav extends React.Component {
             <i className="ion-navicon nav-hamburger" />
             <span className="minimized-sidenav-hidden">OpenVC</span>
           </div>
+          <Link to="/investor/tables">
+            <div className="ovc-sidenav-item link">
+              <i className="ion-easel" />
+              <span className="minimized-sidenav-hidden">
+                Tables
+              </span>
+            </div>
+          </Link>
           <Link to="/investor/deals">
             <div className="ovc-sidenav-item link">
               <i className="ion-ios-pulse" />
               <span className="minimized-sidenav-hidden">
                 Deal Pipeline
                 <i className="ovc-circle-alert red">4</i>
+              </span>
+            </div>
+          </Link>
+          <Link to="/investor/portfolio">
+            <div className="ovc-sidenav-item link">
+              <i className="ion-arrow-graph-up-right" />
+              <span className="minimized-sidenav-hidden">
+                Portfolio
               </span>
             </div>
           </Link>
@@ -52,14 +68,6 @@ class InvestorSidenav extends React.Component {
               <i className="ion-podium" />
               <span className="minimized-sidenav-hidden">
                 Compare Startups
-              </span>
-            </div>
-          </Link>
-          <Link to="/investor/portfolio">
-            <div className="ovc-sidenav-item link">
-              <i className="ion-arrow-graph-up-right" />
-              <span className="minimized-sidenav-hidden">
-                Portfolio
               </span>
             </div>
           </Link>

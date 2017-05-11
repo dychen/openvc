@@ -56,6 +56,12 @@ const authFetch = function(url, options) {
   // https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials
   // options.credentials = 'include';
 
+  // Encode request body as JSON for POST requests
+  if (options.method && options.method === 'POST' && options.body) {
+    options.headers['Content-Type'] = 'application/json';
+    options.headers['Accept'] = 'application/json';
+  }
+
   // Handle the 'params' field of options (GET parameters)
   // From fetch API spec: https://fetch.spec.whatwg.org/#fetch-api
   let urlObj = new URL(url);

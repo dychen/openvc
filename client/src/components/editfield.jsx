@@ -225,6 +225,11 @@ class BaseEditField extends React.Component {
     this.unfilterDisplayValue = createReverseDisplayFilter(this.props.fieldType);
   }
 
+  componentWillReceiveProps(nextProps) {
+    // TODO: See if this impacts performance
+    this.setState({ value: nextProps.originalValue || '' });
+  }
+
   enterEditMode(e) {
     e.stopPropagation();
     this.setState({ editing: true });

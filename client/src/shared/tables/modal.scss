@@ -6,7 +6,7 @@
   background-color: $OVC_SUBNAV_GRAY;
 
   position: relative;
-  .delete-table-button {
+  i.delete-table-button {
     position: absolute;
     right: 20px;
     top: 12px;
@@ -26,30 +26,71 @@
   }
 }
 
-.ovc-modal > .ovc-modal-body {
+.ovc-modal > .ovc-modal-body.ovc-table-modal-body {
+  max-height: 400px;
+  overflow-y: scroll;
+
   > .ovc-table-modal-field-panel {
     height: 60px;
     padding: 5px;
     margin: 5px;
     box-shadow: 0 1px 3px 0 $OVC_GRAY;
+
+    position: relative;
+    .delete-field-button {
+      position: absolute;
+      right: 5px;
+      top: 5px;
+      width: 20px;
+      height: 20px;
+      color: $OVC_RED;
+      background: $OVC_WHITE;
+      border: 1px solid $OVC_RED;
+      border-radius: 10px;
+
+      @include hvr-fade($OVC_WHITE, $OVC_RED);
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
   }
 }
 
 .ovc-modal > .ovc-modal-footer.ovc-table-modal-footer {
+  border: none;
   padding: 0px;
   width: 100%;
-  height: 60px;
-  background-color: $OVC_SUBNAV_GRAY;
 
-  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  i {
-    position: absolute;
-    left: 20px;
-    font-size: 20px;
-  }
+  flex-direction: column;
+  > .ovc-table-modal-add-field {
+    width: 100%;
+    height: 50px;
+    font-size: 1.2em;
+    border-top: 1px solid $OVC_LIGHT_GRAY;
 
-  @include hvr-fade($OVC_SUBNAV_GRAY, $OVC_DARK_GRAY);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    i {
+      position: absolute;
+      left: 20px;
+    }
+
+    @include hvr-fade($OVC_SUBNAV_GRAY, $OVC_DARK_GRAY);
+  }
+  > .ovc-table-modal-buttons {
+    width: 100%;
+    height: 60px;
+    border-top: 1px solid $OVC_LIGHT_GRAY;
+    background-color: $OVC_SUBNAV_GRAY;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
 }

@@ -1,7 +1,6 @@
 import React from 'react';
 
 import {getTableList} from './api.js';
-
 import EditTable from '../../components/edittable.jsx';
 import {Subnav, SubnavButton, SubnavDropdown,
         SubnavFilters} from '../../components/subnav.jsx';
@@ -14,10 +13,10 @@ class UserTablesPage extends React.Component {
     this.state = {
       table: { apiName: 'deals-table', displayName: 'Deals Table' },
       tableFields: [
-        { apiName: 'name', displayName: 'Name', type: 'string' },
-        { apiName: 'date', displayName: 'Date', type: 'date' },
-        { apiName: 'source', displayName: 'Source', type: 'string' },
-        { apiName: 'amount-raising', displayName: 'Amount Raising', type: 'number' }
+        { id: 1, apiName: 'name', displayName: 'Name', type: 'string' },
+        { id: 2, apiName: 'date', displayName: 'Date', type: 'date' },
+        { id: 3, apiName: 'source', displayName: 'Source', type: 'string' },
+        { id: 4, apiName: 'amount-raising', displayName: 'Amount Raising', type: 'number' }
       ],
       tables: [
         { apiName: 'deals-table', displayName: 'Deals Table' },

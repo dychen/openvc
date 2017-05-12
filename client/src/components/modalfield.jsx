@@ -187,9 +187,7 @@ class ModalFieldModal extends React.Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.visible === false
-        && nextProps.visible
-        && nextProps.visible === true) {
+    if (this.props.visible === false && nextProps.visible === true) {
       // Only load data when the modal shows - not when the modal is mounted
       // because every modal is mounted at the same time on component
       // initialization

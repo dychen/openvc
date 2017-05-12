@@ -9,7 +9,7 @@ import './subnav.scss';
  * iconClass [string]: [Optional] CSS class of the icon (e.g. 'ion-plus').
  *
  * onClick [function]: Function to be called when the button is clicked.
- *                     f([Object: Event]) => null
+ *                     f([Object: Event object]) => null
  */
 const SubnavButton = (props) => {
   return (

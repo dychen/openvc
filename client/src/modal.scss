@@ -67,6 +67,7 @@
     padding: 10px;
     border: 1px solid $OVC_DARK_GRAY;
     border-radius: 5px;
+    background-color: $OVC_WHITE;
 
     @include hvr-fade($OVC_LIGHT_GRAY, $OVC_DARK_GRAY);
 

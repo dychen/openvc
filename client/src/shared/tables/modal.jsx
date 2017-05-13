@@ -4,7 +4,7 @@ import Scroll from 'react-scroll';
 const ScrollScroller = Scroll.animateScroll;
 
 import {createTable, updateTable, deleteTable,
-        getFieldList, createField, updateField, deleteField} from './api.js';
+        createField, updateField, deleteField} from './api.js';
 import {EditField} from '../../components/editfield.jsx';
 
 import './modal.scss';
@@ -154,7 +154,8 @@ class TableModal extends React.Component {
 
     this.state = {
       table: {},
-      tableFields: []
+      tableFields: [],
+      fieldsToDelete: []
     };
 
     this._preventModalClose = this._preventModalClose.bind(this);
@@ -172,7 +173,8 @@ class TableModal extends React.Component {
       // Only load data when the modal shows
       this.setState({
         table: nextProps.table,
-        tableFields: nextProps.tableFields
+        tableFields: nextProps.tableFields,
+        fieldToDelete: []
       });
     }
   }
@@ -195,7 +197,6 @@ class TableModal extends React.Component {
 
   addTableField(e) {
     const field = {
-      id: new Date().getTime(), // Temporary id, used to modify/delete the field
       displayName: '',
       type: 'string'
     };
@@ -212,16 +213,26 @@ class TableModal extends React.Component {
     );
     const newState = Immutable.fromJS(this.state)
       .set('tableFields', newFields);
-    this.setState(newState.toJS());
+
+    // If the field already exists, queue it for deletion
+    if (field.id) {
+      const removeFieldsState = Immutable.fromJS(this.state)
+        .update('fieldsToDelete', fieldsToDelete => fieldsToDelete.push(field));
+      this.setState(removeFieldsState.toJS());
+    }
+    // Otherwise, ignore
+    else {
+      this.setState(newState.toJS());
+    }
   }
 
   saveTable(e) {
-    const saveField = (field) => {
+    const saveField = (tableId, field) => {
       if (field.id) {
-        return updateField(this.state.table.id, field.id, field);
+        return updateField(tableId, field.id, field);
       }
       else {
-        return updateField(this.state.table.id, field);
+        return createField(tableId, field);
       }
     };
 
@@ -229,19 +240,37 @@ class TableModal extends React.Component {
     if (this.state.table.id) {
       updateTable(this.state.table.id, this.state.table)
         .then((table) => {
+          // Create/update existing fields
           this.state.tableFields.forEach((field) => {
-            saveField(field, this.state.table.id);
+            saveField(this.state.table.id, field);
           });
+          // Delete removed fields
+          this.state.fieldsToDelete.forEach((field) => {
+            deleteField(this.state.table.id, field.id);
+          });
+        })
+        .catch((err) => {
+          console.log('Error', err);
+          return (err);
         })
         .then(this.props.hideModal);
     }
     // Create new table
     else {
-      createTable(this.state.table.id)
+      createTable(this.state.table)
         .then((table) => {
+          // Create/update existing fields
           this.state.tableFields.forEach((field) => {
-            saveField(field, table.id);
+            saveField(table.id, field);
           });
+          // Delete removed fields
+          this.state.fieldsToDelete.forEach((field) => {
+            deleteField(this.state.table.id, field.id);
+          });
+        })
+        .catch((err) => {
+          console.log('Error', err);
+          return (err);
         })
         .then(this.props.hideModal);
     }

@@ -1,4 +1,5 @@
 import datetime
+import re
 from dateutil import parser as dateparser
 from dateutil.relativedelta import relativedelta
 
@@ -38,4 +39,16 @@ def get_quarters_since(d, count):
 def get_quarters_until(d, count):
     ending = get_quarter(d)
     return [ending - relativedelta(months=3*i) for i in range(count)][::-1]
+
+def snake_to_camel(s):
+    s_arr = s.split('_')
+    return s_arr[0] + ''.join(w.title() for w in s_arr[1:])
+
+def camel_to_snake(s):
+    """
+    http://stackoverflow.com/questions/1175208/
+        elegant-python-function-to-convert-camelcase-to-snake-case
+    """
+    s2 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', s)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s2).lower()
 

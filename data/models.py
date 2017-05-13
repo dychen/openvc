@@ -24,9 +24,7 @@ import json
 from decimal import Decimal
 from django.db import models
 from shared.utils import parse_date
-
-DEFAULT_ACCOUNT_ID = 1 # Can't define this in users.models due to circular
-                       # imports.
+from shared.constants import DEFAULT_ACCOUNT_ID
 
 def create_defaults_hash(api_response, api_field_map):
     """
@@ -1243,6 +1241,8 @@ class Deal(models.Model):
     type       = models.TextField(null=True, blank=True)
     status     = models.TextField(null=True, blank=True)
     stage      = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return u'(%s) %s' % (unicode(self.account), self.name)
@@ -1303,7 +1303,7 @@ class Deal(models.Model):
         """
         Expected request body:
         {
-            # Foreign keyds
+            # Foreign keys
             'company': [int],
             'investment': [int],
             'referrer': [int],

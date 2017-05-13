@@ -22,6 +22,7 @@ from users.views import investor as investor_views
 from contacts import views as contact_views
 from data.views import entity as entity_views
 from data.views import match as match_views
+from data.views import custom_views as custom_views
 
 urlpatterns = [
     # Admin API
@@ -121,6 +122,20 @@ urlpatterns = [
     url(r'^api/v1/data/person/(?P<person_id>[0-9]+)/experience/'
          '(?P<employment_id>[0-9]+)$',
         entity_views.PersonEmployment.as_view()),
+
+    # Custom Tables API
+    url(r'^api/v1/tables$',
+        custom_views.CustomTableView.as_view()),
+    url(r'^api/v1/tables/(?P<id>[0-9]+)$',
+        custom_views.CustomTableView.as_view()),
+    url(r'^api/v1/tables/(?P<table_id>[0-9]+)/fields$',
+        custom_views.CustomFieldView.as_view()),
+    url(r'^api/v1/tables/(?P<table_id>[0-9]+)/fields/(?P<field_id>[0-9]+)$',
+        custom_views.CustomFieldView.as_view()),
+    #url(r'^api/v1/tables/(?P<table_id>[0-9]+)/records$',
+    #    custom_views.CustomRecordView.as_view()),
+    #url(r'^api/v1/tables/(?P<table_id>[0-9]+)/records/(?P<field_id>[0-9]+)$',
+    #    custom_views.CustomRecordView.as_view()),
 
     # Entity resolution API
     url(r'^api/v1/match/person$', match_views.MatchPerson.as_view()),

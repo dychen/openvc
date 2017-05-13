@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {getTableList} from './api.js';
+import {getTableList, getFieldList} from './api.js';
 import EditTable from '../../components/edittable.jsx';
 import {Subnav, SubnavButton, SubnavDropdown,
         SubnavFilters} from '../../components/subnav.jsx';
@@ -11,34 +11,41 @@ class UserTablesPage extends React.Component {
     super(props);
 
     this.state = {
-      table: { apiName: 'deals-table', displayName: 'Deals Table' },
-      tableFields: [
-        { id: 1, apiName: 'name', displayName: 'Name', type: 'string' },
-        { id: 2, apiName: 'date', displayName: 'Date', type: 'date' },
-        { id: 3, apiName: 'source', displayName: 'Source', type: 'string' },
-        { id: 4, apiName: 'amount-raising', displayName: 'Amount Raising', type: 'number' }
-      ],
-      tables: [
-        { apiName: 'deals-table', displayName: 'Deals Table' },
-        { apiName: 'pipeline-table', displayName: 'Pipeline Table' },
-        { apiName: 'investments-table', displayName: 'Investments Table' }
-      ],
+      table: {},
+      tableFields: [],
+      tables: [],
       modalVisible: false
     };
 
     this.showModal = this.showModal.bind(this);
     this.hideModal = this.hideModal.bind(this);
 
-    //getTableList().then((results) => console.log(results));
+    getTableList()
+      .then((tables) => {
+        const activeTable = (tables && tables.length > 0) ? tables[0] : {};
+        this.setState({
+          table: activeTable,
+          tables: tables
+        }, () => {
+          if (activeTable.id) {
+            getFieldList(activeTable.id)
+              .then((fields) => {
+                this.setState({ tableFields: fields });
+              });
+          }
+        });
+      });
   }
 
   showModal(e) {
-    e.stopPropagation(); // Don't propagate to hideModal() handlers
+    if (e && e.stopPropagation)
+      e.stopPropagation(); // Don't propagate to hideModal() handlers
     this.setState({ modalVisible: true });
   }
 
   hideModal(e) {
-    e.stopPropagation(); // Don't propagate to showModal() handlers
+    if (e && e.stopPropagation)
+      e.stopPropagation(); // Don't propagate to showModal() handlers
     this.setState({ modalVisible: false });
   }
 

@@ -92,10 +92,6 @@ const handleResponse = (response) => {
   })
   .then(json => {
     return preprocessJSON(json);
-  })
-  .catch(err => {
-    console.log(err);
-    return err;
   });
 };
 

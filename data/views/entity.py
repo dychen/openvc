@@ -8,54 +8,8 @@ from rest_framework.views import APIView
 
 from users.models import Account
 from data.models import Company, Person, Employment
+from data.api import get_fields, get_api_format, create_from_api, update_from_api
 from shared.auth import check_authentication
-
-# TODO: Refactor these
-
-def get_fields(request):
-    return [camel_to_snake(field)
-            for field in request.GET.get('fields').split(',')]
-
-def snake_to_camel(s):
-    s_arr = s.split('_')
-    return s_arr[0] + ''.join(w.title() for w in s_arr[1:])
-
-import re
-def camel_to_snake(s):
-    """
-    http://stackoverflow.com/questions/1175208/
-        elegant-python-function-to-convert-camelcase-to-snake-case
-    """
-    s2 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', s)
-    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s2).lower()
-
-def get_api_field_format(s):
-    return snake_to_camel(s)
-
-def get_db_field_format(s):
-    return camel_to_snake(s)
-
-def get_api_format(obj, fields):
-    return {
-        snake_to_camel(field): getattr(obj, field)
-        for field in (fields + ['id']) if hasattr(obj, field)
-    }
-
-def create_from_api(model, account, fields, request_json):
-    obj_dict = {}
-    for field in fields:
-        api_field = get_api_field_format(field)
-        if api_field in request_json:
-            obj_dict[field] = request_json.get(api_field)
-    return model.objects.create(account=account, **obj_dict)
-
-def update_from_api(obj, account, fields, request_json):
-    for field in fields:
-        api_field = get_api_field_format(field)
-        if api_field in request_json:
-            setattr(obj, field, request_json.get(api_field))
-    obj.save()
-    return obj
 
 class CompanyView(APIView):
 

@@ -58,7 +58,7 @@ class SubnavDropdown extends React.Component {
       <div className="ovc-component-subnav-dropdown">
         <label>{this.props.title}</label>
         <DropdownButton className="dropdown-button"
-                        title={this.props.selectedItem.display}
+                        title={this.props.selectedItem.display || 'None'}
                         id="ovc-component-subnav-dropdown">
           {menuItems}
         </DropdownButton>

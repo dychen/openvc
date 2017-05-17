@@ -208,8 +208,10 @@ class TableModal extends React.Component {
   }
 
   removeTableField(e) {
+    const fieldIdx = Number(e.currentTarget.id);
+    const field = this.state.tableFields[fieldIdx];
     const newFields = this.state.tableFields.filter((field, index) =>
-      index !== Number(e.currentTarget.id)
+      index !== fieldIdx
     );
     const newState = Immutable.fromJS(this.state)
       .set('tableFields', newFields);
@@ -248,6 +250,10 @@ class TableModal extends React.Component {
           this.state.fieldsToDelete.forEach((field) => {
             deleteField(this.state.table.id, field.id);
           });
+          // Update parent
+          if (this.props.onSave) {
+            this.props.onSave(table);
+          }
         })
         .catch((err) => {
           console.log('Error', err);
@@ -267,6 +273,10 @@ class TableModal extends React.Component {
           this.state.fieldsToDelete.forEach((field) => {
             deleteField(this.state.table.id, field.id);
           });
+          // Update parent
+          if (this.props.onSave) {
+            this.props.onSave(table);
+          }
         })
         .catch((err) => {
           console.log('Error', err);
@@ -278,10 +288,10 @@ class TableModal extends React.Component {
 
   deleteTable(e) {
     if (this.state.table.id) {
-      this.props.hideModal();
+      deleteTable(this.state.table.id).then(this.props.hideModal);
     }
     else {
-      deleteTable(this.state.table.id).then(this.props.hideModal);
+      this.props.hideModal();
     }
   }
 

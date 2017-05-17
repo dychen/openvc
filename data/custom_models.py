@@ -2,6 +2,10 @@ from django.db import models
 from shared.constants import DEFAULT_ACCOUNT_ID, DATA_TYPES
 from data.api import get_api_format, create_from_api, update_from_api
 
+def generate_api_name(display_name):
+    return (''.join([c for c in display_name if c.isalnum() or c == ' '])
+              .replace(' ', '_'))
+
 class CustomTable(models.Model):
     API_FIELDS = ['display_name', 'api_name', 'icon',
                   { 'field': 'owner', 'related_fields': ['email'] }]
@@ -21,33 +25,29 @@ class CustomTable(models.Model):
     class Meta:
         unique_together = ('account', 'api_name')
 
-    def __generate_api_name(self, display_name):
-        return (''.join([c for c in display_name if c.isalnum() or c == ' '])
-                  .replace(' ', '_'))
-
     def get_api_format(self):
         return get_api_format(self, self.API_FIELDS)
 
     @classmethod
     def create_from_api(cls, user, request_json):
-        if 'display_name' in request_json:
-            request_json['api_name'] = self.__generate_api_name(
-                request_json['display_name']
+        if 'displayName' in request_json:
+            request_json['apiName'] = generate_api_name(
+                request_json['displayName']
             )
         request_json['owner'] = user
         return create_from_api(cls, user.account, cls.API_FIELDS, request_json)
 
     def update_from_api(self, user, request_json):
-        if 'display_name' in request_json:
-            request_json['api_name'] = self.__generate_api_name(
-                request_json['display_name']
+        if 'displayName' in request_json:
+            request_json['apiName'] = generate_api_name(
+                request_json['displayName']
             )
         return update_from_api(self, user.account, self.API_FIELDS, request_json)
 
 class CustomField(models.Model):
     API_FIELDS = [
         'display_name', 'api_name', 'type', 'required',
-        #{ 'table': ['display_name', 'api_name', 'icon'] },
+        { 'field': 'table', 'related_fields': ['display_name', 'api_name', 'icon'] },
         #{ 'related_table': ['display_name', 'api_name', 'icon'] },
         { 'field': 'owner', 'related_fields': ['email'] },
     ]
@@ -78,18 +78,18 @@ class CustomField(models.Model):
 
     @classmethod
     def create_from_api(cls, user, table, request_json):
-        if 'display_name' in request_json:
-            request_json['api_name'] = self.__generate_api_name(
-                request_json['display_name']
+        if 'displayName' in request_json:
+            request_json['apiName'] = generate_api_name(
+                request_json['displayName']
             )
         request_json['owner'] = user
         request_json['table'] = table
         return create_from_api(cls, user.account, cls.API_FIELDS, request_json)
 
     def update_from_api(self, user, table, request_json):
-        if 'display_name' in request_json:
-            request_json['api_name'] = self.__generate_api_name(
-                request_json['display_name']
+        if 'displayName' in request_json:
+            request_json['apiName'] = generate_api_name(
+                request_json['displayName']
             )
         request_json['table'] = table
         return update_from_api(self, user.account, self.API_FIELDS, request_json)

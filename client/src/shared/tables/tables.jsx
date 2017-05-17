@@ -17,12 +17,23 @@ class UserTablesPage extends React.Component {
       modalVisible: false
     };
 
+    this.loadTables = this.loadTables.bind(this);
     this.showModal = this.showModal.bind(this);
     this.hideModal = this.hideModal.bind(this);
+    this.changeTable = this.changeTable.bind(this);
 
+    this.loadTables();
+  }
+
+  loadTables(table) {
+    let activeTable = {};
     getTableList()
       .then((tables) => {
-        const activeTable = (tables && tables.length > 0) ? tables[0] : {};
+        if (table)
+          activeTable = table;
+        else
+          activeTable = (tables && tables.length > 0) ? tables[0] : {};
+
         this.setState({
           table: activeTable,
           tables: tables
@@ -49,18 +60,33 @@ class UserTablesPage extends React.Component {
     this.setState({ modalVisible: false });
   }
 
+  changeTable(tableId) {
+    const tableIdx = this.state.tables.findIndex(table => table.id === tableId);
+    const activeTable = this.state.tables[tableIdx];
+    this.setState({
+      table: activeTable
+    }, () => {
+      if (activeTable.id) {
+        getFieldList(activeTable.id)
+          .then((fields) => {
+            this.setState({ tableFields: fields });
+          });
+      }
+    });
+  }
+
   render() {
     const selectedItem = {
-      key: this.state.table.apiName,
+      key: this.state.table.id,
       display: this.state.table.displayName
     };
     const menuItems = this.state.tables.map((table) => {
-      return { key: table.apiName, display: table.displayName };
+      return { key: table.id, display: table.displayName };
     });
 
     const filterList = this.state.tableFields.map((tableField) => {
       return {
-        key: tableField.apiName,
+        key: tableField.id,
         display: `Filter by ${tableField.displayName}`
       };
     });
@@ -73,14 +99,16 @@ class UserTablesPage extends React.Component {
                         onClick={this.showModal} />
           <SubnavDropdown title="Select a Table"
                           selectedItem={selectedItem}
-                          menuItems={menuItems} />
+                          menuItems={menuItems}
+                          onSelect={this.changeTable} />
           <SubnavFilters filterList={filterList} />
         </Subnav>
 
-        <TableModal table={this.state.table}
-                    tableFields={this.state.tableFields}
+        <TableModal table={{}}
+                    tableFields={[]}
                     visible={this.state.modalVisible}
-                    hideModal={this.hideModal} />
+                    hideModal={this.hideModal}
+                    onSave={this.loadTables} />
       </div>
     );
   }

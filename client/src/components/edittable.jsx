@@ -69,6 +69,17 @@ class EditTable extends React.Component {
     this.getEntityList();
   }
 
+  // React docs suggest this is a good place to do network requests:
+  //   https://facebook.github.io/react/docs/react-component.html
+  //     #componentdidupdate
+  // Only call the endpoint after the props are updated, not before.
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.API_URL !== prevProps.API_URL) {
+      // Reload the table every time the API endpoint changes
+      this.getEntityList();
+    }
+  }
+
   /*
    * Add new row handlers
    */

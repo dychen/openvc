@@ -6,6 +6,35 @@ import {Subnav, SubnavButton, SubnavDropdown,
         SubnavFilters} from '../../components/subnav.jsx';
 import TableModal from './modal.jsx';
 
+/*
+ * props:
+ *   tableId [string]: Id of the target table
+ *   fields [Array]: List of CustomField objects:
+ *     [{ displayName: [string], apiName: [string], type: [string],
+ *        required: [boolean] }, ...]
+ */
+const TableSection = (props) => {
+  const apiUrl = `${SERVER_URL}/api/v1/tables/${props.tableId}/records`;
+  const fields = props.fields.map(field => field.apiName);
+  let fieldMap = {};
+  props.fields.forEach(field => {
+    fieldMap[field.apiName] = {
+      display: field.displayName,
+      type: field.type || 'string',
+      required: field.required || false
+    };
+  });
+
+  return (
+    <div className="ovc-edit-table-container">
+      <EditTable API_URL={apiUrl}
+                 FIELDS={fields}
+                 FIELD_MAP={fieldMap}
+                 {...props} />
+    </div>
+  );
+}
+
 class UserTablesPage extends React.Component {
   constructor(props) {
     super(props);
@@ -91,6 +120,14 @@ class UserTablesPage extends React.Component {
       };
     });
 
+    let tableSection = '';
+    if (this.state.table && this.state.table.id) {
+      tableSection = (
+        <TableSection tableId={this.state.table.id}
+                      fields={this.state.tableFields} />
+      );
+    }
+
     return (
       <div className="ovc-subnav-view-container">
         <Subnav>
@@ -103,6 +140,7 @@ class UserTablesPage extends React.Component {
                           onSelect={this.changeTable} />
           <SubnavFilters filterList={filterList} />
         </Subnav>
+        {tableSection}
 
         <TableModal table={{}}
                     tableFields={[]}

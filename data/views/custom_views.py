@@ -51,13 +51,6 @@ class CustomTableView(APIView):
 
     # POST /tables
     def __post_create(self, request, format=None):
-        """
-        Expected request body:
-        {
-            'name': [required] [str],
-            ... // Other fields are user-configured and optional
-        }
-        """
         try:
             user = check_authentication(request)
             account = user.account
@@ -78,12 +71,6 @@ class CustomTableView(APIView):
 
     # POST /tables/:id
     def __post_update(self, request, table_id, format=None):
-        """
-        Expected request body:
-        {
-            ... // All fields are user-configured and optional
-        }
-        """
         try:
             user = check_authentication(request)
             account = user.account
@@ -167,13 +154,6 @@ class CustomFieldView(APIView):
 
     # POST /tables/:table_id/fields
     def __post_create(self, request, table_id, format=None):
-        """
-        Expected request body:
-        {
-            'name': [required] [str],
-            ... // Other fields are user-configured and optional
-        }
-        """
         try:
             user = check_authentication(request)
             account = user.account
@@ -194,12 +174,6 @@ class CustomFieldView(APIView):
 
     # POST /tables/:table_id/fields/:field_id
     def __post_update(self, request, table_id, field_id, format=None):
-        """
-        Expected request body:
-        {
-            ... // All fields are user-configured and optional
-        }
-        """
         try:
             user = check_authentication(request)
             account = user.account
@@ -246,3 +220,115 @@ class CustomFieldView(APIView):
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
+class CustomRecordView(APIView):
+
+    authentication_classes = (TokenAuthentication,)
+
+    # GET /tables/:table_id/records
+    def __get_list(self, request, table_id, format=None):
+        try:
+            user = check_authentication(request)
+            account = user.account
+            custom_table = CustomTable.objects.get(account=account, id=table_id)
+            custom_records = CustomRecord.objects.filter(account=account,
+                                                         table=custom_table)
+            return Response([
+                custom_record.get_api_format()
+                for custom_record in custom_records
+            ], status=status.HTTP_200_OK)
+
+        except (Account.DoesNotExist, CustomTable.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # GET /tables/:table_id/records/:record_id
+    def __get_one(self, request, table_id, record_id, format=None):
+        try:
+            user = check_authentication(request)
+            account = user.account
+            custom_table = CustomTable.objects.get(account=account, id=table_id)
+            custom_record = CustomRecord.objects.get(account=account,
+                                                     id=record_id,
+                                                     table=custom_table)
+            return Response(custom_record.get_api_format(),
+                            status=status.HTTP_200_OK)
+
+        except (Account.DoesNotExist, CustomTable.DoesNotExist,
+                CustomRecord.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, table_id, record_id=None, format=None):
+        if record_id:
+            return self.__get_one(request, table_id, record_id, format=format)
+        else:
+            return self.__get_list(request, table_id, format=format)
+
+    # POST /tables/:table_id/records
+    def __post_create(self, request, table_id, format=None):
+        try:
+            user = check_authentication(request)
+            account = user.account
+            request_json = validate_request(json.loads(request.body),
+                                            CustomRecord.REQUIRED_FIELDS)
+            custom_table = CustomTable.objects.get(account=account, id=table_id)
+            custom_record = CustomRecord.create_from_api(user, custom_table,
+                                                         request_json)
+            return Response(custom_record.get_api_format(),
+                            status=status.HTTP_201_CREATED)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (Account.DoesNotExist, CustomTable.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # POST /tables/:table_id/records/:record_id
+    def __post_update(self, request, table_id, record_id, format=None):
+        try:
+            user = check_authentication(request)
+            account = user.account
+            request_json = json.loads(request.body)
+            custom_table = CustomTable.objects.get(account=account, id=table_id)
+            custom_record = CustomRecord.objects.get(account=account,
+                                                     id=record_id,
+                                                     table=custom_table)
+            custom_record = custom_record.update_from_api(user, custom_table,
+                                                          request_json)
+            return Response(custom_record.get_api_format(),
+                            status=status.HTTP_200_OK)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (Account.DoesNotExist, CustomTable.DoesNotExist,
+                CustomRecord.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, table_id, record_id=None, format=None):
+        if record_id:
+            return self.__post_update(request, table_id, record_id,
+                                      format=format)
+        else:
+            return self.__post_create(request, table_id, format=format)
+
+    # DELETE /tables/:table_id/records/:record_id
+    def delete(self, request, table_id, record_id=None, format=None):
+        try:
+            user = check_authentication(request)
+            account = user.account
+            table_id = int(table_id)
+            record_id = int(record_id)
+
+            custom_table = CustomTable.objects.get(account=account, id=table_id,
+                                                   owner=user)
+            CustomRecord.objects.get(account=account, id=record_id, owner=user,
+                                    table=custom_table).delete()
+            return Response({ 'id': record_id }, status=status.HTTP_200_OK)
+
+        except (Account.DoesNotExist, CustomTable.DoesNotExist,
+                CustomRecord.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)

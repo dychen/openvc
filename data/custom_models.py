@@ -96,11 +96,11 @@ class CustomField(models.Model):
 
 class CustomRecord(models.Model):
     API_FIELDS = [
-        'display_name', 'api_name', 'type', 'required',
-        #{ 'table': ['display_name', 'api_name', 'icon'] },
-        #{ 'owner': ['email'] },
+        { 'field': 'table', 'related_fields': ['display_name', 'api_name', 'icon'] },
+        { 'field': 'owner', 'related_fields': ['email'] },
         #{ 'custom_data': ['field', 'value'] },
     ]
+    REQUIRED_FIELDS = []
 
     account    = models.ForeignKey('users.Account',
                                    related_name='custom_records',
@@ -112,17 +112,46 @@ class CustomRecord(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def get_api_format(self):
-        return get_api_format(self, self.API_FIELDS)
+        # TODO: Optimize
+        record = { 'id': self.id }
+        for custom_field in self.table.custom_fields.all():
+            try:
+                record[custom_field.api_name] = CustomData.objects.get(
+                    account=self.account, record=self, field=custom_field
+                ).value
+            except CustomData.DoesNotExist:
+                record[custom_field.api_name] = None
+        return record
 
     @classmethod
     def create_from_api(cls, user, table, request_json):
-        request_json['owner'] = user
-        request_json['table'] = table
-        return create_from_api(cls, user.account, cls.API_FIELDS, request_json)
+        record = CustomRecord.objects.create(account=user.account, owner=user,
+                                             table=table)
+        for field_name, value in request_json.iteritems():
+            # TODO: Transform value based on type
+            try:
+                field = CustomField.objects.get(table=table,
+                                                api_name=field_name)
+                CustomData.objects.create(field=field, record=record,
+                                          owner=user, account=user.account,
+                                          value=value)
+            except CustomField.DoesNotExist:
+                continue
+        return record
 
     def update_from_api(self, user, table, request_json):
-        request_json['table'] = table
-        return update_from_api(self, user.account, self.API_FIELDS, request_json)
+        for field_name, value in request_json.iteritems():
+            # TODO: Transform value based on type
+            try:
+                field = CustomField.objects.get(table=table,
+                                                api_name=field_name)
+                CustomData.objects.update_or_create(field=field, record=self,
+                                                    owner=user,
+                                                    account=user.account,
+                                                    defaults={ 'value': value })
+            except CustomField.DoesNotExist:
+                continue
+        return self
 
 class CustomData(models.Model):
     API_FIELDS = [

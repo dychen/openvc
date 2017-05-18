@@ -19,6 +19,9 @@ table.ovc-edit-table {
     td.remove-entity {
       width: 40px;
     }
+    td.clickable {
+      @include hvr-fade-table($OVC_GRAY, $OVC_WHITE);
+    }
   }
   tbody {
     tr {

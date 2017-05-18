@@ -12,6 +12,8 @@ import TableModal from './modal.jsx';
  *   fields [Array]: List of CustomField objects:
  *     [{ displayName: [string], apiName: [string], type: [string],
  *        required: [boolean] }, ...]
+ *   onHeaderClick [function]: Function that runs when a header cell is clicked.
+ *     f([Event object]) => CustomField object { displayName: [string], ... }
  */
 const TableSection = (props) => {
   const apiUrl = `${SERVER_URL}/api/v1/tables/${props.tableId}/records`;
@@ -30,6 +32,7 @@ const TableSection = (props) => {
       <EditTable API_URL={apiUrl}
                  FIELDS={fields}
                  FIELD_MAP={fieldMap}
+                 onHeaderClick={props.onHeaderClick}
                  {...props} />
     </div>
   );
@@ -43,12 +46,15 @@ class UserTablesPage extends React.Component {
       table: {},
       tableFields: [],
       tables: [],
-      modalVisible: false
+      createModalVisible: false,
+      updateModalVisible: false
     };
 
     this.loadTables = this.loadTables.bind(this);
-    this.showModal = this.showModal.bind(this);
-    this.hideModal = this.hideModal.bind(this);
+    this.showCreateModal = this.showCreateModal.bind(this);
+    this.showUpdateModal = this.showUpdateModal.bind(this);
+    this.hideCreateModal = this.hideCreateModal.bind(this);
+    this.hideUpdateModal = this.hideUpdateModal.bind(this);
     this.changeTable = this.changeTable.bind(this);
 
     this.loadTables();
@@ -77,16 +83,28 @@ class UserTablesPage extends React.Component {
       });
   }
 
-  showModal(e) {
+  showCreateModal(e) {
     if (e && e.stopPropagation)
       e.stopPropagation(); // Don't propagate to hideModal() handlers
-    this.setState({ modalVisible: true });
+    this.setState({ createModalVisible: true });
   }
 
-  hideModal(e) {
+  showUpdateModal(e) {
+    if (e && e.stopPropagation)
+      e.stopPropagation(); // Don't propagate to hideModal() handlers
+    this.setState({ updateModalVisible: true });
+  }
+
+  hideCreateModal(e) {
     if (e && e.stopPropagation)
       e.stopPropagation(); // Don't propagate to showModal() handlers
-    this.setState({ modalVisible: false });
+    this.setState({ createModalVisible: false });
+  }
+
+  hideUpdateModal(e) {
+    if (e && e.stopPropagation)
+      e.stopPropagation(); // Don't propagate to showModal() handlers
+    this.setState({ updateModalVisible: false });
   }
 
   changeTable(tableId) {
@@ -124,7 +142,8 @@ class UserTablesPage extends React.Component {
     if (this.state.table && this.state.table.id) {
       tableSection = (
         <TableSection tableId={this.state.table.id}
-                      fields={this.state.tableFields} />
+                      fields={this.state.tableFields}
+                      onHeaderClick={this.showUpdateModal} />
       );
     }
 
@@ -133,7 +152,7 @@ class UserTablesPage extends React.Component {
         <Subnav>
           <SubnavButton iconClass="ion-plus"
                         text="New Table"
-                        onClick={this.showModal} />
+                        onClick={this.showCreateModal} />
           <SubnavDropdown title="Select a Table"
                           selectedItem={selectedItem}
                           menuItems={menuItems}
@@ -144,9 +163,15 @@ class UserTablesPage extends React.Component {
 
         <TableModal table={{}}
                     tableFields={[]}
-                    visible={this.state.modalVisible}
-                    hideModal={this.hideModal}
+                    visible={this.state.createModalVisible}
+                    hideModal={this.hideCreateModal}
                     onSave={this.loadTables} />
+        <TableModal table={this.state.table}
+                    tableFields={this.state.tableFields}
+                    visible={this.state.updateModalVisible}
+                    hideModal={this.hideUpdateModal}
+                    onSave={this.loadTables}
+                    onDelete={this.loadTables} />
       </div>
     );
   }

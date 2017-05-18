@@ -9,6 +9,50 @@ import './edittable.scss';
 
 /*
  * props:
+ *   onHeaderClick [function]: Function that runs when a header cell is clicked.
+ *     f([Event object]) => CustomField object { displayName: [string], ... }
+ */
+class EditTableHeader extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.onHeaderClick = this.onHeaderClick.bind(this);
+  }
+
+  onHeaderClick(e) {
+    if (this.props.onHeaderClick) {
+      const activeField = this.props.FIELDS[e.currentTarget.value];
+      // activeField is undefined in the remove-entity onClick handler
+      this.props.onHeaderClick(activeField);
+    }
+  }
+
+  render() {
+    const className = this.onHeaderClick ? 'clickable' : '';
+    const headers = this.props.FIELDS.map((field) => {
+      return (
+        <td key={field} id={field} className={className}
+            onClick={this.onHeaderClick}>
+          {this.props.FIELD_MAP[field].display}
+        </td>
+      );
+    });
+
+    return (
+      <thead>
+        <tr>
+          {headers}
+          <td className={className} onClick={this.onHeaderClick}>
+            <i className="ion-plus" />
+          </td>
+        </tr>
+      </thead>
+    );
+  }
+}
+
+/*
+ * props:
  *   API_URL [string]: Backend API endpoint to hit.
  *   FIELDS [Array]: List of API fields to show as table columns.
  *   FIELD_MAP [Object]: Mapping between table field names and field properties.
@@ -347,10 +391,6 @@ class EditTable extends React.Component {
    *   { owner: { id: 123, firstName: 'John', ... } }
    */
   render() {
-    const headers = this.props.FIELDS.map((field) => {
-      return (<td key={field}>{this.props.FIELD_MAP[field].display}</td>);
-    });
-
     const rows = this.state.data.map((row) => {
       const elements = this.props.FIELDS.map((field) => {
         const uniqueKey = `${row.id.toString()}-${field}`;
@@ -409,12 +449,9 @@ class EditTable extends React.Component {
 
     return (
       <table className="ovc-edit-table">
-        <thead>
-          <tr>
-            {headers}
-            <td className="remove-entity" />
-          </tr>
-        </thead>
+        <EditTableHeader FIELDS={this.props.FIELDS}
+                         FIELD_MAP={this.props.FIELD_MAP}
+                         onHeaderClick={this.props.onHeaderClick} />
         <tbody>
           {rows}
           {newRow}

@@ -1,4 +1,4 @@
-from django.apps import apps as django_apps
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import FieldDoesNotExist
 from rest_framework.exceptions import ValidationError
 
@@ -50,10 +50,21 @@ def create_from_api(model, account, fields, request_json):
     obj_dict = {}
     for field in fields:
         if type(field) is dict:
-            # TODO
+            # TODO: Test this method
             api_field = __get_api_field_format(field['field'])
             if api_field in request_json and __hasfield(model, field['field']):
-                obj_dict[field['field']] = request_json.get(api_field)
+                obj_json = request_json.get(api_field)
+                if obj_json and 'id' in obj_json:
+                    try:
+                        related_obj = field['model'].objects.get(
+                            account=account, id=obj_json['id']
+                        )
+                        obj_dict[field['field']] = related_obj
+                        # TODO: Recursively decide whether to create or update
+                        update_from_api(related_obj, account,
+                                        field['related_fields'], obj_json)
+                    except ObjectDoesNotExist:
+                        continue
         else:
             api_field = __get_api_field_format(field)
             if api_field in request_json and __hasfield(model, field):
@@ -63,10 +74,19 @@ def create_from_api(model, account, fields, request_json):
 def update_from_api(obj, account, fields, request_json):
     for field in fields:
         if type(field) is dict:
-            # TODO
             api_field = __get_api_field_format(field['field'])
             if api_field in request_json and __hasfield(obj, field['field']):
-                setattr(obj, field['field'], request_json.get(api_field))
+                obj_json = request_json.get(api_field)
+                if obj_json and 'id' in obj_json:
+                    try:
+                        related_obj = field['model'].objects.get(
+                            account=account, id=obj_json['id']
+                        )
+                        setattr(obj, field['field'], related_obj)
+                        update_from_api(related_obj, account,
+                                        field['related_fields'], obj_json)
+                    except ObjectDoesNotExist:
+                        continue
         else:
             api_field = __get_api_field_format(field)
             if api_field in request_json and __hasfield(obj, field):

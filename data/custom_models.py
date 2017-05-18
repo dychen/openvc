@@ -1,3 +1,4 @@
+from django.apps import apps as django_apps
 from django.db import models
 from shared.constants import DEFAULT_ACCOUNT_ID, DATA_TYPES
 from data.api import get_api_format, create_from_api, update_from_api
@@ -7,8 +8,11 @@ def generate_api_name(display_name):
               .replace(' ', '_'))
 
 class CustomTable(models.Model):
-    API_FIELDS = ['display_name', 'api_name', 'icon',
-                  { 'field': 'owner', 'related_fields': ['email'] }]
+    API_FIELDS = [
+        'display_name', 'api_name', 'icon',
+        { 'field': 'owner', 'model': django_apps.get_model('users.User'),
+          'related_fields': ['email'] },
+    ]
     REQUIRED_FIELDS = ['display_name']
 
     account    = models.ForeignKey('users.Account',
@@ -34,7 +38,7 @@ class CustomTable(models.Model):
             request_json['apiName'] = generate_api_name(
                 request_json['displayName']
             )
-        request_json['owner'] = user
+        request_json['owner'] = { 'id': user.id }
         return create_from_api(cls, user.account, cls.API_FIELDS, request_json)
 
     def update_from_api(self, user, request_json):
@@ -47,9 +51,11 @@ class CustomTable(models.Model):
 class CustomField(models.Model):
     API_FIELDS = [
         'display_name', 'api_name', 'type', 'required',
-        { 'field': 'table', 'related_fields': ['display_name', 'api_name', 'icon'] },
+        { 'field': 'table', 'model': django_apps.get_model('data.CustomTable'),
+          'related_fields': ['display_name', 'api_name', 'icon'] },
         #{ 'related_table': ['display_name', 'api_name', 'icon'] },
-        { 'field': 'owner', 'related_fields': ['email'] },
+        { 'field': 'owner', 'model': django_apps.get_model('users.User'),
+          'related_fields': ['email'] },
     ]
     REQUIRED_FIELDS = ['display_name']
 
@@ -82,8 +88,8 @@ class CustomField(models.Model):
             request_json['apiName'] = generate_api_name(
                 request_json['displayName']
             )
-        request_json['owner'] = user
-        request_json['table'] = table
+        request_json['owner'] = { 'id': user.id }
+        request_json['table'] = { 'id': table.id }
         return create_from_api(cls, user.account, cls.API_FIELDS, request_json)
 
     def update_from_api(self, user, table, request_json):
@@ -91,13 +97,15 @@ class CustomField(models.Model):
             request_json['apiName'] = generate_api_name(
                 request_json['displayName']
             )
-        request_json['table'] = table
+        request_json['table'] = { 'id': table.id }
         return update_from_api(self, user.account, self.API_FIELDS, request_json)
 
 class CustomRecord(models.Model):
     API_FIELDS = [
-        { 'field': 'table', 'related_fields': ['display_name', 'api_name', 'icon'] },
-        { 'field': 'owner', 'related_fields': ['email'] },
+        { 'field': 'table', 'model': django_apps.get_model('data.CustomTable'),
+          'related_fields': ['display_name', 'api_name', 'icon'] },
+        { 'field': 'owner', 'model': django_apps.get_model('users.User'),
+          'related_fields': ['email'] },
         #{ 'custom_data': ['field', 'value'] },
     ]
     REQUIRED_FIELDS = []

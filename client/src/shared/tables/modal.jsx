@@ -140,6 +140,8 @@ const TableModalFooter = (props) => {
 
 /*
  * props:
+ *   table [Object]: Custom Table object { displayName: [string], ... }
+ *   tableFields [Array]: List of Custom Field objects { displayName: ..., }
  *   visible [boolean]: Whether or not to show the modal.
  *
  *   hideModal [function]: Function to hide the modal.
@@ -147,6 +149,9 @@ const TableModalFooter = (props) => {
  *   onSave [function]: Function that lets the parent component respond to
  *                      "save" events in the data.
  *     f([Object: new object data]) => null
+ *   onDelete [function]: Function that lets the parent component respond to
+ *                        "delete" events in the data.
+ *     f([Object: deleted object data]) => null
  */
 class TableModal extends React.Component {
   constructor(props) {
@@ -288,7 +293,14 @@ class TableModal extends React.Component {
 
   deleteTable(e) {
     if (this.state.table.id) {
-      deleteTable(this.state.table.id).then(this.props.hideModal);
+      deleteTable(this.state.table.id).then((tableId) => {
+        if (this.props.onDelete) {
+          // This reloads tables from the server. No need to pass tableId -
+          // the entire table list gets refreshed
+          this.props.onDelete();
+        }
+      })
+      .then(this.props.hideModal);
     }
     else {
       this.props.hideModal();

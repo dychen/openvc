@@ -1,6 +1,8 @@
 import React from 'react';
 import numeral from 'numeral';
 import moment from 'moment';
+import {DropdownButton, MenuItem} from 'react-bootstrap';
+
 import {truncateString} from '../utils/format.js';
 
 import './editfield.scss';
@@ -76,14 +78,6 @@ const createReverseDisplayFilter = function(fieldType) {
 }
 
 /*
- * Abstraction:
- *   <EditField>
- *     <InputField> // If field is in edit mode
- *     <StaticField> // If field is not in edit mode
- *   </EditField>
- */
-
-/*
  * props:
  *   fieldType [string]: Type of the underlying data (e.g. 'string', 'image')
  *   placeholder [string]: Value of show if the data is empty
@@ -96,36 +90,29 @@ const createReverseDisplayFilter = function(fieldType) {
  *   cancelEditMode [function]: Action when the input is blurred
  *     f([Object: Event]) => null
  */
-class InputField extends React.Component {
-  constructor(props) {
-    super(props);
+const InputField = (props) => {
+  const filterInputValue = createInputFilter(props.fieldType);
 
-    // Display filters
-    this.filterInputValue = createInputFilter(this.props.fieldType);
-  }
-
-  render() {
-    switch (this.props.fieldType) {
-      case 'text':
-      case 'text truncated':
-        return (
-          <textarea rows="8" className="ovc-edit-field" autoFocus
-                    placeholder={this.props.placeholder}
-                    value={this.filterInputValue(this.props.value)}
-                    onChange={this.props.onUpdate}
-                    onKeyPress={this.props.onSave}
-                    onBlur={this.props.cancelEditMode} />
-        );
-      default:
-        return (
-          <input className="ovc-edit-field" autoFocus
-                 placeholder={this.props.placeholder}
-                 value={this.filterInputValue(this.props.value)}
-                 onChange={this.props.onUpdate}
-                 onKeyPress={this.props.onSave}
-                 onBlur={this.props.cancelEditMode} />
-        );
-    }
+  switch (props.fieldType) {
+    case 'text':
+    case 'text truncated':
+      return (
+        <textarea rows="8" className="ovc-edit-field" autoFocus
+                  placeholder={props.placeholder}
+                  value={filterInputValue(props.value)}
+                  onChange={props.onUpdate}
+                  onKeyPress={props.onSave}
+                  onBlur={props.cancelEditMode} />
+      );
+    default:
+      return (
+        <input className="ovc-edit-field" autoFocus
+               placeholder={props.placeholder}
+               value={filterInputValue(props.value)}
+               onChange={props.onUpdate}
+               onKeyPress={props.onSave}
+               onBlur={props.cancelEditMode} />
+      );
   }
 }
 
@@ -185,6 +172,159 @@ class StaticField extends React.Component {
     }
   }
 }
+
+/*
+ * Abstraction:
+ *   <DropdownField>
+ *     <DropdownButton /> // If field is in edit mode
+ *     <StaticField />    // If field is not in edit mode
+ *   </DropdownField>
+ */
+
+/*
+ * props:
+ *   elementId [string]: HTML DOM id attribute.
+ *   originalValue [string]: Initial value of the field.
+ *   placeholder [string]: [Optional] String to display if field value is
+ *                                    empty. This should be immutable.
+ *   options [Array]: List of options in one of two formats:
+ *     ['Option1', 'Option2', ...] or
+ *     [{ key: 'option1', display: 'Option1' }, ...]
+ *     Where 'display' is what is shown in the UI and key is what is returned
+ *     to the onSelect handler.
+ *
+ *   onSelect [function]: Function to execute when an option is selected.
+ *     f([string: field value]) => null
+ */
+class BaseDropdownField extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      editing: false,
+      value: this.props.originalValue || ''
+    };
+
+    // StaticField method
+    this.enterEditMode = this.enterEditMode.bind(this);
+
+    // DropdownButton methods
+    this.cancelEditMode = this.cancelEditMode.bind(this);
+    this.onSelect = this.onSelect.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    // TODO: See if this impacts performance
+    this.setState({ value: nextProps.originalValue || '' });
+  }
+
+  enterEditMode(e) {
+    e.stopPropagation();
+    this.setState({ editing: true });
+  }
+
+  cancelEditMode(e) {
+    e.stopPropagation();
+    this.setState({ editing: false });
+  }
+
+  onSelect(eventKey, e) {
+    this.props.onSelect(eventKey);
+    this.cancelEditMode(e);
+  }
+
+  render() {
+    let editComponent;
+
+    if (this.state.editing) {
+      const menuItems = this.props.options.map(option => {
+        // Check type rather than checking object keys b/c key values can be
+        // falsy (e.g. empty string).
+        if (typeof option === 'object') {
+          return (
+            <MenuItem key={option.key} eventKey={option.key}
+                      onSelect={this.onSelect}>
+              {option.display}
+            </MenuItem>
+          );
+        }
+        else {
+          return (
+            <MenuItem key={option} eventKey={option} onSelect={this.onSelect}>
+              {option}
+            </MenuItem>
+          );
+        }
+      });
+      editComponent = (
+        <div className="ovc-edit-field-dropdown">
+          <DropdownButton id={this.props.elementId}
+                          title={this.props.originalValue}>
+            {menuItems}
+          </DropdownButton>
+        </div>
+      );
+    }
+    else {
+      editComponent = (
+        <StaticField fieldType="string"
+                     placeholder={this.props.placeholder || ''}
+                     originalValue={this.props.originalValue}
+                     enterEditMode={this.enterEditMode} />
+      );
+    }
+    return editComponent;
+  }
+}
+
+/*
+ * Same as the BaseDropdownField component, but wraps the onSelect method in a
+ * more flexible API to allow parent components (e.g. EditTable) to more easily
+ * interact:
+ *   onSelect [function]: f([string: field name], [string: field value],
+ *                          [string: object id]) => null
+ *
+ * Adds the following props to the DropdownField component:
+ *   field [string]: Field name that's being edited.
+ *   id [string]: [Optional] Id of the object that's being updated. Undefined
+ *                for new row table cells that create new objects.
+ *
+ * Inherited props:
+ *   elementId [string]: HTML DOM id attribute.
+ *   originalValue [string]: Initial value of the field.
+ *   placeholder [string]: [Optional] String to display if field value is
+ *                                    empty. This should be immutable.
+ *
+ *   onSelect [function]: Function to execute when an option is selected.
+ *     f([string: field value]) => null
+ */
+class DropdownField extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.onSelect = this.onSelect.bind(this);
+  }
+
+  onSelect(value) {
+    this.props.onSelect(this.props.field, value, this.props.id);
+  }
+
+  render() {
+    // Override onSave and onUpdate with wrapped method.
+    return (
+      <BaseDropdownField {...this.props}
+                         onSelect={this.onSelect} />
+    );
+  }
+}
+
+/*
+ * Abstraction:
+ *   <EditField>
+ *     <InputField />  // If field is in edit mode
+ *     <StaticField /> // If field is not in edit mode
+ *   </EditField>
+ */
 
 /*
  * props:
@@ -263,7 +403,7 @@ class BaseEditField extends React.Component {
   }
 
   render() {
-    let editComponent, fieldFilter;
+    let editComponent;
 
     if (this.state.editing) {
       editComponent = (
@@ -289,8 +429,8 @@ class BaseEditField extends React.Component {
 
 /*
  * Same as the BaseEditField component, but wraps the onSave and onUpdate
- * methods in a more flexible API to allow parent components to more easily
- * interact:
+ * methods in a more flexible API to allow parent components (e.g. EditTable)
+ * to more easily interact:
  *   onSave [function]: f([string: field name], [string: field value],
  *                        [string: object id]) => null
  *   onUpdate [function]: f([string: field name], [string: field value],
@@ -344,5 +484,6 @@ class EditField extends React.Component {
   }
 }
 
-export {BaseEditField, EditField, InputField, StaticField};
+export {BaseEditField, EditField, BaseDropdownField, DropdownField, InputField,
+        StaticField};
 

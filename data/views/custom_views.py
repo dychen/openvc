@@ -20,7 +20,8 @@ class CustomTableView(APIView):
         try:
             user = check_authentication(request)
             account = user.account
-            custom_tables = CustomTable.objects.filter(account=account)
+            custom_tables = (CustomTable.objects.filter(account=account)
+                                                .order_by('display_name'))
             return Response([
                 custom_table.get_api_format()
                 for custom_table in custom_tables
@@ -119,8 +120,9 @@ class CustomFieldView(APIView):
             user = check_authentication(request)
             account = user.account
             custom_table = CustomTable.objects.get(account=account, id=table_id)
-            custom_fields = CustomField.objects.filter(account=account,
-                                                       table=custom_table)
+            custom_fields = (CustomField.objects.filter(account=account,
+                                                        table=custom_table)
+                                                .order_by('created_at'))
             return Response([
                 custom_field.get_api_format()
                 for custom_field in custom_fields

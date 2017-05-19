@@ -1,11 +1,13 @@
 import React from 'react';
 import Immutable from 'immutable';
+import {DropdownButton, MenuItem} from 'react-bootstrap';
 import Scroll from 'react-scroll';
 const ScrollScroller = Scroll.animateScroll;
 
 import {createTable, updateTable, deleteTable,
         createField, updateField, deleteField} from './api.js';
-import {EditField} from '../../components/editfield.jsx';
+import {EditField, DropdownField} from '../../components/editfield.jsx';
+import {DATA_TYPE_LIST, DATA_TYPE_MAP} from '../../utils/constants.js';
 
 import './modal.scss';
 
@@ -55,6 +57,7 @@ const TableModalHeader = (props) => {
  *                                f([Object: Event object]) => null
  */
 const TableModalFieldPanel = (props) => {
+  const dropdownFieldId = `ovc-table-modal-type-dropdown-${props.index}`;
   return (
     <div className="ovc-table-modal-field-panel">
       <EditField id={props.index}
@@ -63,6 +66,13 @@ const TableModalFieldPanel = (props) => {
                  originalValue={props.tableField.displayName}
                  placeholder="Click to edit"
                  onSave={props.updateTableField} />
+      <DropdownField id={props.index}
+                     field="type"
+                     elementId={dropdownFieldId}
+                     originalValue={DATA_TYPE_MAP[props.tableField.type]}
+                     placeholder="Click to edit"
+                     options={DATA_TYPE_LIST}
+                     onSelect={props.updateTableField} />
       <i className="ion-android-close delete-field-button"
          id={props.index}
          onClick={props.removeTableField} />
@@ -179,7 +189,7 @@ class TableModal extends React.Component {
       this.setState({
         table: nextProps.table,
         tableFields: nextProps.tableFields,
-        fieldToDelete: []
+        fieldsToDelete: []
       });
     }
   }
@@ -223,7 +233,7 @@ class TableModal extends React.Component {
 
     // If the field already exists, queue it for deletion
     if (field.id) {
-      const removeFieldsState = Immutable.fromJS(this.state)
+      const removeFieldsState = Immutable.fromJS(newState)
         .update('fieldsToDelete', fieldsToDelete => fieldsToDelete.push(field));
       this.setState(removeFieldsState.toJS());
     }
@@ -252,9 +262,11 @@ class TableModal extends React.Component {
             saveField(this.state.table.id, field);
           });
           // Delete removed fields
+          // TODO: Make this synchronous
           this.state.fieldsToDelete.forEach((field) => {
             deleteField(this.state.table.id, field.id);
           });
+          this.setState({ fieldsToDelete: [] }); // Possible race condition?
           // Update parent
           if (this.props.onSave) {
             this.props.onSave(table);
@@ -275,9 +287,11 @@ class TableModal extends React.Component {
             saveField(table.id, field);
           });
           // Delete removed fields
+          // TODO: Make this synchronous
           this.state.fieldsToDelete.forEach((field) => {
             deleteField(this.state.table.id, field.id);
           });
+          this.setState({ fieldsToDelete: [] }); // Possible race condition?
           // Update parent
           if (this.props.onSave) {
             this.props.onSave(table);

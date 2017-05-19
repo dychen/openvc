@@ -8,6 +8,9 @@
 
 table.ovc-edit-table {
   width: 100%;
+  // http://stackoverflow.com/questions/4457506/
+  //   set-the-table-column-width-constant-regardless-of-the-amount-of-text-in-its-cell
+  table-layout: fixed;
   thead {
     background-color: $OVC_SUBNAV_GRAY;
     cursor: default;

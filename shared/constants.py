@@ -8,6 +8,7 @@ DATA_TYPES = {
     'date': 'date',
     'image': 'image',
     'text': 'text',
+    'choice': 'choice',
     'model': 'model'
 }
 

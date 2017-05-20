@@ -1,5 +1,5 @@
 import React from 'react';
-import {Link} from 'react-router';
+import {NavLink} from 'react-router-dom';
 
 import './sidenav.scss';
 
@@ -30,15 +30,15 @@ class InvestorSidenav extends React.Component {
             <i className="ion-navicon nav-hamburger" />
             <span className="minimized-sidenav-hidden">OpenVC</span>
           </div>
-          <Link to="/investor/tables">
+          <NavLink to="/investor/tables">
             <div className="ovc-sidenav-item link">
               <i className="ion-easel" />
               <span className="minimized-sidenav-hidden">
                 Tables
               </span>
             </div>
-          </Link>
-          <Link to="/investor/deals">
+          </NavLink>
+          <NavLink to="/investor/deals">
             <div className="ovc-sidenav-item link">
               <i className="ion-ios-pulse" />
               <span className="minimized-sidenav-hidden">
@@ -46,55 +46,63 @@ class InvestorSidenav extends React.Component {
                 <i className="ovc-circle-alert red">4</i>
               </span>
             </div>
-          </Link>
-          <Link to="/investor/portfolio">
+          </NavLink>
+          <NavLink to="/investor/portfolio">
             <div className="ovc-sidenav-item link">
               <i className="ion-arrow-graph-up-right" />
               <span className="minimized-sidenav-hidden">
                 Portfolio
               </span>
             </div>
-          </Link>
-          <Link to="/investor/landscape">
+          </NavLink>
+          <NavLink to="/investor/landscape">
             <div className="ovc-sidenav-item link">
               <i className="ion-earth" />
               <span className="minimized-sidenav-hidden">
                 Startup Landscape
               </span>
             </div>
-          </Link>
-          <Link to="/investor/compare">
+          </NavLink>
+          <NavLink to="/investor/compare">
             <div className="ovc-sidenav-item link">
               <i className="ion-podium" />
               <span className="minimized-sidenav-hidden">
                 Compare Startups
               </span>
             </div>
-          </Link>
-          <Link to="/investor/contacts">
+          </NavLink>
+          <NavLink to="/investor/contacts">
             <div className="ovc-sidenav-item link">
               <i className="ion-ios-people" />
               <span className="minimized-sidenav-hidden">
                 Contacts
               </span>
             </div>
-          </Link>
-          <Link to="/investor/rooms">
+          </NavLink>
+          <NavLink to="/investor/rooms">
             <div className="ovc-sidenav-item link">
               <i className="ion-chatbubbles" />
               <span className="minimized-sidenav-hidden">
                 Rooms
               </span>
             </div>
-          </Link>
-          <Link to="/investor/profile">
+          </NavLink>
+          <NavLink to="/investor/profile">
             <div className="ovc-sidenav-item link">
               <i className="ion-android-person" />
               <span className="minimized-sidenav-hidden">
                 Profile
               </span>
             </div>
-          </Link>
+          </NavLink>
+          <NavLink to="/investor/apis">
+            <div className="ovc-sidenav-item link">
+              <i className="ion-network" />
+              <span className="minimized-sidenav-hidden">
+                APIs
+              </span>
+            </div>
+          </NavLink>
           <div className="ovc-sidenav-item link">
             <i className="ion-key" />
             <span className="minimized-sidenav-hidden">

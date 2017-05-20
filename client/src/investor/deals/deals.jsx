@@ -1,6 +1,5 @@
 import React from 'react';
 import Immutable from 'immutable';
-import {hashHistory} from 'react-router';
 import {authFetch, preprocessJSON} from '../../utils/api.js';
 
 import SearchSection from './search.jsx';

@@ -1,6 +1,6 @@
 import React from 'react';
-import {hashHistory} from 'react-router';
 
+import LinkWrapper from '../../components/link.jsx';
 import {CreateContactModal} from '../../components/modals/person.jsx';
 
 import './all.scss';
@@ -31,7 +31,6 @@ class AllContactsSection extends React.Component {
     this.cancelNewContact = this.cancelNewContact.bind(this);
     this.addConnection = this.addConnection.bind(this);
     this.removeConnection = this.removeConnection.bind(this);
-    this._goToContactPage = this._goToContactPage.bind(this);
 
     // Fetch data
     this.props.getAllContacts();
@@ -53,11 +52,6 @@ class AllContactsSection extends React.Component {
   removeConnection(e) {
     e.stopPropagation();
     this.props.removeConnection(e.currentTarget.id);
-  }
-
-  _goToContactPage(e) {
-    const linkUrl = '/' + this.props._USER_TYPE + '/contacts/' + e.currentTarget.id;
-    hashHistory.push(linkUrl);
   }
 
   render() {
@@ -83,24 +77,25 @@ class AllContactsSection extends React.Component {
         );
         return (
           <div className="ovc-all-contacts-panel-container" key={contact.id}>
-            <div className="ovc-all-contacts-contact-panel" id={contact.id}
-                 onClick={this._goToContactPage}>
-              <img className="contact-photo" src={contact.photoUrl} />
-              <div className="contact-text">
-                <div className="contact-name">
-                  {contact.name}
-                </div>
-                <div className="contact-occupation">
-                  {contact.title}, {contact.company}
-                </div>
-                <div className="contact-tags">
-                  {contact.tags.join(', ')}
-                </div>
-                <div className="contact-icons">
-                  {contactIcon}
+            <LinkWrapper to={`/${this.props._USER_TYPE}/contacts/${contact.id}`}>
+              <div className="ovc-all-contacts-contact-panel">
+                <img className="contact-photo" src={contact.photoUrl} />
+                <div className="contact-text">
+                  <div className="contact-name">
+                    {contact.name}
+                  </div>
+                  <div className="contact-occupation">
+                    {contact.title}, {contact.company}
+                  </div>
+                  <div className="contact-tags">
+                    {contact.tags.join(', ')}
+                  </div>
+                  <div className="contact-icons">
+                    {contactIcon}
+                  </div>
                 </div>
               </div>
-            </div>
+            </LinkWrapper>
           </div>
         );
       });

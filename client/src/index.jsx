@@ -1,13 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {Router, Route, IndexRoute, Link, hashHistory} from 'react-router';
+import {HashRouter, Route} from 'react-router-dom';
 
 import Bootstrap from 'bootstrap/dist/css/bootstrap.css';
 
 import './index.scss';
 
-import {WebsiteHeader, WebsiteHome, WebsiteAbout, WebsiteLogin, WebsiteFooter,
-        WebsiteApp} from './website/website.jsx';
+import {WebsiteHeader, WebsiteHome, WebsiteAbout, WebsiteLogin,
+        WebsiteFooter} from './website/website.jsx';
 import {LoginForm, SignupForm, StartupForm,
         ContactForm} from './website/login.jsx';
 
@@ -33,75 +33,240 @@ import {UserProfilePage, ContactProfilePage} from './shared/profile/wrapper.jsx'
 
 import RoomsApp from './rooms/rooms.jsx';
 
+const appRoutes = [
+  // Website
+  {
+    path: '/',
+    topnav: WebsiteHeader,
+    main: WebsiteHome,
+    exact: true
+  },
+  {
+    path: '/home',
+    topnav: WebsiteHeader,
+    main: WebsiteHome
+  },
+  {
+    path: '/about',
+    topnav: WebsiteHeader,
+    main: WebsiteAbout
+  },
+  {
+    path: '/login',
+    topnav: WebsiteHeader,
+    main: LoginForm,
+    container: WebsiteLogin,
+    exact: true
+  },
+  {
+    path: '/signup',
+    topnav: WebsiteHeader,
+    main: SignupForm,
+    container: WebsiteLogin,
+    exact: true
+  },
+  {
+    path: '/startup',
+    topnav: WebsiteHeader,
+    main: StartupForm,
+    container: WebsiteLogin,
+    exact: true
+  },
+  {
+    path: '/contact',
+    topnav: WebsiteHeader,
+    main: ContactForm,
+    container: WebsiteLogin,
+    exact: true
+  },
+  // Founder app
+  {
+    path: '/founder',
+    sidenav: FounderSidenav,
+    main: FounderCompanyPage,
+    container: FounderAppContainer,
+    exact: true
+  },
+  {
+    path: '/founder/company',
+    sidenav: FounderSidenav,
+    main: FounderCompanyPage,
+    container: FounderAppContainer,
+    exact: true
+  },
+  {
+    path: '/founder/apply',
+    sidenav: FounderSidenav,
+    main: FounderApplyPage,
+    container: FounderAppContainer,
+    exact: true
+  },
+  {
+    path: '/founder/fundraising',
+    sidenav: FounderSidenav,
+    main: FounderFundraisingPage,
+    container: FounderAppContainer,
+    exact: true
+  },
+  {
+    path: '/founder/contacts',
+    sidenav: FounderSidenav,
+    main: ContactsPage,
+    container: FounderAppContainer,
+    exact: true
+  },
+  {
+    path: '/founder/contacts/:contactId',
+    sidenav: FounderSidenav,
+    main: ContactProfilePage,
+    container: FounderAppContainer,
+    exact: true
+  },
+  {
+    path: '/founder/rooms',
+    sidenav: FounderSidenav,
+    main: RoomsApp,
+    container: FounderAppContainer,
+    exact: true
+  },
+  {
+    path: '/founder/profile',
+    sidenav: FounderSidenav,
+    main: UserProfilePage,
+    container: FounderAppContainer,
+    exact: true
+  },
+  // Investor app
+  {
+    path: '/investor',
+    sidenav: InvestorSidenav,
+    main: InvestorDealsPage,
+    container: InvestorAppContainer,
+    exact: true
+  },
+  {
+    path: '/investor/tables',
+    sidenav: InvestorSidenav,
+    main: UserTablesPage,
+    container: InvestorAppContainer,
+    exact: true
+  },
+  {
+    path: '/investor/deals',
+    sidenav: InvestorSidenav,
+    main: InvestorDealsPage,
+    container: InvestorAppContainer,
+    exact: true
+  },
+  {
+    path: '/investor/landscape',
+    sidenav: InvestorSidenav,
+    main: InvestorLandscapePage,
+    container: InvestorAppContainer,
+    exact: true
+  },
+  {
+    path: '/investor/compare',
+    sidenav: InvestorSidenav,
+    main: InvestorComparePage,
+    container: InvestorAppContainer,
+    exact: true
+  },
+  {
+    path: '/investor/portfolio',
+    sidenav: InvestorSidenav,
+    main: InvestorPorfolioPage,
+    container: InvestorAppContainer,
+    exact: true
+  },
+  {
+    path: '/investor/portfolio/:companyId',
+    sidenav: InvestorSidenav,
+    main: InvestorCompanyPage,
+    container: InvestorAppContainer,
+    exact: true
+  },
+  {
+    path: '/investor/contacts',
+    sidenav: InvestorSidenav,
+    main: ContactsPage,
+    container: InvestorAppContainer,
+    exact: true
+  },
+  {
+    path: '/investor/contacts/:contactId',
+    sidenav: InvestorSidenav,
+    main: ContactProfilePage,
+    container: InvestorAppContainer,
+    exact: true
+  },
+  {
+    path: '/investor/rooms',
+    sidenav: InvestorSidenav,
+    main: RoomsApp,
+    container: InvestorAppContainer,
+    exact: true
+  },
+  {
+    path: '/investor/profile',
+    sidenav: InvestorSidenav,
+    main: UserProfilePage,
+    container: InvestorAppContainer,
+    exact: true
+  },
+];
 
-class AppContainer extends React.Component {
-  render() {
-    const {main, topnav, sidenav} = this.props;
+const wrapRouteMainComponent = (Component, Container) => {
+  if (Container) {
+    return (props => (<Container><Component {...props}/></Container>));
+  }
+  return Component;
+};
 
-    return (
+const App = (props) => {
+  const sidenavRoutes = appRoutes.map((route, index) => {
+    if (route.sidenav) {
+      return (
+        <Route key={index}
+               path={route.path}
+               component={route.sidenav}
+               exact={route.exact} />
+      );
+    }
+  }).filter(route => typeof route !== 'undefined');
+  const topnavRoutes = appRoutes.map((route, index) => {
+    if (route.topnav) {
+      return (
+        <Route key={index}
+               path={route.path}
+               component={route.topnav}
+               exact={route.exact} />
+      );
+    }
+  }).filter(route => typeof route !== 'undefined');
+  const mainRoutes = appRoutes.map((route, index) => {
+    if (route.main) {
+      return (
+        <Route key={index}
+               path={route.path}
+               component={wrapRouteMainComponent(route.main, route.container)}
+               exact={route.exact} />
+      );
+    }
+  }).filter(route => typeof route !== 'undefined');
+
+  return (
+    <HashRouter>
       <div className="ovc-app-container">
-        {sidenav}
+        {sidenavRoutes}
         <div className="ovc-right-container">
-          {topnav}
-          {main}
+          {topnavRoutes}
+          {mainRoutes}
         </div>
       </div>
-    );
-  }
-}
-
-class App extends React.Component {
-  render() {
-    return (
-      <Router history={hashHistory}>
-        <Route path="/" component={AppContainer}>
-          <IndexRoute components={{main: WebsiteHome,
-                                   topnav: WebsiteHeader}} />
-          <Route path="home" components={{main: WebsiteHome,
-                                          topnav: WebsiteHeader}} />
-          <Route path="about" components={{main: WebsiteAbout,
-                                           topnav: WebsiteHeader}} />
-          <Route path="login" components={{main: WebsiteLogin,
-                                           topnav: WebsiteHeader}}>
-            <IndexRoute component={LoginForm} />
-            <Route path="signup" components={SignupForm} />
-            <Route path="startup" components={StartupForm} />
-            <Route path="contact" components={ContactForm} />
-          </Route>
-
-          <Route path="founder" components={{main: FounderAppContainer,
-                                             //topnav: FounderTopnav,
-                                             sidenav: FounderSidenav}}>
-            <IndexRoute component={FounderCompanyPage} />
-            <Route path="company" component={FounderCompanyPage} />
-            <Route path="apply" component={FounderApplyPage} />
-            <Route path="fundraising" component={FounderFundraisingPage} />
-            <Route path="contacts" component={ContactsPage} />
-            <Route path="contacts/:contactId" component={ContactProfilePage} />
-            <Route path="rooms" component={RoomsApp} />
-            <Route path="profile" component={UserProfilePage} />
-          </Route>
-
-          <Route path="investor" components={{main: InvestorAppContainer,
-                                              //topnav: InvestorTopnav,
-                                              sidenav: InvestorSidenav}}>
-            <IndexRoute component={InvestorDealsPage} />
-            <Route path="tables" component={UserTablesPage} />
-            <Route path="deals" component={InvestorDealsPage} />
-            <Route path="landscape" component={InvestorLandscapePage} />
-            <Route path="compare" component={InvestorComparePage} />
-            <Route path="contacts" component={ContactsPage} />
-            <Route path="contacts/:contactId" component={ContactProfilePage} />
-            <Route path="portfolio" component={InvestorPorfolioPage} />
-            <Route path="portfolio/:companyId" component={InvestorCompanyPage} />
-            <Route path="rooms" component={RoomsApp} />
-            <Route path="profile" component={UserProfilePage} />
-          </Route>
-        </Route>
-      </Router>
-    );
-  }
-}
+    </HashRouter>
+  );
+};
 
 ReactDOM.render(
   <App />,

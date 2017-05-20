@@ -2,19 +2,10 @@ import React from 'react';
 import ProfilePage from './profile.jsx';
 
 const profileWrapper = function(WrappedComponent, config) {
-  return class extends React.Component {
-    constructor(props) {
-      super(props);
-
-      this._PROFILE_URL = config.profileUrl(this.props);
-      this._EXPERIENCE_URL = config.experienceUrl(this.props);
-    }
-
-    render() {
-      return <WrappedComponent profileUrl={this._PROFILE_URL}
-                               experienceUrl={this._EXPERIENCE_URL}
-                               {...this.props} />;
-    }
+  return (props) => {
+    return (<WrappedComponent profileUrl={config.profileUrl(props)}
+                              experienceUrl={config.experienceUrl(props)}
+                              {...props} />);
   };
 }
 
@@ -29,10 +20,10 @@ const userConfig = {
 
 const contactConfig = {
   profileUrl: (props) => {
-    return `${SERVER_URL}/api/v1/contacts/self/${props.params.contactId}`;
+    return `${SERVER_URL}/api/v1/contacts/self/${props.match.params.contactId}`;
   },
   experienceUrl: (props) => {
-    return `${SERVER_URL}/api/v1/data/person/${props.params.contactId}/experience`;
+    return `${SERVER_URL}/api/v1/data/person/${props.match.params.contactId}/experience`;
   },
 }
 

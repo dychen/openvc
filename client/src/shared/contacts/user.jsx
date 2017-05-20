@@ -1,9 +1,9 @@
 import React from 'react';
-import {hashHistory} from 'react-router';
 import moment from 'moment';
 import {getStartOfQuarter, getEndOfQuarter, getStartOfYear,
         getEndOfYear} from '../../utils/datetime.js';
 
+import LinkWrapper from '../../components/link.jsx';
 import EditTable from '../../components/edittable.jsx';
 import {CreateContactModal} from '../../components/modals/person.jsx';
 
@@ -197,7 +197,6 @@ class UserContactsSection extends React.Component {
     this.toggleExpanded = this.toggleExpanded.bind(this);
 
     // Helpers
-    this._goToContactPage = this._goToContactPage.bind(this);
     this._filterLastQuarterInteractions = this._filterLastQuarterInteractions.bind(this);
     this._filterLastYearInteractions = this._filterLastYearInteractions.bind(this);
     this._sumInteractions = this._sumInteractions.bind(this);
@@ -231,11 +230,6 @@ class UserContactsSection extends React.Component {
   }
 
   /* Helpers */
-
-  _goToContactPage(e) {
-    const linkUrl = '/' + this.props._USER_TYPE + '/contacts/' + e.currentTarget.id;
-    hashHistory.push(linkUrl);
-  }
 
   _filterLastQuarterInteractions(interactions) {
     const start = getStartOfQuarter(new Date(), -1);
@@ -307,42 +301,43 @@ class UserContactsSection extends React.Component {
 
     return (
       <div className="ovc-user-contacts-panel-container" key={contact.id}>
-        <div className="ovc-user-contacts-contact-panel" id={contact.id}
-             onClick={this._goToContactPage}>
-          <div className="ovc-user-contacts-left-subpanel">
-            <img className="contact-photo" src={contact.photoUrl} />
-            <div className="contact-text">
-              <div className="contact-name">
-                {contact.name}
+          <LinkWrapper to={`/${this.props._USER_TYPE}/contacts/${contact.id}`}>
+            <div className="ovc-user-contacts-contact-panel">
+              <div className="ovc-user-contacts-left-subpanel">
+                <img className="contact-photo" src={contact.photoUrl} />
+                <div className="contact-text">
+                  <div className="contact-name">
+                    {contact.name}
+                  </div>
+                  <div className="contact-occupation">
+                    {contact.title}, {contact.company}
+                  </div>
+                  <div className="contact-tags">
+                    {contact.tags.join(', ')}
+                  </div>
+                </div>
               </div>
-              <div className="contact-occupation">
-                {contact.title}, {contact.company}
+              <div className="ovc-user-contacts-subpanel-container">
+                <InteractionLastSubpanel title="Last"
+                                         interaction={interactionStats.lastInteraction} />
+                <InteractionStatsSubpanel title="Total"
+                                          data={interactionStats.total} />
+                <InteractionStatsSubpanel title="Last Year"
+                                          data={interactionStats.lastYear} />
+                <InteractionStatsSubpanel title="Last Quarter"
+                                          data={interactionStats.lastQuarter} />
               </div>
-              <div className="contact-tags">
-                {contact.tags.join(', ')}
+              <div className="contact-icons">
+                <i className="ion-ios-email send-mail" />
+                <i className="ion-ios-close remove-contact"
+                   id={contact.id}
+                   onClick={this.removeConnection} />
               </div>
             </div>
+          </LinkWrapper>
+          <div className="ovc-contacts-contact-interactions">
+            {expandedSection}
           </div>
-          <div className="ovc-user-contacts-subpanel-container">
-            <InteractionLastSubpanel title="Last"
-                                     interaction={interactionStats.lastInteraction} />
-            <InteractionStatsSubpanel title="Total"
-                                      data={interactionStats.total} />
-            <InteractionStatsSubpanel title="Last Year"
-                                      data={interactionStats.lastYear} />
-            <InteractionStatsSubpanel title="Last Quarter"
-                                      data={interactionStats.lastQuarter} />
-          </div>
-          <div className="contact-icons">
-            <i className="ion-ios-email send-mail" />
-            <i className="ion-ios-close remove-contact"
-               id={contact.id}
-               onClick={this.removeConnection} />
-          </div>
-        </div>
-        <div className="ovc-contacts-contact-interactions">
-          {expandedSection}
-        </div>
       </div>
     );
   }

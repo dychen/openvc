@@ -1,8 +1,8 @@
 import React from 'react';
-import {hashHistory} from 'react-router';
 import numeral from 'numeral';
 import moment from 'moment';
 
+import LinkWrapper from '../../components/link.jsx';
 import CreateCompanyModal from '../../components/modals/company.jsx';
 
 import './user.scss';
@@ -196,20 +196,12 @@ class UserPortfolioSection extends React.Component {
       modalVisible: false
     };
 
-    this._goToCompanyPage = this._goToCompanyPage.bind(this);
-
     // Modal actions
     this.addPortfolioCompany = this.addPortfolioCompany.bind(this);
     this.cancelPortfolioCompany = this.cancelPortfolioCompany.bind(this);
     this.handleDeletePortfolioCompany = this.handleDeletePortfolioCompany.bind(this);
 
     this._createCompanyPanel = this._createCompanyPanel.bind(this);
-  }
-
-  _goToCompanyPage(e) {
-    // TODO: Refactor this route to /company
-    const linkUrl = '/investor/portfolio/' + e.currentTarget.id;
-    hashHistory.push(linkUrl);
   }
 
   /*
@@ -245,56 +237,57 @@ class UserPortfolioSection extends React.Component {
     };
 
     return (
-      <div className="ovc-investor-portco-panel"
-           id={company.id} key={company.id}
-           onClick={this._goToCompanyPage}>
-        <div className="ovc-investor-portco-left-subpanel">
-          <img className="company-logo" src={companyDisplay.logoUrl} />
-          <div className="company-text">
-            <div className="company-name">
-              {companyDisplay.name}
-            </div>
-            <div className="company-segment">
-              {companyDisplay.segment}, {companyDisplay.sector}
-            </div>
-            <div className="company-location">
-              {companyDisplay.location}
+      <LinkWrapper key={company.id}
+                   to={`/investor/portfolio/${company.id}`}>
+        <div className="ovc-investor-portco-panel">
+          <div className="ovc-investor-portco-left-subpanel">
+            <img className="company-logo" src={companyDisplay.logoUrl} />
+            <div className="company-text">
+              <div className="company-name">
+                {companyDisplay.name}
+              </div>
+              <div className="company-segment">
+                {companyDisplay.segment}, {companyDisplay.sector}
+              </div>
+              <div className="company-location">
+                {companyDisplay.location}
+              </div>
             </div>
           </div>
+          <div className="ovc-investor-portco-right-subpanel">
+            <div className="ovc-investor-portco-subpanel-container overview">
+              <PortcoInvestmentSubpanel title="Last Round"
+                                        icon="ion-calendar"
+                                        investment={company.lastRound} />
+              <PortcoInvestmentSubpanel title="Initial Round"
+                                        icon="ion-cash"
+                                        investment={company.firstRound} />
+              <PortcoTotalSubpanel title="To Date"
+                                   company={company} />
+              <PortcoMetricSubpanel title="Rev/HC"
+                                    topMetricTitle="Revenue (Q)"
+                                    topMetricIcon="ion-social-usd"
+                                    topMetric={company.lastMetrics.revenue}
+                                    bottomMetricTitle="Headcount"
+                                    bottomMetricIcon="ion-ios-people"
+                                    bottomMetric={company.lastMetrics.headcount} />
+              <PortcoMetricSubpanel title="Cash/Burn"
+                                    topMetricTitle="Cash"
+                                    topMetricIcon="ion-cash"
+                                    topMetric={company.lastMetrics.cash}
+                                    bottomMetricTitle="Burn"
+                                    bottomMetricIcon="ion-flame"
+                                    bottomMetric={company.lastMetrics.burn} />
+            </div>
+            <div className="ovc-investor-portco-subpanel-container board">
+              <PortcoBoardSubpanel title="Board"
+                                   board={company.board} />
+            </div>
+          </div>
+          <i className="ion-ios-close remove-portco" id={company.id}
+             onClick={this.handleDeletePortfolioCompany} />
         </div>
-        <div className="ovc-investor-portco-right-subpanel">
-          <div className="ovc-investor-portco-subpanel-container overview">
-            <PortcoInvestmentSubpanel title="Last Round"
-                                      icon="ion-calendar"
-                                      investment={company.lastRound} />
-            <PortcoInvestmentSubpanel title="Initial Round"
-                                      icon="ion-cash"
-                                      investment={company.firstRound} />
-            <PortcoTotalSubpanel title="To Date"
-                                 company={company} />
-            <PortcoMetricSubpanel title="Rev/HC"
-                                  topMetricTitle="Revenue (Q)"
-                                  topMetricIcon="ion-social-usd"
-                                  topMetric={company.lastMetrics.revenue}
-                                  bottomMetricTitle="Headcount"
-                                  bottomMetricIcon="ion-ios-people"
-                                  bottomMetric={company.lastMetrics.headcount} />
-            <PortcoMetricSubpanel title="Cash/Burn"
-                                  topMetricTitle="Cash"
-                                  topMetricIcon="ion-cash"
-                                  topMetric={company.lastMetrics.cash}
-                                  bottomMetricTitle="Burn"
-                                  bottomMetricIcon="ion-flame"
-                                  bottomMetric={company.lastMetrics.burn} />
-          </div>
-          <div className="ovc-investor-portco-subpanel-container board">
-            <PortcoBoardSubpanel title="Board"
-                                 board={company.board} />
-          </div>
-        </div>
-        <i className="ion-ios-close remove-portco" id={company.id}
-           onClick={this.handleDeletePortfolioCompany} />
-      </div>
+      </LinkWrapper>
     );
   }
 

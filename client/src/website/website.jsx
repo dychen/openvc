@@ -1,5 +1,5 @@
 import React from 'react';
-import {Link} from 'react-router';
+import {NavLink} from 'react-router-dom';
 
 import './website.scss';
 
@@ -9,22 +9,22 @@ class WebsiteHeader extends React.Component {
       <div className="ovc-website-header">
         <div className="ovc-header-left">
           <span className="ovc-header-item logo">OpenVC</span>
-          <Link to="/home">
+          <NavLink to="/home">
             <span className="ovc-header-item button">Home</span>
-          </Link>
-          <Link to="/about">
+          </NavLink>
+          <NavLink to="/about">
             <span className="ovc-header-item button">About</span>
-          </Link>
+          </NavLink>
         </div>
 
         <div className="ovc-header-right">
           <span className="ovc-header-item text">I am a...</span>
-          <Link to="/founder">
+          <NavLink to="/founder">
             <span className="ovc-header-item button">Founder</span>
-          </Link>
-          <Link to="/investor">
+          </NavLink>
+          <NavLink to="/investor">
             <span className="ovc-header-item button">Investor</span>
-          </Link>
+          </NavLink>
         </div>
       </div>
     );
@@ -69,7 +69,8 @@ class WebsiteFooter extends React.Component {
   }
 }
 
-class WebsiteApp extends React.Component {
+/*
+class WebsiteAppContainer extends React.Component {
   render() {
     return (
       <div className="ovc-website-container">
@@ -80,6 +81,6 @@ class WebsiteApp extends React.Component {
     );
   }
 }
+*/
 
-export {WebsiteHeader, WebsiteHome, WebsiteAbout, WebsiteLogin, WebsiteFooter,
-        WebsiteApp};
+export {WebsiteHeader, WebsiteHome, WebsiteAbout, WebsiteLogin, WebsiteFooter};

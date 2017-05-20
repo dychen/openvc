@@ -1,6 +1,8 @@
 import React from 'react';
-import {Link, hashHistory} from 'react-router';
+import {Link, hashHistory} from 'react-router-dom';
 import 'whatwg-fetch';
+
+import LinkWrapper from '../components/link.jsx';
 import {storeToken} from '../utils/auth.js';
 
 import './login.scss';
@@ -25,7 +27,7 @@ class LoginForm extends React.Component {
     this.setState({ [e.target.name]: e.target.value });
   }
 
-  handleSubmit(e) {
+  handleSubmit(e, history, path) {
     fetch(SERVER_URL + '/api/v1/auth/token', {
       method: 'POST',
       headers: {
@@ -57,7 +59,7 @@ class LoginForm extends React.Component {
     }).then(json => {
       // TODO: Store token
       storeToken(json.token);
-      hashHistory.push('/founder');
+      history.push(path);
       return;
     }).catch(err => {
       return err;
@@ -73,12 +75,14 @@ class LoginForm extends React.Component {
         <label>Password:</label>
         <input type="password" name="password" value={this.state.password}
                onChange={this.handleChange} />
-        <div className="basic-submit" onClick={this.handleSubmit}>
-          Log In
-        </div>
+        <LinkWrapper path="/founder" onClick={this.handleSubmit}>
+          <div className="basic-submit">
+            Log In
+          </div>
+        </LinkWrapper>
 
         <label>Don't have an account?</label>
-        <Link to="/login/signup">
+        <Link to="/signup">
           <div className="basic-submit">Sign Up</div>
         </Link>
       </div>
@@ -126,7 +130,7 @@ class SignupForm extends React.Component {
         <label>Password (again):</label>
         <input type="password" name="passwordConfirmation"
                value={this.state.passwordConfirmation} />
-        <Link to="/login/startup">
+        <Link to="/startup">
           <div className="basic-submit" onClick={this.handleSubmit}>
             Submit
           </div>
@@ -166,7 +170,7 @@ class StartupForm extends React.Component {
         <label>Website: {this.state.website}</label>
         <input type="text" name="website" value={this.state.website}
                onChange={this.handleChange} />
-        <Link to="/login/contact">
+        <Link to="/contact">
           <div className="basic-submit" onClick={this.handleSubmit}>
             Submit
           </div>

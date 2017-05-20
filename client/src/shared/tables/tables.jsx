@@ -133,7 +133,7 @@ class UserTablesPage extends React.Component {
 
     const filterList = this.state.tableFields.map((tableField) => {
       return {
-        key: tableField.id,
+        key: tableField.displayName,
         display: `Filter by ${tableField.displayName}`
       };
     });

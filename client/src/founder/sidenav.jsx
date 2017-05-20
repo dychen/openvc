@@ -1,5 +1,5 @@
 import React from 'react';
-import {Link} from 'react-router';
+import {NavLink} from 'react-router-dom';
 
 import './sidenav.scss';
 
@@ -30,60 +30,60 @@ class FounderSidenav extends React.Component {
             <i className="ion-navicon nav-hamburger" />
             <span className="minimized-sidenav-hidden">OpenVC</span>
           </div>
-          <Link to="/founder/company">
+          <NavLink to="/founder/company">
             <div className="ovc-sidenav-item link">
               <i className="ion-speedometer" />
               <span className="minimized-sidenav-hidden">
                 Company
               </span>
             </div>
-          </Link>
-          <Link to="/founder/apply">
+          </NavLink>
+          <NavLink to="/founder/apply">
             <div className="ovc-sidenav-item link">
               <i className="ion-android-checkmark-circle" />
               <span className="minimized-sidenav-hidden">
                 Apply
               </span>
             </div>
-          </Link>
-          <Link to="/founder/fundraising">
+          </NavLink>
+          <NavLink to="/founder/fundraising">
             <div className="ovc-sidenav-item link">
               <i className="ion-cash" />
               <span className="minimized-sidenav-hidden">
                 Fundraising Status
               </span>
             </div>
-          </Link>
+          </NavLink>
           <div className="ovc-sidenav-item link">
             <i className="ion-stats-bars" />
             <span className="minimized-sidenav-hidden">
               Benchmarking
             </span>
           </div>
-          <Link to="/founder/contacts">
+          <NavLink to="/founder/contacts">
             <div className="ovc-sidenav-item link">
               <i className="ion-ios-people" />
               <span className="minimized-sidenav-hidden">
                 Contacts
               </span>
             </div>
-          </Link>
-          <Link to="/founder/rooms">
+          </NavLink>
+          <NavLink to="/founder/rooms">
             <div className="ovc-sidenav-item link">
               <i className="ion-chatbubbles" />
               <span className="minimized-sidenav-hidden">
                 Rooms
               </span>
             </div>
-          </Link>
-          <Link to="/founder/profile">
+          </NavLink>
+          <NavLink to="/founder/profile">
             <div className="ovc-sidenav-item link">
               <i className="ion-android-person" />
               <span className="minimized-sidenav-hidden">
                 Profile
               </span>
             </div>
-          </Link>
+          </NavLink>
           <div className="ovc-sidenav-item link">
             <i className="ion-key" />
             <span className="minimized-sidenav-hidden">

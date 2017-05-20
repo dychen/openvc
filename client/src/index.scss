@@ -32,3 +32,10 @@ html, body {
   flex-direction: column;
 }
 
+/* Reset CSS defaults */
+// Remove link formatting
+a, a:hover {
+  color: inherit;
+  text-decoration: inherit;
+}
+

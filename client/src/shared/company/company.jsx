@@ -1,9 +1,9 @@
 import React from 'react';
 import Immutable from 'immutable';
-import {hashHistory} from 'react-router';
 import {authFetch, preprocessJSON} from '../../utils/api.js';
 import moment from 'moment';
 
+import LinkWrapper from '../../components/link.jsx';
 import {CreateTeamMemberModal,
         CreateBoardMemberModal} from '../../components/modals/person.jsx';
 import EditTable from '../../components/edittable.jsx';
@@ -26,8 +26,6 @@ class MemberSection extends React.Component {
       modalVisible: false
     };
 
-    this._goToContactPage = this._goToContactPage.bind(this);
-
     // New member component handlers
     this.addNewMember = this.addNewMember.bind(this);
     this.handleDeleteMember = this.handleDeleteMember.bind(this);
@@ -48,11 +46,6 @@ class MemberSection extends React.Component {
     this.deleteMember = this.deleteMember.bind(this);
 
     this.getMemberList();
-  }
-
-  _goToContactPage(e) {
-    const linkUrl = '/' + this.props.USER_TYPE + '/contacts/' + e.currentTarget.id;
-    hashHistory.push(linkUrl);
   }
 
   /*
@@ -306,17 +299,19 @@ class MemberSection extends React.Component {
       }
       else {
         return (
-          <div className="ovc-member-card item" key={member.id} id={member.id}
-               onClick={this._goToContactPage}>
-            <i className="ion-trash-a remove-member" id={member.id}
-               onClick={this.handleDeleteMember} />
-            <i className="ion-edit edit-member" id={member.id}
-               onClick={this.editMember} />
-            <img src={member.photoUrl} />
-            <div>{member.firstName} {member.lastName}</div>
-            <div>{member.title}</div>
-            <div>{member.email}</div>
-          </div>
+          <LinkWrapper to={`/${this.props.USER_TYPE}/contacts/${member.id}`}
+                key={member.id}>
+            <div className="ovc-member-card item">
+              <i className="ion-trash-a remove-member" id={member.id}
+                 onClick={this.handleDeleteMember} />
+              <i className="ion-edit edit-member" id={member.id}
+                 onClick={this.editMember} />
+              <img src={member.photoUrl} />
+              <div>{member.firstName} {member.lastName}</div>
+              <div>{member.title}</div>
+              <div>{member.email}</div>
+            </div>
+          </LinkWrapper>
         );
       }
     });
@@ -588,18 +583,11 @@ class CompanyPage extends React.Component {
 }
 
 const companyWrapper = function(WrappedComponent, config) {
-  return class extends React.Component {
-    constructor(props) {
-      super(props);
-
-      this.API_URL_BASE = config.apiUrlBase(this.props);
-    }
-
-    render() {
-      return <WrappedComponent API_URL_BASE={this.API_URL_BASE}
-                               USER_TYPE={config.userType}
-                               {...this.props} />;
-    }
+  return (props) => {
+    const API_URL_BASE = config.apiUrlBase(props);
+    return (<WrappedComponent API_URL_BASE={API_URL_BASE}
+                              USER_TYPE={config.userType}
+                              {...props} />);
   };
 }
 
@@ -612,7 +600,7 @@ const founderConfig = {
 
 const investorConfig = {
   apiUrlBase: (props) => {
-    return `${SERVER_URL}/api/v1/users/portfolio/${props.params.companyId}`;
+    return `${SERVER_URL}/api/v1/users/portfolio/${props.match.params.companyId}`;
   },
   userType: 'investor',
 }

@@ -19,8 +19,10 @@ $SIDENAV_MINI_WIDTH: 55px;
     color: inherit;
   }
   a.active {
-    color: $OVC_SIDENAV_GRAY;
-    background-color: $OVC_DARK_GRAY;
+    div {
+      color: $OVC_WHITE;
+      background-color: $OVC_THEME_BLUE;
+    }
   }
 
   .ovc-sidenav-item {

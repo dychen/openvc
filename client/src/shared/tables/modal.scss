@@ -1,11 +1,45 @@
 @import '../../mixins';
 @import '../../constants.scss';
 
-.ovc-modal > .ovc-modal-header.ovc-table-modal-header {
-  height: 60px;
-  background-color: $OVC_SUBNAV_GRAY;
-
+.ovc-modal.ovc-table-modal {
   position: relative;
+}
+.ovc-modal .ovc-modal-header.ovc-header-panel {
+  background-color: $OVC_SUBNAV_GRAY; // Specify a background color to overlay
+                                      // integrations-panel animations
+  width: 100%;
+  height: 60px;
+  font-size: 1.2em;
+  font-weight: 900;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 2; // Make sure this overlays the integrations-panel animations
+  position: relative;
+  div.edit-integrations-button {
+    position: absolute;
+    overflow: visible; // Defaults to overflow: hidden for some reason
+    left: 20px;
+    top: 12px;
+    font-size: 1.2em;
+    color: $OVC_DARK_GRAY;
+
+    @include hvr-color($OVC_GRAY);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    i.ion-chevron-up {
+      position: absolute;
+      top: 17px;
+    }
+    i.ion-chevron-down {
+      position: absolute;
+      top: 17px;
+    }
+  }
   i.delete-table-button {
     position: absolute;
     right: 20px;
@@ -24,6 +58,32 @@
     align-items: center;
     justify-content: center;
   }
+  border-bottom: 1px solid $OVC_GRAY;
+}
+
+.ovc-modal .ovc-modal-header.ovc-integrations-panel {
+  background-color: $OVC_SUBNAV_GRAY;
+  position: absolute;
+  top: 60px;
+  font-size: 1.2em;
+  z-index: 1;
+  opacity: 0.85;
+  border-bottom: 1px solid $OVC_GRAY;
+  width: 100%;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  > .ovc-component-subnav-dropdown > label {
+    margin-right: 10px;
+  }
+}
+// Animations
+.ovc-integrations-panel-enter.ovc-integrations-panel-enter-active {
+  @include animate-slide-in-down(500ms);
+}
+.ovc-integrations-panel-leave.ovc-integrations-panel-leave-active {
+  @include animate-slide-out-up(500ms);
 }
 
 .ovc-modal > .ovc-modal-body.ovc-table-modal-body {
@@ -37,6 +97,16 @@
     box-shadow: 0 1px 3px 0 $OVC_GRAY;
 
     position: relative;
+    .field-panel-name {
+      position: absolute;
+      left: 10px;
+      top: 5px;
+    }
+    .field-panel-type {
+      position: absolute;
+      right: 35px;
+      top: 5px;
+    }
     .delete-field-button {
       position: absolute;
       right: 5px;

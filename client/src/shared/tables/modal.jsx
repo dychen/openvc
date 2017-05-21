@@ -1,6 +1,7 @@
 import React from 'react';
 import Immutable from 'immutable';
 import {DropdownButton, MenuItem} from 'react-bootstrap';
+import CSSTransitionGroup from 'react-transition-group/CSSTransitionGroup'
 import Scroll from 'react-scroll';
 const ScrollScroller = Scroll.animateScroll;
 
@@ -24,9 +25,57 @@ import './modal.scss';
  *                           is clicked.
  *                           f([Object: Event object]) => null
  */
-const TableModalHeader = (props) => {
+class TableModalHeader extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      integrationsPanelVisible: false
+    };
+
+    this.toggleIntegrationsPanel = this.toggleIntegrationsPanel.bind(this);
+  }
+
+  toggleIntegrationsPanel(e) {
+    this.setState({
+      integrationsPanelVisible: !this.state.integrationsPanelVisible
+    });
+  }
+
+  render() {
+    const integrationsPanel = (
+      this.state.integrationsPanelVisible
+      ? <IntegrationsPanel />
+      : undefined
+    );
+    return (
+      <div>
+        <HeaderPanel integrationsPanelVisible={this.state.integrationsPanelVisible}
+                     toggleIntegrationsPanel={this.toggleIntegrationsPanel}
+                     {...this.props} />
+        <CSSTransitionGroup transitionName="ovc-integrations-panel"
+                            transitionEnterTimeout={500}
+                            transitionLeaveTimeout={500}>
+          {integrationsPanel}
+        </CSSTransitionGroup>
+      </div>
+    );
+  }
+};
+
+const HeaderPanel = (props) => {
+  const upIcon = (props.integrationsPanelVisible
+                  ? <i className="ion-chevron-up" /> : '');
+  const downIcon = (!props.integrationsPanelVisible
+                    ? <i className="ion-chevron-down" /> : '');
   return (
-    <div className="ovc-modal-header ovc-table-modal-header">
+    <div className="ovc-modal-header ovc-header-panel">
+      <div className="edit-integrations-button"
+           onClick={props.toggleIntegrationsPanel}>
+        <i className="ion-network" />
+        {upIcon}
+        {downIcon}
+      </div>
       <EditField field="displayName"
                  fieldType="string"
                  originalValue={props.table.displayName}
@@ -36,7 +85,59 @@ const TableModalHeader = (props) => {
          onClick={props.deleteTable} />
     </div>
   );
-};
+}
+
+const IntegrationsPanel = (props) => {
+  return (
+    <div className="ovc-modal-header ovc-integrations-panel">
+      <div className="ovc-component-subnav-dropdown">
+        <label>APIs</label>
+        <DropdownButton className="dropdown-button"
+                        title="Select an Integration"
+                        id="ovc-component-subnav-dropdown">
+          <MenuItem className="ovc-search-tab"
+                    eventKey="crunchbase"
+                    onSelect={props.changeSection}>
+            Crunchbase
+          </MenuItem>
+          <MenuItem className="ovc-search-tab"
+                    eventKey="salesforce"
+                    onSelect={props.changeSection}>
+            Salesforce
+          </MenuItem>
+          <MenuItem className="ovc-search-tab"
+                    eventKey="pitchbook"
+                    onSelect={props.changeSection}>
+            Pitchbook
+          </MenuItem>
+        </DropdownButton>
+      </div>
+
+      <div className="ovc-component-subnav-dropdown">
+        <label>Models</label>
+        <DropdownButton className="dropdown-button"
+                        title="Select a Model"
+                        id="ovc-component-subnav-dropdown">
+          <MenuItem className="ovc-search-tab"
+                    eventKey="company"
+                    onSelect={props.changeSection}>
+            Company
+          </MenuItem>
+          <MenuItem className="ovc-search-tab"
+                    eventKey="person"
+                    onSelect={props.changeSection}>
+            Person
+          </MenuItem>
+          <MenuItem className="ovc-search-tab"
+                    eventKey="investment"
+                    onSelect={props.changeSection}>
+            Investment
+          </MenuItem>
+        </DropdownButton>
+      </div>
+    </div>
+  );
+}
 
 /*
  * Use index instead of id because newly added (unsaved) fields will not have
@@ -60,19 +161,23 @@ const TableModalFieldPanel = (props) => {
   const dropdownFieldId = `ovc-table-modal-type-dropdown-${props.index}`;
   return (
     <div className="ovc-table-modal-field-panel">
-      <EditField id={props.index}
-                 field="displayName"
-                 fieldType="string"
-                 originalValue={props.tableField.displayName}
-                 placeholder="Click to edit"
-                 onSave={props.updateTableField} />
-      <DropdownField id={props.index}
-                     field="type"
-                     elementId={dropdownFieldId}
-                     originalValue={DATA_TYPE_MAP[props.tableField.type]}
-                     placeholder="Click to edit"
-                     options={DATA_TYPE_LIST}
-                     onSelect={props.updateTableField} />
+      <div className="field-panel-name">
+        <EditField id={props.index}
+                   field="displayName"
+                   fieldType="string"
+                   originalValue={props.tableField.displayName}
+                   placeholder="Click to edit"
+                   onSave={props.updateTableField} />
+      </div>
+      <div className="field-panel-type">
+        <DropdownField id={props.index} className="field-panel-type"
+                       field="type"
+                       elementId={dropdownFieldId}
+                       originalValue={DATA_TYPE_MAP[props.tableField.type]}
+                       placeholder="Click to edit"
+                       options={DATA_TYPE_LIST}
+                       onSelect={props.updateTableField} />
+      </div>
       <i className="ion-android-close delete-field-button"
          id={props.index}
          onClick={props.removeTableField} />
@@ -330,7 +435,7 @@ class TableModal extends React.Component {
 
     return (
       <div className={modalShowClass} onClick={this.props.hideModal}>
-        <div className="ovc-modal modalfield-modal"
+        <div className="ovc-modal ovc-table-modal"
              onClick={this._preventModalClose}>
           <TableModalHeader table={this.state.table}
                             updateTable={this.updateTable}

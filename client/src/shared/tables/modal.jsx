@@ -12,6 +12,65 @@ import {DATA_TYPE_LIST, DATA_TYPE_MAP} from '../../utils/constants.js';
 
 import './modal.scss';
 
+const INTEGRATIONS = [
+  {
+    key: 'crunchbase',
+    icon: 'ion-arrow-graph-up-right',
+    display: 'Crunchbase',
+    models: [
+      {
+        key: 'company',
+        display: 'Company',
+        fields: [
+          { key: 'name', display: 'Name' },
+          { key: 'description', display: 'Description' },
+          { key: 'logoUrl', display: 'Logo URL' },
+          { key: 'website', display: 'Website' },
+          { key: 'location', display: 'Location' }
+        ]
+      }, {
+        key: 'person',
+        display: 'Person',
+        fields: []
+      }
+    ]
+  }, {
+    key: 'salesforce',
+    icon: 'ion-cloud',
+    display: 'Salesforce',
+    models: [
+      {
+        key: 'account',
+        display: 'Account',
+        fields: [
+          { key: 'name', display: 'Name' },
+          { key: 'description', display: 'Description' },
+          { key: 'segment', display: 'Segment' },
+          { key: 'sector', display: 'Sector' },
+          { key: 'website', display: 'Website' },
+          { key: 'location', display: 'Location' }
+        ]
+      }
+    ]
+  }
+];
+
+const getIntegration = (integrationKey) => {
+  return INTEGRATIONS.find(integration => integration.key === integrationKey);
+};
+
+const getIntegrationModel = (integration, modelKey) => {
+  if (integration && integration.models)
+    return integration.models.find(model => model.key === modelKey) || {};
+  return {};
+};
+
+const getModelField = (model, fieldKey) => {
+  if (model && model.fields)
+    return model.fields.find(field => field.key === fieldKey) || {};
+  return {};
+};
+
 /*
  * props:
  *   table [Object]: Table object { displayName: [string], ... }
@@ -25,57 +84,9 @@ import './modal.scss';
  *                           is clicked.
  *                           f([Object: Event object]) => null
  */
-class TableModalHeader extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      integrationsPanelVisible: false
-    };
-
-    this.toggleIntegrationsPanel = this.toggleIntegrationsPanel.bind(this);
-  }
-
-  toggleIntegrationsPanel(e) {
-    this.setState({
-      integrationsPanelVisible: !this.state.integrationsPanelVisible
-    });
-  }
-
-  render() {
-    const integrationsPanel = (
-      this.state.integrationsPanelVisible
-      ? <IntegrationsPanel />
-      : undefined
-    );
-    return (
-      <div>
-        <HeaderPanel integrationsPanelVisible={this.state.integrationsPanelVisible}
-                     toggleIntegrationsPanel={this.toggleIntegrationsPanel}
-                     {...this.props} />
-        <CSSTransitionGroup transitionName="ovc-integrations-panel"
-                            transitionEnterTimeout={500}
-                            transitionLeaveTimeout={500}>
-          {integrationsPanel}
-        </CSSTransitionGroup>
-      </div>
-    );
-  }
-};
-
-const HeaderPanel = (props) => {
-  const upIcon = (props.integrationsPanelVisible
-                  ? <i className="ion-chevron-up" /> : '');
-  const downIcon = (!props.integrationsPanelVisible
-                    ? <i className="ion-chevron-down" /> : '');
+const TableModalHeader = (props) => {
   return (
     <div className="ovc-modal-header ovc-header-panel">
-      <div className="edit-integrations-button"
-           onClick={props.toggleIntegrationsPanel}>
-        <i className="ion-network" />
-        {upIcon}
-        {downIcon}
-      </div>
       <EditField field="displayName"
                  fieldType="string"
                  originalValue={props.table.displayName}
@@ -87,80 +98,12 @@ const HeaderPanel = (props) => {
   );
 }
 
-const IntegrationsPanel = (props) => {
-  return (
-    <div className="ovc-modal-header ovc-integrations-panel">
-      <div className="ovc-component-subnav-dropdown">
-        <label>APIs</label>
-        <DropdownButton className="dropdown-button"
-                        title="Select an Integration"
-                        id="ovc-component-subnav-dropdown">
-          <MenuItem className="ovc-search-tab"
-                    eventKey="crunchbase"
-                    onSelect={props.changeSection}>
-            Crunchbase
-          </MenuItem>
-          <MenuItem className="ovc-search-tab"
-                    eventKey="salesforce"
-                    onSelect={props.changeSection}>
-            Salesforce
-          </MenuItem>
-          <MenuItem className="ovc-search-tab"
-                    eventKey="pitchbook"
-                    onSelect={props.changeSection}>
-            Pitchbook
-          </MenuItem>
-        </DropdownButton>
-      </div>
 
-      <div className="ovc-component-subnav-dropdown">
-        <label>Models</label>
-        <DropdownButton className="dropdown-button"
-                        title="Select a Model"
-                        id="ovc-component-subnav-dropdown">
-          <MenuItem className="ovc-search-tab"
-                    eventKey="company"
-                    onSelect={props.changeSection}>
-            Company
-          </MenuItem>
-          <MenuItem className="ovc-search-tab"
-                    eventKey="person"
-                    onSelect={props.changeSection}>
-            Person
-          </MenuItem>
-          <MenuItem className="ovc-search-tab"
-                    eventKey="investment"
-                    onSelect={props.changeSection}>
-            Investment
-          </MenuItem>
-        </DropdownButton>
-      </div>
-    </div>
-  );
-}
-
-/*
- * Use index instead of id because newly added (unsaved) fields will not have
- * an id. Null ids are used to create new fields (versus update existing ones)
- * when the table is saved.
- *
- * props:
- *   index [int]: Index of the field in the tableFields array.
- *   tableField [Object]: TableField object { displayName: ... }
- *
- *   updateTableField [function]: Function that gets called when the field
- *                                properties are edited, as specified in the
- *                                EditField component.
- *                                f([string: field name], [string: field value],
- *                                  [string: object id]) => null
- *   removeTableField [function]: Function that gets called when the delete
- *                                button is clicked.
- *                                f([Object: Event object]) => null
- */
-const TableModalFieldPanel = (props) => {
+const FieldPanelFieldSection = (props) => {
   const dropdownFieldId = `ovc-table-modal-type-dropdown-${props.index}`;
+
   return (
-    <div className="ovc-table-modal-field-panel">
+    <div className="field-panel-section field-section">
       <div className="field-panel-name">
         <EditField id={props.index}
                    field="displayName"
@@ -183,6 +126,195 @@ const TableModalFieldPanel = (props) => {
          onClick={props.removeTableField} />
     </div>
   );
+}
+
+const FieldPanelToggleSection = (props) => {
+  const upIcon = (props.integrationsPanelVisible
+                  ? <i className="ion-chevron-up" /> : '');
+  const downIcon = (!props.integrationsPanelVisible
+                    ? <i className="ion-chevron-down" /> : '');
+
+  return (
+    <div className="field-panel-section integrations-toggle-section"
+         onClick={props.toggleIntegrationsPanel}>
+      <div className="edit-integrations-button">
+        <i className="ion-network" />
+        {upIcon}
+        {downIcon}
+      </div>
+      See Existing Integrations
+    </div>
+  );
+}
+
+class FieldPanelIntegrationsSection extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      integrations: {
+
+      }
+    };
+  }
+
+  updateTableField(eventKey, e) {
+    const integrationList = [];
+    this.setState({ integrations: integrationsList });
+    this.props.updateTableField('integrations', integrationList,
+                                this.props.index);
+  }
+
+  render() {
+    const integrations = INTEGRATIONS.map(integration => (
+      <IntegrationsListPanelItem integration={integration}
+                                 key={integration.key} />
+    ));
+    return (
+      <div className="field-panel-section integrations-list-section">
+        {integrations}
+      </div>
+    );
+  }
+}
+
+/*
+ * props:
+ *   integration
+ */
+class IntegrationsListPanelItem extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      selectedModelKey: '',
+      selectedFieldKey: ''
+    };
+
+    this.selectModel = this.selectModel.bind(this);
+    this.selectField = this.selectField.bind(this);
+  }
+
+  selectModel(eventKey, e) {
+    this.setState({ selectedModelKey: eventKey });
+  }
+
+  selectField(eventKey, e) {
+    this.setState({ selectedFieldKey: eventKey });
+  }
+
+  render() {
+    const integration = getIntegration(this.props.integration.key);
+    const selectedModel = getIntegrationModel(integration,
+                                              this.state.selectedModelKey);
+    const selectedField = getModelField(selectedModel,
+                                        this.state.selectedFieldKey);
+    const integrationModels = (integration && integration.models
+                               ? integration.models : []);
+    const modelFields = (selectedModel && selectedModel.fields
+                         ? selectedModel.fields : []);
+
+    const modelList = integrationModels.map(model => (
+      <MenuItem className="ovc-search-tab"
+                key={model.key}
+                eventKey={model.key}
+                onSelect={this.selectModel}>
+        {model.display}
+      </MenuItem>
+    ));
+    const fieldList = modelFields.map(field => (
+      <MenuItem className="ovc-search-tab"
+                key={field.key}
+                eventKey={field.key}
+                onSelect={this.selectField}>
+        {field.display}
+      </MenuItem>
+    ));
+    return (
+      <div className="integrations-list-row">
+        <label>
+          <i className={this.props.integration.icon} />
+          {this.props.integration.display}
+        </label>
+        <div>
+          <DropdownButton className="dropdown-button"
+                          title={selectedModel.display || 'Select a model'}
+                          id={`ovc-integrations-panel-model-dropdown-
+                               ${this.props.integration.key}`}>
+            {modelList}
+          </DropdownButton>
+          <DropdownButton className="dropdown-button"
+                          title={selectedField.display || 'Select a field'}
+                          id={`ovc-integrations-panel-field-dropdown-
+                               ${this.props.integration.key}`}>
+            {fieldList}
+          </DropdownButton>
+        </div>
+      </div>
+    );
+  }
+};
+
+/*
+ * Use index instead of id because newly added (unsaved) fields will not have
+ * an id. Null ids are used to create new fields (versus update existing ones)
+ * when the table is saved.
+ *
+ * props:
+ *   index [int]: Index of the field in the tableFields array.
+ *   tableField [Object]: TableField object { displayName: ... }
+ *
+ *   updateTableField [function]: Function that gets called when the field
+ *                                properties are edited, as specified in the
+ *                                EditField component.
+ *                                f([string: field name], [string: field value],
+ *                                  [string: object id]) => null
+ *   removeTableField [function]: Function that gets called when the delete
+ *                                button is clicked.
+ *                                f([Object: Event object]) => null
+ */
+class TableModalFieldPanel extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      integrationsPanelVisible: false
+    };
+
+    this.toggleIntegrationsPanel = this.toggleIntegrationsPanel.bind(this);
+  }
+
+  toggleIntegrationsPanel(e) {
+    this.setState({
+      integrationsPanelVisible: !this.state.integrationsPanelVisible
+    });
+  }
+
+  render() {
+    let integrationsPanel = (
+      this.state.integrationsPanelVisible
+      ? <FieldPanelIntegrationsSection
+          index={this.props.index}
+          updateTableField={this.props.updateTableField} />
+      : undefined
+    );
+
+    return (
+      <div className="ovc-table-modal-field-panel">
+        <FieldPanelFieldSection {...this.props} />
+
+        <FieldPanelToggleSection
+          integrationsPanelVisible={this.state.integrationsPanelVisible}
+          toggleIntegrationsPanel={this.toggleIntegrationsPanel} />
+
+        <CSSTransitionGroup transitionName="ovc-integrations-panel"
+                            transitionEnterTimeout={500}
+                            transitionLeaveTimeout={500}>
+          {integrationsPanel}
+        </CSSTransitionGroup>
+      </div>
+    );
+  }
 };
 
 /*

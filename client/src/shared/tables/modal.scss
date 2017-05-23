@@ -5,8 +5,6 @@
   position: relative;
 }
 .ovc-modal .ovc-modal-header.ovc-header-panel {
-  background-color: $OVC_SUBNAV_GRAY; // Specify a background color to overlay
-                                      // integrations-panel animations
   width: 100%;
   height: 60px;
   font-size: 1.2em;
@@ -15,31 +13,7 @@
   justify-content: center;
   align-items: center;
 
-  z-index: 2; // Make sure this overlays the integrations-panel animations
   position: relative;
-  div.edit-integrations-button {
-    position: absolute;
-    overflow: visible; // Defaults to overflow: hidden for some reason
-    left: 20px;
-    top: 12px;
-    font-size: 1.2em;
-    color: $OVC_DARK_GRAY;
-
-    @include hvr-color($OVC_GRAY);
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    i.ion-chevron-up {
-      position: absolute;
-      top: 17px;
-    }
-    i.ion-chevron-down {
-      position: absolute;
-      top: 17px;
-    }
-  }
   i.delete-table-button {
     position: absolute;
     right: 20px;
@@ -61,70 +35,134 @@
   border-bottom: 1px solid $OVC_GRAY;
 }
 
-.ovc-modal .ovc-modal-header.ovc-integrations-panel {
-  background-color: $OVC_SUBNAV_GRAY;
-  position: absolute;
-  top: 60px;
-  font-size: 1.2em;
-  z-index: 1;
-  opacity: 0.85;
-  border-bottom: 1px solid $OVC_GRAY;
-  width: 100%;
-  height: 60px;
+.ovc-modal > .ovc-modal-body.ovc-table-modal-body {
+  max-height: 400px;
+  overflow-y: scroll;
   display: flex;
-  align-items: center;
-  justify-content: space-around;
-  > .ovc-component-subnav-dropdown > label {
-    margin-right: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+
+  position: relative;
+  > .ovc-table-modal-field-panel {
+    width: 100%;
+    margin: 5px;
+    box-shadow: 0 1px 3px 0 $OVC_GRAY;
+
+    .field-panel-section {
+      height: 60px;
+      padding: 5px;
+      border-bottom: 1px solid $OVC_LIGHT_GRAY;
+    }
+
+    .field-panel-section.field-section {
+      position: relative;
+      .field-panel-name {
+        position: absolute;
+        left: 10px;
+        top: 5px;
+      }
+      .field-panel-type {
+        position: absolute;
+        right: 35px;
+        top: 5px;
+      }
+      .delete-field-button {
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        width: 20px;
+        height: 20px;
+        color: $OVC_RED;
+        background: $OVC_WHITE;
+        border: 1px solid $OVC_RED;
+        border-radius: 10px;
+
+        @include hvr-fade($OVC_WHITE, $OVC_RED);
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .field-panel-section.integrations-toggle-section {
+      @include hvr-color($OVC_GRAY);
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      div.edit-integrations-button {
+        position: absolute;
+        overflow: visible; // Defaults to overflow: hidden for some reason
+        left: 20px;
+        top: 12px;
+        font-size: 1.2em;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        i.ion-chevron-up {
+          position: absolute;
+          top: 17px;
+        }
+        i.ion-chevron-down {
+          position: absolute;
+          top: 17px;
+        }
+      }
+    }
+
+    .field-panel-section.integrations-list-section {
+      height: auto;
+      font-size: 1.2em;
+      border-bottom: 1px solid $OVC_GRAY;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      > .integrations-list-row {
+        margin: 10px;
+        height: 30px;
+        width: 100%;
+
+        > label > i {
+          margin-right: 10px;
+        }
+        > label {
+          position: absolute;
+          left: 20px;
+        }
+        > div {
+          position: absolute;
+          right: 20px;
+        }
+      }
+    }
   }
 }
+
 // Animations
+.field-panel-section {
+  //z-index: 2; // Make sure this overlays the integrations-panel animations
+}
+.field-panel-section.integrations-toggle-section {
+  background-color: $OVC_SUBNAV_GRAY; // Specify a background color to overlay
+                                      // integrations-panel animations
+}
+.field-panel-section.integrations-list-section {
+  background-color: $OVC_SUBNAV_GRAY;
+  position: relative;
+  top: 0px;
+  //z-index: 1;
+  opacity: 0.85;
+}
 .ovc-integrations-panel-enter.ovc-integrations-panel-enter-active {
   @include animate-slide-in-down(500ms);
 }
 .ovc-integrations-panel-leave.ovc-integrations-panel-leave-active {
   @include animate-slide-out-up(500ms);
-}
-
-.ovc-modal > .ovc-modal-body.ovc-table-modal-body {
-  max-height: 400px;
-  overflow-y: scroll;
-
-  > .ovc-table-modal-field-panel {
-    height: 60px;
-    padding: 5px;
-    margin: 5px;
-    box-shadow: 0 1px 3px 0 $OVC_GRAY;
-
-    position: relative;
-    .field-panel-name {
-      position: absolute;
-      left: 10px;
-      top: 5px;
-    }
-    .field-panel-type {
-      position: absolute;
-      right: 35px;
-      top: 5px;
-    }
-    .delete-field-button {
-      position: absolute;
-      right: 5px;
-      top: 5px;
-      width: 20px;
-      height: 20px;
-      color: $OVC_RED;
-      background: $OVC_WHITE;
-      border: 1px solid $OVC_RED;
-      border-radius: 10px;
-
-      @include hvr-fade($OVC_WHITE, $OVC_RED);
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-  }
 }
 
 .ovc-modal > .ovc-modal-footer.ovc-table-modal-footer {

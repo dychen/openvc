@@ -1346,17 +1346,12 @@ class Deal(models.Model):
         self.save()
         return self
 
-#################
-# Custom models #
-#################
+######################
+# Model Integrations #
+######################
 
-def generate_api_name(display_name):
-    return (''.join([c for c in display_name if c.isalnum() or c == ' '])
-              .replace(' ', '_'))
-
-class DataSource(models.Model):
+class APIIntegration(models.Model):
     DEFAULT_ID = 1
-    API_FIELDS = ['source', 'model', 'field']
 
     SOURCE_MAPPING = [{
         'key': 'crunchbase',
@@ -1402,21 +1397,16 @@ class DataSource(models.Model):
     }]
 
     # TODO: Normalize?
-    source         = models.TextField()
+    source         = models.TextField(unique=True)
     source_display = models.TextField(null=True, blank=True)
     source_icon    = models.TextField(null=True, blank=True)
-    model          = models.TextField()
-    model_display  = models.TextField(null=True, blank=True)
-    model_icon     = models.TextField(null=True, blank=True)
-    field          = models.TextField()
-    field_display  = models.TextField(null=True, blank=True)
-    field_icon     = models.TextField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        unique_together = ('source', 'model', 'field')
+    @classmethod
+    def get_default(cls):
+        return cls.objects.get(source='self')
 
     @classmethod
     def get_api_list_format(cls):
@@ -1490,6 +1480,30 @@ class DataSource(models.Model):
                         }
                     )
 
+class APIIntegrationSource(models.Model):
+    integration    = models.ForeignKey(APIIntegration,
+                                       related_name='api_integration_sources')
+    model          = models.TextField()
+    model_display  = models.TextField(null=True, blank=True)
+    model_icon     = models.TextField(null=True, blank=True)
+    field          = models.TextField()
+    field_display  = models.TextField(null=True, blank=True)
+    field_icon     = models.TextField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('integration', 'model', 'field')
+
+#################
+# Custom models #
+#################
+
+def generate_api_name(display_name):
+    return (''.join([c for c in display_name if c.isalnum() or c == ' '])
+              .replace(' ', '_'))
+
 class CustomTable(models.Model):
     API_FIELDS = [
         'display_name', 'api_name', 'icon',
@@ -1539,10 +1553,6 @@ class CustomField(models.Model):
         #{ 'related_table': ['display_name', 'api_name', 'icon'] },
         { 'field': 'owner', 'model': 'users.User',
           'related_fields': ['email'] },
-        { 'field': 'source', 'model': 'data.DataSource',
-          'related_fields': ['source', 'source_display', 'source_icon',
-                             'model', 'model_display', 'model_icon',
-                             'field', 'field_display', 'field_icon'] },
     ]
     REQUIRED_FIELDS = ['display_name']
 
@@ -1554,8 +1564,6 @@ class CustomField(models.Model):
     owner      = models.ForeignKey('users.User', related_name='custom_fields')
 
     table      = models.ForeignKey(CustomTable, related_name='custom_fields')
-    source     = models.ForeignKey(DataSource, related_name='custom_fields',
-                                   default=DataSource.DEFAULT_ID)
     display_name = models.TextField()
     api_name   = models.TextField()
     type       = models.TextField(choices=DATA_TYPE_CHOICES)
@@ -1566,7 +1574,7 @@ class CustomField(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('table', 'api_name', 'source')
+        unique_together = ('table', 'api_name')
 
     def get_api_format(self):
         return get_api_format(self, self.API_FIELDS)
@@ -1589,6 +1597,24 @@ class CustomField(models.Model):
         request_json['table'] = { 'id': table.id }
         return update_from_api(self, user.account, self.API_FIELDS, request_json)
 
+class CustomFieldIntegration(models.Model):
+    account     = models.ForeignKey('users.Account',
+                                    related_name='custom_field_integrations',
+                                    default=DEFAULT_ACCOUNT_ID)
+    owner       = models.ForeignKey('users.User',
+                                    related_name='custom_field_integrations')
+
+    field       = models.ForeignKey(CustomField,
+                                    related_name='custom_field_integrations')
+    integration = models.ForeignKey(APIIntegration,
+                                    related_name='custom_field_integrations',
+                                    default=APIIntegration.DEFAULT_ID)
+    created_at  = models.DateTimeField(auto_now_add=True)
+    updated_at  = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('account', 'field', 'integration')
+
 class CustomRecord(models.Model):
     API_FIELDS = [
         { 'field': 'table', 'model': 'data.CustomTable',
@@ -1608,45 +1634,58 @@ class CustomRecord(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def get_api_format(self):
+    def get_api_format(self, integration=None):
         # TODO: Optimize
+        integration = (APIIntegration.get_default()
+                       if integration is None else integration)
         record = { 'id': self.id }
         for custom_field in self.table.custom_fields.all():
             try:
                 record[custom_field.api_name] = CustomData.objects.get(
-                    account=self.account, record=self, field=custom_field
+                    account=self.account, record=self,
+                    field__field=custom_field, field__integration=integration
                 ).value
             except CustomData.DoesNotExist:
                 record[custom_field.api_name] = None
         return record
 
     @classmethod
-    def create_from_api(cls, user, table, request_json):
+    def create_from_api(cls, user, table, request_json, integration=None):
+        integration = (APIIntegration.get_default()
+                       if integration is None else integration)
         record = CustomRecord.objects.create(account=user.account, owner=user,
                                              table=table)
         for field_name, value in request_json.iteritems():
             # TODO: Transform value based on type
             try:
-                field = CustomField.objects.get(table=table,
-                                                api_name=field_name)
+                field = CustomFieldIntegration.objects.get(
+                    custom_field__table=table,
+                    custom_field__api_name=field_name,
+                    integration=integration
+                )
                 CustomData.objects.create(field=field, record=record,
                                           owner=user, account=user.account,
                                           value=value)
-            except CustomField.DoesNotExist:
+            except CustomFieldIntegration.DoesNotExist:
                 continue
         return record
 
-    def update_from_api(self, user, table, request_json):
+    def update_from_api(self, user, table, request_json, integration=None):
+        integration = (APIIntegration.get_default()
+                       if integration is None else integration)
         for field_name, value in request_json.iteritems():
             # TODO: Transform value based on type
             try:
-                field = CustomField.objects.get(table=table,
-                                                api_name=field_name)
+                field = CustomFieldIntegration.objects.get(
+                    field__table=table,
+                    field__api_name=field_name,
+                    integration=integration
+                )
                 CustomData.objects.update_or_create(field=field, record=self,
                                                     owner=user,
                                                     account=user.account,
                                                     defaults={ 'value': value })
-            except CustomField.DoesNotExist:
+            except CustomFieldIntegration.DoesNotExist:
                 continue
         return self
 
@@ -1663,7 +1702,8 @@ class CustomData(models.Model):
                                    default=DEFAULT_ACCOUNT_ID)
     owner      = models.ForeignKey('users.User', related_name='custom_data')
 
-    field      = models.ForeignKey(CustomField, related_name='custom_data')
+    field      = models.ForeignKey(CustomFieldIntegration,
+                                   related_name='custom_data')
     record     = models.ForeignKey(CustomRecord, related_name='custom_data')
     value      = models.TextField()
 
@@ -1675,13 +1715,4 @@ class CustomData(models.Model):
 
     def get_api_format(self):
         return get_api_format(self, self.API_FIELDS)
-
-    @classmethod
-    def create_from_api(cls, user, request_json):
-        request_json['owner'] = user
-        return create_from_api(cls, user.account, cls.API_FIELDS, request_json)
-
-    def update_from_api(self, user, request_json):
-        return update_from_api(self, user.account, self.API_FIELDS, request_json)
-
 

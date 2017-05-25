@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from users.models import Account
 from data.api import validate_request
-from data.models import CustomTable, CustomField, CustomRecord, CustomData, DataSource
+from data.models import CustomTable, CustomField, CustomRecord, CustomData
 from shared.auth import check_authentication
 
 
@@ -327,7 +327,7 @@ class CustomRecordView(APIView):
             custom_table = CustomTable.objects.get(account=account, id=table_id,
                                                    owner=user)
             CustomRecord.objects.get(account=account, id=record_id, owner=user,
-                                    table=custom_table).delete()
+                                     table=custom_table).delete()
             return Response({ 'id': record_id }, status=status.HTTP_200_OK)
 
         except (Account.DoesNotExist, CustomTable.DoesNotExist,
@@ -335,9 +335,3 @@ class CustomRecordView(APIView):
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
-class DataSourceView(APIView):
-    # GET /sources
-    def get(self, request, format=None):
-        user = check_authentication(request)
-        return Response(DataSource.get_api_list_format(),
-                        status=status.HTTP_200_OK)

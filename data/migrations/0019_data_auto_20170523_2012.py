@@ -8,6 +8,8 @@ import django.db.models.deletion
 def migrate_data_sources(apps, schema_editor):
     """This is an irreversible migration"""
     DataSource = apps.get_model('data', 'DataSource')
+    # NOTE TO SELF: Do not manually set id in the future because this doesn't
+    #               increment the database's autoincrement field.
     DataSource.objects.update_or_create(id=1, defaults={
         'source': 'self',
         'model': 'self',

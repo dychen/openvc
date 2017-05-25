@@ -71,6 +71,23 @@ const getModelField = (model, fieldKey) => {
   return {};
 };
 
+// Data transforms
+const getDefaultField = (fields, apiName) => {
+  return fields.filter(field => field.apiName === apiName
+                       && field.source && field.source.source === 'self');
+};
+
+const filterFieldsBySource = (fields, source) => {
+};
+
+const updateFieldSource = (fields, source, model, field) => {
+  const matches = fields.filter(field => (field.source
+                                          && field.source.source === source));
+  // Create
+  // Update
+  // Delete
+};
+
 /*
  * props:
  *   table [Object]: Table object { displayName: [string], ... }
@@ -158,7 +175,7 @@ class FieldPanelIntegrationsSection extends React.Component {
     };
   }
 
-  updateTableField(eventKey, e) {
+  updateTableField(integrationKey, modelKey, fieldKey) {
     const integrationList = [];
     this.setState({ integrations: integrationsList });
     this.props.updateTableField('integrations', integrationList,
@@ -168,6 +185,7 @@ class FieldPanelIntegrationsSection extends React.Component {
   render() {
     const integrations = INTEGRATIONS.map(integration => (
       <IntegrationsListPanelItem integration={integration}
+                                 onSelect={this.updateTableField}
                                  key={integration.key} />
     ));
     return (
@@ -180,7 +198,9 @@ class FieldPanelIntegrationsSection extends React.Component {
 
 /*
  * props:
- *   integration
+ *   integration [Object]:
+ *
+ *   onSelect [function]:
  */
 class IntegrationsListPanelItem extends React.Component {
   constructor(props) {
@@ -201,6 +221,7 @@ class IntegrationsListPanelItem extends React.Component {
 
   selectField(eventKey, e) {
     this.setState({ selectedFieldKey: eventKey });
+    this.props.onSelect(integration.key, this.state.selectedModelKey, eventKey);
   }
 
   render() {
@@ -389,6 +410,15 @@ const TableModalFooter = (props) => {
  * props:
  *   table [Object]: Custom Table object { displayName: [string], ... }
  *   tableFields [Array]: List of Custom Field objects { displayName: ..., }
+ *   sources [Array]: List of nested Data Source objects: [
+ *     { key: [string], display: [string], icon: [string], models: [
+ *       { key: [string], display: [string], icon: [string], fields: [
+ *         { key: [string], display: [string], icon: [string] }, ...
+ *       ]},
+ *       ...
+ *     ]},
+ *     ...
+ *   ]
  *   visible [boolean]: Whether or not to show the modal.
  *
  *   hideModal [function]: Function to hide the modal.
@@ -573,6 +603,7 @@ class TableModal extends React.Component {
                             updateTable={this.updateTable}
                             deleteTable={this.deleteTable} />
           <TableModalBody tableFields={this.state.tableFields}
+                          sources={this.props.sources}
                           updateTableField={this.updateTableField}
                           removeTableField={this.removeTableField} />
           <TableModalFooter hideModal={this.props.hideModal}

@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {getTableList, getFieldList} from './api.js';
+import {getTableList, getFieldList, getSourceList} from './api.js';
 import EditTable from '../../components/edittable.jsx';
 import {Subnav, SubnavButton, SubnavDropdown,
         SubnavFilters} from '../../components/subnav.jsx';
@@ -46,6 +46,7 @@ class UserTablesPage extends React.Component {
       table: {},
       tableFields: [],
       tables: [],
+      sources: [],
       createModalVisible: false,
       updateModalVisible: false
     };
@@ -61,6 +62,19 @@ class UserTablesPage extends React.Component {
   }
 
   loadTables(table) {
+    const getSources = () => {
+      getSourceList().then((sources) => {
+        this.setState({ sources: sources });
+      });
+    };
+    const getFields = (tableId) => {
+      if (activeTable.id) {
+        getFieldList(activeTable.id)
+          .then((fields) => {
+            this.setState({ tableFields: fields }, getSources);
+          });
+      }
+    };
     let activeTable = {};
     getTableList()
       .then((tables) => {
@@ -72,14 +86,7 @@ class UserTablesPage extends React.Component {
         this.setState({
           table: activeTable,
           tables: tables
-        }, () => {
-          if (activeTable.id) {
-            getFieldList(activeTable.id)
-              .then((fields) => {
-                this.setState({ tableFields: fields });
-              });
-          }
-        });
+        }, () => { getFields(activeTable.id); });
       });
   }
 
@@ -163,11 +170,13 @@ class UserTablesPage extends React.Component {
 
         <TableModal table={{}}
                     tableFields={[]}
+                    sources={this.state.sources}
                     visible={this.state.createModalVisible}
                     hideModal={this.hideCreateModal}
                     onSave={this.loadTables} />
         <TableModal table={this.state.table}
                     tableFields={this.state.tableFields}
+                    sources={this.state.sources}
                     visible={this.state.updateModalVisible}
                     hideModal={this.hideUpdateModal}
                     onSave={this.loadTables}

@@ -1,3 +1,4 @@
+from django.apps import apps as django_apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import FieldDoesNotExist
 from rest_framework.exceptions import ValidationError
@@ -56,7 +57,9 @@ def create_from_api(model, account, fields, request_json):
                 obj_json = request_json.get(api_field)
                 if obj_json and 'id' in obj_json:
                     try:
-                        related_obj = field['model'].objects.get(
+                        related_obj = django_apps.get_model(
+                            field['model']
+                        ).objects.get(
                             account=account, id=obj_json['id']
                         )
                         obj_dict[field['field']] = related_obj
@@ -79,7 +82,9 @@ def update_from_api(obj, account, fields, request_json):
                 obj_json = request_json.get(api_field)
                 if obj_json and 'id' in obj_json:
                     try:
-                        related_obj = field['model'].objects.get(
+                        related_obj = django_apps.get_model(
+                            field['model']
+                        ).objects.get(
                             account=account, id=obj_json['id']
                         )
                         setattr(obj, field['field'], related_obj)

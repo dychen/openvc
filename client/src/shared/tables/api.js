@@ -54,5 +54,12 @@ const deleteField = (tableId, fieldId) => {
   }).then(handleResponse);
 };
 
+/* Sources */
+
+const getSourceList = () => {
+  return authFetch(`${SERVER_URL}/api/v1/sources`).then(handleResponse);
+};
+
 export {getTableList, createTable, updateTable, deleteTable,
-        getFieldList, createField, updateField, deleteField};
+        getFieldList, createField, updateField, deleteField,
+        getSourceList};

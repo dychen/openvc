@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from users.models import Account
 from data.api import validate_request
-from data.custom_models import CustomTable, CustomField, CustomRecord, CustomData
+from data.models import CustomTable, CustomField, CustomRecord, CustomData, DataSource
 from shared.auth import check_authentication
 
 
@@ -334,3 +334,10 @@ class CustomRecordView(APIView):
                 CustomRecord.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
+
+class DataSourceView(APIView):
+    # GET /sources
+    def get(self, request, format=None):
+        user = check_authentication(request)
+        return Response(DataSource.get_api_list_format(),
+                        status=status.HTTP_200_OK)

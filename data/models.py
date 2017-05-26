@@ -1346,11 +1346,11 @@ class Deal(models.Model):
         self.save()
         return self
 
-######################
-# Model Integrations #
-######################
+#################
+# Model Sources #
+#################
 
-class APIIntegration(models.Model):
+class DataSource(models.Model):
     DEFAULT_ID = 1
 
     SOURCE_MAPPING = [{
@@ -1358,9 +1358,9 @@ class APIIntegration(models.Model):
         'display': 'Crunchbase',
         'icon': 'ion-arrow-graph-up-right',
         'models': [{
-            'key': 'person',
-            'display': 'Person',
-            'icon': 'ion-person',
+            'key': 'company',
+            'display': 'Company',
+            'icon': 'ion-briefcase',
             'fields': [
                 { 'key': 'name', 'display': 'Name' },
                 { 'key': 'description', 'display': 'Description' },
@@ -1396,59 +1396,16 @@ class APIIntegration(models.Model):
         }]
     }]
 
-    # TODO: Normalize?
-    source         = models.TextField(unique=True)
-    source_display = models.TextField(null=True, blank=True)
-    source_icon    = models.TextField(null=True, blank=True)
+    name        = models.TextField(unique=True)
+    display     = models.TextField(null=True, blank=True)
+    icon        = models.TextField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     @classmethod
     def get_default(cls):
-        return cls.objects.get(source='self')
-
-    @classmethod
-    def get_api_list_format(cls):
-        sources = cls.objects.all().distinct('source').order_by('source')
-        return [cls.get_api_format_by_source(source.source)
-                for source in sources]
-
-    @classmethod
-    def get_api_format_by_source(cls, source_name):
-        matches = (cls.objects.filter(source=source_name).distinct('model')
-                              .order_by('model'))
-        if matches:
-            source = matches.first()
-            return {
-                'key': source.source,
-                'display': source.source_display,
-                'icon': source.source_icon,
-                'models': [
-                    cls.get_api_format_by_model(match.source, match.model)
-                    for match in matches
-                ]
-            }
-        return {}
-
-    @classmethod
-    def get_api_format_by_model(cls, source_name, model_name):
-        matches = (cls.objects.filter(source=source_name, model=model_name)
-                              .order_by('field'))
-        if matches:
-            model = matches.first()
-            return {
-                'key': model.model,
-                'display': model.model_display,
-                'icon': model.model_icon,
-                'fields': [
-                    {
-                        'key': match.field,
-                        'display': match.field_display,
-                        'icon': match.field_icon
-                    } for match in matches
-                ]
-            }
+        return cls.objects.get(name='self')
 
     @classmethod
     def create_sources(cls):
@@ -1458,21 +1415,22 @@ class APIIntegration(models.Model):
             except KeyError:
                 return None
 
-        cls.objects.update_or_create(id=cls.DEFAULT_ID, defaults={
-            'source': 'self',
-            'model': 'self',
-            'field': 'self'
-        })
+        cls.objects.update_or_create(name='self')
         for source in cls.SOURCE_MAPPING:
+            data_source, _ = cls.objects.update_or_create(
+                name=source['key'],
+                defaults={
+                    'display': source['display'],
+                    'icon': source['icon']
+                }
+            )
             for model in source['models']:
                 for field in model['fields']:
-                    cls.objects.update_or_create(
-                        source=source['key'],
+                    DataSourceOption.objects.update_or_create(
+                        source=data_source,
                         model=model['key'],
                         field=field['key'],
                         defaults={
-                            'source_display': get_key(source, 'display'),
-                            'source_icon': get_key(source, 'icon'),
                             'model_display': get_key(model, 'display'),
                             'model_icon': get_key(model, 'icon'),
                             'field_display': get_key(field, 'display'),
@@ -1480,9 +1438,9 @@ class APIIntegration(models.Model):
                         }
                     )
 
-class APIIntegrationSource(models.Model):
-    integration    = models.ForeignKey(APIIntegration,
-                                       related_name='api_integration_sources')
+class DataSourceOption(models.Model):
+    source         = models.ForeignKey(DataSource,
+                                       related_name='data_source_options')
     model          = models.TextField()
     model_display  = models.TextField(null=True, blank=True)
     model_icon     = models.TextField(null=True, blank=True)
@@ -1494,7 +1452,7 @@ class APIIntegrationSource(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('integration', 'model', 'field')
+        unique_together = ('source', 'model', 'field')
 
 #################
 # Custom models #
@@ -1550,7 +1508,6 @@ class CustomField(models.Model):
         'display_name', 'api_name', 'type', 'required',
         { 'field': 'table', 'model': 'data.CustomTable',
           'related_fields': ['display_name', 'api_name', 'icon'] },
-        #{ 'related_table': ['display_name', 'api_name', 'icon'] },
         { 'field': 'owner', 'model': 'users.User',
           'related_fields': ['email'] },
     ]
@@ -1577,7 +1534,12 @@ class CustomField(models.Model):
         unique_together = ('table', 'api_name')
 
     def get_api_format(self):
-        return get_api_format(self, self.API_FIELDS)
+        response = get_api_format(self, self.API_FIELDS)
+        response['sources'] = [
+            cf_source.get_api_format()
+            for cf_source in self.custom_field_sources.all()
+        ]
+        return response
 
     @classmethod
     def create_from_api(cls, user, table, request_json):
@@ -1587,7 +1549,10 @@ class CustomField(models.Model):
             )
         request_json['owner'] = { 'id': user.id }
         request_json['table'] = { 'id': table.id }
-        return create_from_api(cls, user.account, cls.API_FIELDS, request_json)
+
+        obj = create_from_api(cls, user.account, cls.API_FIELDS, request_json)
+        obj.update_sources(request_json['sources'])
+        return obj
 
     def update_from_api(self, user, table, request_json):
         if 'displayName' in request_json:
@@ -1595,25 +1560,58 @@ class CustomField(models.Model):
                 request_json['displayName']
             )
         request_json['table'] = { 'id': table.id }
-        return update_from_api(self, user.account, self.API_FIELDS, request_json)
 
-class CustomFieldIntegration(models.Model):
+        obj = update_from_api(self, user.account, self.API_FIELDS, request_json)
+        obj.update_sources(request_json['sources'])
+        return obj
+
+    def update_sources(self, sources):
+        sources = [s for s in sources if s['source'] != 'self']
+        for source in sources:
+            try:
+                data_source = DataSource.objects.get(name=source['source'])
+                data_source_option = DataSourceOption.objects.get(
+                    source=data_source, model=source['model'],
+                    field=source['field']
+                )
+                cfs, _ = CustomFieldSource.objects.update_or_create(
+                    field=self, source=data_source, account=self.account,
+                    owner=self.owner, defaults={
+                        'source_option': data_source_option
+                    }
+                )
+            except (DataSource.DoesNotExist, DataSourceOption.DoesNotExist) as e:
+                continue
+        source_names = [s['source'] for s in sources] + ['self']
+        (CustomFieldSource.objects.exclude(source__name__in=source_names)
+                                  .delete())
+
+class CustomFieldSource(models.Model):
     account     = models.ForeignKey('users.Account',
-                                    related_name='custom_field_integrations',
+                                    related_name='custom_field_sources',
                                     default=DEFAULT_ACCOUNT_ID)
     owner       = models.ForeignKey('users.User',
-                                    related_name='custom_field_integrations')
+                                    related_name='custom_field_sources')
 
     field       = models.ForeignKey(CustomField,
-                                    related_name='custom_field_integrations')
-    integration = models.ForeignKey(APIIntegration,
-                                    related_name='custom_field_integrations',
-                                    default=APIIntegration.DEFAULT_ID)
+                                    related_name='custom_field_sources')
+    source      = models.ForeignKey(DataSource,
+                                    related_name='custom_field_sources',
+                                    default=DataSource.DEFAULT_ID)
+    source_option = models.ForeignKey(DataSourceOption,
+                                      related_name='custom_field_sources')
     created_at  = models.DateTimeField(auto_now_add=True)
     updated_at  = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('account', 'field', 'integration')
+        unique_together = ('account', 'field', 'source')
+
+    def get_api_format(self):
+        return {
+            'source': self.source.name,
+            'model': self.source_option.model,
+            'field': self.source_option.field
+        }
 
 class CustomRecord(models.Model):
     API_FIELDS = [
@@ -1634,58 +1632,55 @@ class CustomRecord(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def get_api_format(self, integration=None):
+    def get_api_format(self, source=None):
         # TODO: Optimize
-        integration = (APIIntegration.get_default()
-                       if integration is None else integration)
+        source = DataSource.get_default() if source is None else source
         record = { 'id': self.id }
         for custom_field in self.table.custom_fields.all():
             try:
                 record[custom_field.api_name] = CustomData.objects.get(
                     account=self.account, record=self,
-                    field__field=custom_field, field__integration=integration
+                    field__field=custom_field, field__source=source
                 ).value
             except CustomData.DoesNotExist:
                 record[custom_field.api_name] = None
         return record
 
     @classmethod
-    def create_from_api(cls, user, table, request_json, integration=None):
-        integration = (APIIntegration.get_default()
-                       if integration is None else integration)
+    def create_from_api(cls, user, table, request_json, source=None):
+        source = DataSource.get_default() if source is None else source
         record = CustomRecord.objects.create(account=user.account, owner=user,
                                              table=table)
         for field_name, value in request_json.iteritems():
             # TODO: Transform value based on type
             try:
-                field = CustomFieldIntegration.objects.get(
+                field = CustomFieldSource.objects.get(
                     custom_field__table=table,
                     custom_field__api_name=field_name,
-                    integration=integration
+                    source=source
                 )
                 CustomData.objects.create(field=field, record=record,
                                           owner=user, account=user.account,
                                           value=value)
-            except CustomFieldIntegration.DoesNotExist:
+            except CustomFieldSource.DoesNotExist:
                 continue
         return record
 
-    def update_from_api(self, user, table, request_json, integration=None):
-        integration = (APIIntegration.get_default()
-                       if integration is None else integration)
+    def update_from_api(self, user, table, request_json, source=None):
+        source = DataSource.get_default() if source is None else source
         for field_name, value in request_json.iteritems():
             # TODO: Transform value based on type
             try:
-                field = CustomFieldIntegration.objects.get(
+                field = CustomFieldSource.objects.get(
                     field__table=table,
                     field__api_name=field_name,
-                    integration=integration
+                    source=source
                 )
                 CustomData.objects.update_or_create(field=field, record=self,
                                                     owner=user,
                                                     account=user.account,
                                                     defaults={ 'value': value })
-            except CustomFieldIntegration.DoesNotExist:
+            except CustomFieldSource.DoesNotExist:
                 continue
         return self
 
@@ -1702,7 +1697,7 @@ class CustomData(models.Model):
                                    default=DEFAULT_ACCOUNT_ID)
     owner      = models.ForeignKey('users.User', related_name='custom_data')
 
-    field      = models.ForeignKey(CustomFieldIntegration,
+    field      = models.ForeignKey(CustomFieldSource,
                                    related_name='custom_data')
     record     = models.ForeignKey(CustomRecord, related_name='custom_data')
     value      = models.TextField()

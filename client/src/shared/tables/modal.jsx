@@ -1,6 +1,6 @@
 import React from 'react';
 import Immutable from 'immutable';
-import {DropdownButton, MenuItem} from 'react-bootstrap';
+import {DropdownButton, MenuItem, ButtonToolbar, Button} from 'react-bootstrap';
 import CSSTransitionGroup from 'react-transition-group/CSSTransitionGroup'
 import Scroll from 'react-scroll';
 const ScrollScroller = Scroll.animateScroll;
@@ -12,7 +12,7 @@ import {DATA_TYPE_LIST, DATA_TYPE_MAP} from '../../utils/constants.js';
 
 import './modal.scss';
 
-const INTEGRATIONS = [
+const SOURCES = [
   {
     key: 'crunchbase',
     icon: 'ion-arrow-graph-up-right',
@@ -55,13 +55,13 @@ const INTEGRATIONS = [
   }
 ];
 
-const getIntegration = (integrationKey) => {
-  return INTEGRATIONS.find(integration => integration.key === integrationKey);
+const getSource = (sourceKey) => {
+  return SOURCES.find(source => source.key === sourceKey);
 };
 
-const getIntegrationModel = (integration, modelKey) => {
-  if (integration && integration.models)
-    return integration.models.find(model => model.key === modelKey) || {};
+const getSourceModel = (source, modelKey) => {
+  if (source && source.models)
+    return source.models.find(model => model.key === modelKey) || {};
   return {};
 };
 
@@ -75,17 +75,6 @@ const getModelField = (model, fieldKey) => {
 const getDefaultField = (fields, apiName) => {
   return fields.filter(field => field.apiName === apiName
                        && field.source && field.source.source === 'self');
-};
-
-const filterFieldsBySource = (fields, source) => {
-};
-
-const updateFieldSource = (fields, source, model, field) => {
-  const matches = fields.filter(field => (field.source
-                                          && field.source.source === source));
-  // Create
-  // Update
-  // Delete
 };
 
 /*
@@ -164,55 +153,84 @@ const FieldPanelToggleSection = (props) => {
   );
 }
 
-class FieldPanelIntegrationsSection extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      integrations: {
-
-      }
-    };
-  }
-
-  updateTableField(integrationKey, modelKey, fieldKey) {
-    const integrationList = [];
-    this.setState({ integrations: integrationsList });
-    this.props.updateTableField('integrations', integrationList,
-                                this.props.index);
-  }
-
-  render() {
-    const integrations = INTEGRATIONS.map(integration => (
-      <IntegrationsListPanelItem integration={integration}
-                                 onSelect={this.updateTableField}
-                                 key={integration.key} />
-    ));
-    return (
-      <div className="field-panel-section integrations-list-section">
-        {integrations}
-      </div>
+const FieldPanelIntegrationsSection = (props) => {
+  const updateTableField = (sourceKey, modelKey, fieldKey) => {
+    let newList;
+    // Create or update field source
+    const sourceIdx = props.tableField.sources.findIndex(source =>
+      source.source === sourceKey
     );
+    const newSource = { source: sourceKey, model: modelKey, field: fieldKey };
+    // Update
+    if (sourceIdx > -1) {
+      newList = Immutable.fromJS(props.tableField.sources)
+        .set(sourceIdx, newSource).toJS();
+    }
+    // Create
+    else {
+      newList = props.tableField.sources.concat(newSource);
+    }
+
+    props.updateTableField('sources', newList, props.index);
+  };
+  const resetTableField = (sourceKey) => {
+    // Remove field source
+    const newList = props.tableField.sources.filter(field =>
+      field.source !== sourceKey
+    );
+    props.updateTableField('sources', newList, props.index);
   }
+
+  const integrations = SOURCES.map(sourceOptions => {
+    const source = props.tableField.sources.find(source =>
+      source.source === sourceOptions.key
+    ) || {}; // Find the corresponding source object, or default to {}
+    return (
+      <IntegrationsListPanelItem source={source}
+                                 sourceOptions={sourceOptions}
+                                 updateTableField={updateTableField}
+                                 resetTableField={resetTableField}
+                                 key={sourceOptions.key} />
+    )
+  });
+  return (
+    <div className="field-panel-section integrations-list-section">
+      {integrations}
+    </div>
+  );
 }
 
 /*
  * props:
- *   integration [Object]:
+ *   source [Object]:
+ *   sourceOptions [Object]:
  *
- *   onSelect [function]:
+ *   updateTableField [function]:
+ *   resetTableField [function]:
  */
 class IntegrationsListPanelItem extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      selectedModelKey: '',
-      selectedFieldKey: ''
+      selectedModelKey: this.props.source.model || '',
+      selectedFieldKey: this.props.source.field || ''
     };
 
     this.selectModel = this.selectModel.bind(this);
     this.selectField = this.selectField.bind(this);
+    this.resetSource = this.resetSource.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.source.model !== this.state.selectedModelKey
+        || nextProps.source.field !== this.state.selectedFieldKey) {
+      // Only load data when the modal shows
+      this.setState({
+        selectedModelKey: nextProps.source.model,
+        selectedFieldKey: nextProps.source.field,
+      });
+    }
   }
 
   selectModel(eventKey, e) {
@@ -221,21 +239,25 @@ class IntegrationsListPanelItem extends React.Component {
 
   selectField(eventKey, e) {
     this.setState({ selectedFieldKey: eventKey });
-    this.props.onSelect(integration.key, this.state.selectedModelKey, eventKey);
+    this.props.updateTableField(this.props.sourceOptions.key,
+                                this.state.selectedModelKey, eventKey);
+  }
+
+  resetSource(eventKey, e) {
+    this.setState({ selectedModelKey: '', selectedFieldKey: '' });
+    this.props.resetTableField(this.props.sourceOptions.key);
   }
 
   render() {
-    const integration = getIntegration(this.props.integration.key);
-    const selectedModel = getIntegrationModel(integration,
-                                              this.state.selectedModelKey);
+    const source = getSource(this.props.sourceOptions.key);
+    const selectedModel = getSourceModel(source, this.state.selectedModelKey);
     const selectedField = getModelField(selectedModel,
                                         this.state.selectedFieldKey);
-    const integrationModels = (integration && integration.models
-                               ? integration.models : []);
+    const sourceModels = source && source.models ? source.models : [];
     const modelFields = (selectedModel && selectedModel.fields
                          ? selectedModel.fields : []);
 
-    const modelList = integrationModels.map(model => (
+    const modelList = sourceModels.map(model => (
       <MenuItem className="ovc-search-tab"
                 key={model.key}
                 eventKey={model.key}
@@ -254,23 +276,25 @@ class IntegrationsListPanelItem extends React.Component {
     return (
       <div className="integrations-list-row">
         <label>
-          <i className={this.props.integration.icon} />
-          {this.props.integration.display}
+          <i className={this.props.sourceOptions.icon} />
+          {this.props.sourceOptions.display}
         </label>
-        <div>
+        <ButtonToolbar>
           <DropdownButton className="dropdown-button"
                           title={selectedModel.display || 'Select a model'}
                           id={`ovc-integrations-panel-model-dropdown-
-                               ${this.props.integration.key}`}>
+                               ${this.props.sourceOptions.key}`}>
             {modelList}
           </DropdownButton>
           <DropdownButton className="dropdown-button"
                           title={selectedField.display || 'Select a field'}
                           id={`ovc-integrations-panel-field-dropdown-
-                               ${this.props.integration.key}`}>
+                               ${this.props.sourceOptions.key}`}>
             {fieldList}
           </DropdownButton>
-        </div>
+          <Button bsStyle="danger"
+                  onClick={this.resetSource}>Reset</Button>
+        </ButtonToolbar>
       </div>
     );
   }
@@ -316,6 +340,7 @@ class TableModalFieldPanel extends React.Component {
       this.state.integrationsPanelVisible
       ? <FieldPanelIntegrationsSection
           index={this.props.index}
+          tableField={this.props.tableField}
           updateTableField={this.props.updateTableField} />
       : undefined
     );
@@ -410,15 +435,6 @@ const TableModalFooter = (props) => {
  * props:
  *   table [Object]: Custom Table object { displayName: [string], ... }
  *   tableFields [Array]: List of Custom Field objects { displayName: ..., }
- *   sources [Array]: List of nested Data Source objects: [
- *     { key: [string], display: [string], icon: [string], models: [
- *       { key: [string], display: [string], icon: [string], fields: [
- *         { key: [string], display: [string], icon: [string] }, ...
- *       ]},
- *       ...
- *     ]},
- *     ...
- *   ]
  *   visible [boolean]: Whether or not to show the modal.
  *
  *   hideModal [function]: Function to hide the modal.
@@ -603,7 +619,6 @@ class TableModal extends React.Component {
                             updateTable={this.updateTable}
                             deleteTable={this.deleteTable} />
           <TableModalBody tableFields={this.state.tableFields}
-                          sources={this.props.sources}
                           updateTableField={this.updateTableField}
                           removeTableField={this.removeTableField} />
           <TableModalFooter hideModal={this.props.hideModal}

@@ -46,7 +46,6 @@ class UserTablesPage extends React.Component {
       table: {},
       tableFields: [],
       tables: [],
-      sources: [],
       createModalVisible: false,
       updateModalVisible: false
     };
@@ -63,9 +62,12 @@ class UserTablesPage extends React.Component {
 
   loadTables(table) {
     const getSources = () => {
+      // TODO
+      /*
       getSourceList().then((sources) => {
         this.setState({ sources: sources });
       });
+      */
     };
     const getFields = (tableId) => {
       if (activeTable.id) {
@@ -170,13 +172,11 @@ class UserTablesPage extends React.Component {
 
         <TableModal table={{}}
                     tableFields={[]}
-                    sources={this.state.sources}
                     visible={this.state.createModalVisible}
                     hideModal={this.hideCreateModal}
                     onSave={this.loadTables} />
         <TableModal table={this.state.table}
                     tableFields={this.state.tableFields}
-                    sources={this.state.sources}
                     visible={this.state.updateModalVisible}
                     hideModal={this.hideUpdateModal}
                     onSave={this.loadTables}

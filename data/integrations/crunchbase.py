@@ -8,6 +8,12 @@ from data.models import Company, Investor, DEFAULT_ACCOUNT_ID
 ORGANIZATION_API_URL = 'https://api.crunchbase.com/v/3/odm-organizations'
 ORGANIZATION_CSV_PATH = 'files/crunchbase/organizations.csv'
 
+# Map of models to the available fields in the model's response.
+API_MAP = {
+    'organization': ['primary_role', 'name', 'crunchbase_url', 'homepage_url',
+                     'profile_image_url', 'location_city', 'short_description']
+}
+
 def create_organization(crunchbase_id, data):
     """
     Args:
@@ -148,5 +154,6 @@ def get_organizations_csv():
                 'location_city': location_city,
                 'short_description': short_description,
             }
-            create_organization(crunchbase_uuid, organization)
+            yield organization
+            #create_organization(crunchbase_uuid, organization)
 

@@ -54,12 +54,18 @@ const deleteField = (tableId, fieldId) => {
   }).then(handleResponse);
 };
 
-/* Sources */
+/* Integrations */
 
+// Currently unused - apply eventually
 const getSourceList = () => {
   return authFetch(`${SERVER_URL}/api/v1/sources`).then(handleResponse);
 };
 
+const syncTable = (tableId) => {
+  return authFetch(`${TABLE_API_URL}/${tableId}/sync`, { method: 'POST' })
+    .then(handleResponse);
+}
+
 export {getTableList, createTable, updateTable, deleteTable,
         getFieldList, createField, updateField, deleteField,
-        getSourceList};
+        getSourceList, syncTable};

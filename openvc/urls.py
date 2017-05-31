@@ -137,6 +137,10 @@ urlpatterns = [
     url(r'^api/v1/tables/(?P<table_id>[0-9]+)/records/(?P<record_id>[0-9]+)$',
         custom_views.CustomRecordView.as_view()),
 
+    url(r'^api/v1/sources$', custom_views.DataSourceView.as_view()),
+    url(r'^api/v1/tables/(?P<id>[0-9]+)/sync$',
+        custom_views.CustomTableSyncView.as_view()),
+
     # Entity resolution API
     url(r'^api/v1/match/person$', match_views.MatchPerson.as_view()),
     url(r'^api/v1/match/company$', match_views.MatchCompany.as_view()),

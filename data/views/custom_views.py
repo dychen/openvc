@@ -7,7 +7,9 @@ from rest_framework.views import APIView
 
 from users.models import Account
 from data.api import validate_request
-from data.models import CustomTable, CustomField, CustomRecord, CustomData
+from data.models import CustomTable, CustomField, CustomRecord, CustomData,\
+    DataSource
+from data.integrations.worker import sync_table
 from shared.auth import check_authentication
 
 
@@ -332,6 +334,37 @@ class CustomRecordView(APIView):
 
         except (Account.DoesNotExist, CustomTable.DoesNotExist,
                 CustomRecord.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+class DataSourceView(APIView):
+    # GET /sources
+    def get(self, request, format=None):
+        user = check_authentication(request)
+        return Response(DataSource.get_api_list_format(),
+                        status=status.HTTP_200_OK)
+
+class CustomTableSyncView(APIView):
+
+    authentication_classes = (TokenAuthentication,)
+
+    # POST /tables/:id/sync
+    def post(self, request, id=None, format=None):
+        try:
+            user = check_authentication(request)
+            account = user.account
+            table_id = int(id)
+            custom_table = CustomTable.objects.get(account=account, id=table_id)
+            default_source = DataSource.get_default()
+            sync_table(custom_table, user)
+
+            return Response(custom_table.get_api_format(),
+                            status=status.HTTP_200_OK)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (Account.DoesNotExist, CustomTable.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 

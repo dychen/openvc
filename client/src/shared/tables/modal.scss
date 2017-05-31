@@ -14,6 +14,16 @@
   align-items: center;
 
   position: relative;
+  i.sync-table-button {
+    position: absolute;
+    left: 20px;
+    top: 12px;
+    width: 35px;
+    height: 35px;
+    font-size: 1.5em;
+
+    @include hvr-color($OVC_GRAY);
+  }
   i.delete-table-button {
     position: absolute;
     right: 20px;

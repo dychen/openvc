@@ -1358,15 +1358,17 @@ class DataSource(models.Model):
         'display': 'Crunchbase',
         'icon': 'ion-arrow-graph-up-right',
         'models': [{
-            'key': 'company',
-            'display': 'Company',
+            'key': 'organization',
+            'display': 'Organization',
             'icon': 'ion-briefcase',
             'fields': [
                 { 'key': 'name', 'display': 'Name' },
-                { 'key': 'description', 'display': 'Description' },
-                { 'key': 'logoUrl', 'display': 'Logo URL' },
-                { 'key': 'website', 'display': 'Website' },
-                { 'key': 'location', 'display': 'Location' },
+                { 'key': 'short_description', 'display': 'Description' },
+                { 'key': 'profile_image_url', 'display': 'Image URL' },
+                { 'key': 'homepage_url', 'display': 'Website' },
+                { 'key': 'location_city', 'display': 'City' },
+                { 'key': 'crunchbase_url', 'display': 'Crunchbase URL' },
+                { 'key': 'primary_role', 'display': 'Primary Role' },
             ]
         }, {
             'key': 'person',
@@ -1403,9 +1405,47 @@ class DataSource(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __unicode__(self):
+        return unicode(self.name)
+
     @classmethod
     def get_default(cls):
         return cls.objects.get(name='self')
+
+    def get_api_format(self):
+        data_source_options = (self.data_source_options.distinct('model')
+                                                       .order_by('model'))
+        return {
+            'key': self.name,
+            'display': self.display,
+            'icon': self.icon,
+            'models': [
+                data_source_option.get_api_format_by_model()
+                for data_source_option in data_source_options
+            ]
+        }
+
+    @classmethod
+    def get_api_list_format(cls):
+        return [source.get_api_format()
+                for source in cls.objects.exclude(name='self')]
+
+    @classmethod
+    def get_api_format_by_source(cls, source_name):
+        matches = (cls.objects.filter(source=source_name).distinct('model')
+                              .order_by('model'))
+        if matches:
+            source = matches.first()
+            return {
+                'key': source.source,
+                'display': source.source_display,
+                'icon': source.source_icon,
+                'models': [
+                    cls.get_api_format_by_model(match.source, match.model)
+                    for match in matches
+                ]
+            }
+        return {}
 
     @classmethod
     def create_sources(cls):
@@ -1454,6 +1494,29 @@ class DataSourceOption(models.Model):
     class Meta:
         unique_together = ('source', 'model', 'field')
 
+    def __unicode__(self):
+        return u'%s %s %s' % (unicode(self.source), self.model, self.field)
+
+    def get_api_format_by_model(self):
+        matches = (DataSourceOption.objects.filter(source=self.source,
+                                                   model=self.model)
+                                           .order_by('field_display'))
+        if matches:
+            model = matches.first()
+            return {
+                'key': model.model,
+                'display': model.model_display,
+                'icon': model.model_icon,
+                'fields': [
+                    {
+                        'key': match.field,
+                        'display': match.field_display,
+                        'icon': match.field_icon
+                    } for match in matches
+                ]
+            }
+        return {}
+
 #################
 # Custom models #
 #################
@@ -1483,6 +1546,9 @@ class CustomTable(models.Model):
 
     class Meta:
         unique_together = ('account', 'api_name')
+
+    def __unicode__(self):
+        return u'%s %s' % (unicode(self.account), self.display_name)
 
     def get_api_format(self):
         return get_api_format(self, self.API_FIELDS)
@@ -1532,6 +1598,9 @@ class CustomField(models.Model):
 
     class Meta:
         unique_together = ('table', 'api_name')
+
+    def __unicode__(self):
+        return u'%s %s' % (unicode(self.table), self.display_name)
 
     def get_api_format(self):
         response = get_api_format(self, self.API_FIELDS)
@@ -1606,6 +1675,9 @@ class CustomFieldSource(models.Model):
     class Meta:
         unique_together = ('account', 'field', 'source')
 
+    def __unicode__(self):
+        return u'%s %s' % (unicode(self.field), unicode(self.source_option))
+
     def get_api_format(self):
         return {
             'source': self.source.name,
@@ -1631,6 +1703,9 @@ class CustomRecord(models.Model):
     table      = models.ForeignKey(CustomTable, related_name='custom_records')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return u'%s %s' % (unicode(self.table), self.id)
 
     def get_api_format(self, source=None):
         # TODO: Optimize
@@ -1704,6 +1779,9 @@ class CustomData(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return u'%s %s' % (unicode(self.field), self.value)
 
     class Meta:
         unique_together = ('field', 'record')

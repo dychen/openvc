@@ -6,57 +6,14 @@ import Scroll from 'react-scroll';
 const ScrollScroller = Scroll.animateScroll;
 
 import {createTable, updateTable, deleteTable,
-        createField, updateField, deleteField} from './api.js';
+        createField, updateField, deleteField, syncTable} from './api.js';
 import {EditField, DropdownField} from '../../components/editfield.jsx';
 import {DATA_TYPE_LIST, DATA_TYPE_MAP} from '../../utils/constants.js';
 
 import './modal.scss';
 
-const SOURCES = [
-  {
-    key: 'crunchbase',
-    icon: 'ion-arrow-graph-up-right',
-    display: 'Crunchbase',
-    models: [
-      {
-        key: 'company',
-        display: 'Company',
-        fields: [
-          { key: 'name', display: 'Name' },
-          { key: 'description', display: 'Description' },
-          { key: 'logoUrl', display: 'Logo URL' },
-          { key: 'website', display: 'Website' },
-          { key: 'location', display: 'Location' }
-        ]
-      }, {
-        key: 'person',
-        display: 'Person',
-        fields: []
-      }
-    ]
-  }, {
-    key: 'salesforce',
-    icon: 'ion-cloud',
-    display: 'Salesforce',
-    models: [
-      {
-        key: 'account',
-        display: 'Account',
-        fields: [
-          { key: 'name', display: 'Name' },
-          { key: 'description', display: 'Description' },
-          { key: 'segment', display: 'Segment' },
-          { key: 'sector', display: 'Sector' },
-          { key: 'website', display: 'Website' },
-          { key: 'location', display: 'Location' }
-        ]
-      }
-    ]
-  }
-];
-
-const getSource = (sourceKey) => {
-  return SOURCES.find(source => source.key === sourceKey);
+const getSource = (sourceList, sourceKey) => {
+  return sourceList.find(source => source.key === sourceKey);
 };
 
 const getSourceModel = (source, modelKey) => {
@@ -93,6 +50,8 @@ const getDefaultField = (fields, apiName) => {
 const TableModalHeader = (props) => {
   return (
     <div className="ovc-modal-header ovc-header-panel">
+      <i className="ion-android-sync sync-table-button"
+         onClick={props.syncTable} />
       <EditField field="displayName"
                  fieldType="string"
                  originalValue={props.table.displayName}
@@ -181,13 +140,14 @@ const FieldPanelIntegrationsSection = (props) => {
     props.updateTableField('sources', newList, props.index);
   }
 
-  const integrations = SOURCES.map(sourceOptions => {
+  const integrations = props.SOURCES.map(sourceOptions => {
     const source = props.tableField.sources.find(source =>
       source.source === sourceOptions.key
     ) || {}; // Find the corresponding source object, or default to {}
     return (
       <IntegrationsListPanelItem source={source}
                                  sourceOptions={sourceOptions}
+                                 SOURCES={props.SOURCES}
                                  updateTableField={updateTableField}
                                  resetTableField={resetTableField}
                                  key={sourceOptions.key} />
@@ -203,6 +163,7 @@ const FieldPanelIntegrationsSection = (props) => {
 /*
  * props:
  *   source [Object]:
+ *   SOURCES [Array]:
  *   sourceOptions [Object]:
  *
  *   updateTableField [function]:
@@ -249,7 +210,7 @@ class IntegrationsListPanelItem extends React.Component {
   }
 
   render() {
-    const source = getSource(this.props.sourceOptions.key);
+    const source = getSource(this.props.SOURCES, this.props.sourceOptions.key);
     const selectedModel = getSourceModel(source, this.state.selectedModelKey);
     const selectedField = getModelField(selectedModel,
                                         this.state.selectedFieldKey);
@@ -340,6 +301,7 @@ class TableModalFieldPanel extends React.Component {
       this.state.integrationsPanelVisible
       ? <FieldPanelIntegrationsSection
           index={this.props.index}
+          SOURCES={this.props.SOURCES}
           tableField={this.props.tableField}
           updateTableField={this.props.updateTableField} />
       : undefined
@@ -384,6 +346,7 @@ const TableModalBody = (props) => {
   const fieldPanels = props.tableFields.map((tableField, index) => {
     return <TableModalFieldPanel index={index} key={index}
                                  tableField={tableField}
+                                 SOURCES={props.SOURCES}
                                  updateTableField={props.updateTableField}
                                  removeTableField={props.removeTableField} />
   });
@@ -464,6 +427,7 @@ class TableModal extends React.Component {
 
     this.saveTable = this.saveTable.bind(this);
     this.deleteTable = this.deleteTable.bind(this);
+    this.syncTable = this.syncTable.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -604,6 +568,14 @@ class TableModal extends React.Component {
     }
   }
 
+  syncTable(e) {
+    if (this.state.table.id) {
+      syncTable(this.state.table.id).then((tableId) => {
+        this.props.hideModal();
+      });
+    }
+  }
+
   render() {
     const modalShowClass = (
       this.props.visible
@@ -617,8 +589,10 @@ class TableModal extends React.Component {
              onClick={this._preventModalClose}>
           <TableModalHeader table={this.state.table}
                             updateTable={this.updateTable}
-                            deleteTable={this.deleteTable} />
+                            deleteTable={this.deleteTable}
+                            syncTable={this.syncTable} />
           <TableModalBody tableFields={this.state.tableFields}
+                          SOURCES={this.props.SOURCES}
                           updateTableField={this.updateTableField}
                           removeTableField={this.removeTableField} />
           <TableModalFooter hideModal={this.props.hideModal}

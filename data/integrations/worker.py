@@ -32,7 +32,8 @@ def sync_table(custom_table, user):
             for api_name, field in field_map.iteritems()
         }
         # TODO: Upsert
-        CustomRecord.create_from_api(user, custom_table, formatted_response,
-                                     source=source)
+        CustomRecord.update_or_create_from_source(
+            user, custom_table, formatted_response, source, organization['uuid']
+        )
         ct += 1
     # Add additional integrations here

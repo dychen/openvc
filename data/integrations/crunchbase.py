@@ -146,6 +146,7 @@ def get_organizations_csv():
                 location_city, _, _, short_description = line
 
             organization = {
+                'uuid': crunchbase_uuid,
                 'primary_role': primary_role,
                 'name': name,
                 'crunchbase_url': crunchbase_url,

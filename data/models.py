@@ -1369,6 +1369,7 @@ class DataSource(models.Model):
                 { 'key': 'location_city', 'display': 'City' },
                 { 'key': 'crunchbase_url', 'display': 'Crunchbase URL' },
                 { 'key': 'primary_role', 'display': 'Primary Role' },
+                { 'key': 'uuid', 'display': 'Crunchbase Id' },
             ]
         }, {
             'key': 'person',
@@ -1775,6 +1776,54 @@ class CustomRecord(models.Model):
             except CustomFieldSource.DoesNotExist:
                 continue
         return self
+
+    @classmethod
+    def update_or_create_from_source(cls, user, table, request_json, source,
+                                     source_key):
+        source = DataSource.get_source(source)
+        record_sources = CustomRecordSource.objects.filter(
+            account=user.account, owner=user, table=table, source=source,
+            source_key=source_key
+        )
+        if record_sources:
+            for record_source in record_sources:
+                record_source.record.update_from_api(user, table,
+                                                     request_json, source)
+        else:
+            record = cls.create_from_api(user, table, request_json, source)
+            CustomRecordSource.objects.create(
+                account=user.account, owner=user, table=table, record=record,
+                source=source, source_key=source_key
+            )
+
+class CustomRecordSource(models.Model):
+    account     = models.ForeignKey('users.Account',
+                                    related_name='custom_record_sources',
+                                    default=DEFAULT_ACCOUNT_ID)
+    owner       = models.ForeignKey('users.User',
+                                    related_name='custom_record_sources')
+
+    table       = models.ForeignKey(CustomTable,
+                                    related_name='custom_record_sources')
+    record      = models.ForeignKey(CustomRecord,
+                                    related_name='custom_record_sources')
+    source      = models.ForeignKey(DataSource,
+                                    related_name='custom_record_sources',
+                                    default=DataSource.DEFAULT_ID)
+    source_key  = models.CharField(max_length=255)
+    created_at  = models.DateTimeField(auto_now_add=True)
+    updated_at  = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('account', 'record', 'source')
+        # NOTE: There is currently no constraint on
+        #       (account, table, source_key), though it should be strongly
+        #       considered. This means that in the current implementation,
+        #       two records can have the same source.
+
+    def __unicode__(self):
+        return (u'%s %s %s' % (unicode(self.record), unicode(self.source),
+                               source_key))
 
 class CustomData(models.Model):
     API_FIELDS = [

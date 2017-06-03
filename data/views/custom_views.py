@@ -237,7 +237,7 @@ class CustomRecordView(APIView):
             custom_records = CustomRecord.objects.filter(account=account,
                                                          table=custom_table)
             return Response([
-                custom_record.get_api_format()
+                custom_record.get_api_format(source='crunchbase')
                 for custom_record in custom_records
             ], status=status.HTTP_200_OK)
 

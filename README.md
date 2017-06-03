@@ -134,3 +134,23 @@ APIConfig
     }
 }
 ```
+
+###SQL
+
+```
+SELECT ct.api_name, cr.id, cf.api_name, cf.type, cd.value
+    FROM data_customtable ct JOIN data_customfield cf ON ct.id=cf.table_id
+    JOIN data_customfieldsource cfs ON cf.id=cfs.field_id
+    JOIN data_customdata cd ON cd.field_id=cfs.id
+    JOIN data_customrecord cr ON cr.id=cd.record_id
+    WHERE ct.api_name='[NAME]';
+```
+
+```
+SELECT ct.api_name, cf.api_name, ds.name, dso.model, dso.field
+    FROM data_customfieldsource cfs JOIN data_customfield cf ON cfs.field_id=cf.id
+    JOIN data_datasource ds ON cfs.source_id=ds.id
+    JOIN data_datasourceoption dso ON cfs.source_option_id=dso.id
+    JOIN data_customtable ct ON cf.table_id=ct.id
+    WHERE ct.api_name='[NAME]';
+```

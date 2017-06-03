@@ -166,7 +166,6 @@
   position: relative;
   top: 0px;
   //z-index: 1;
-  opacity: 0.85;
 }
 .ovc-integrations-panel-enter.ovc-integrations-panel-enter-active {
   @include animate-slide-in-down(500ms);

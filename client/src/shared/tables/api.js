@@ -56,7 +56,6 @@ const deleteField = (tableId, fieldId) => {
 
 /* Integrations */
 
-// Currently unused - apply eventually
 const getSourceList = () => {
   return authFetch(`${SERVER_URL}/api/v1/sources`).then(handleResponse);
 };

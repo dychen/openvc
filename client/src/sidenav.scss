@@ -8,6 +8,7 @@ $SIDENAV_MINI_WIDTH: 55px;
 .ovc-sidenav {
   height: 100%;
   flex: 0 0 $SIDENAV_WIDTH; // Don't grow or shrink, set to $SIDENAV_WIDTH
+  overflow-y: scroll;
   z-index: 21;
   background: $OVC_SIDENAV_GRAY;
   font-size: 1.2em;

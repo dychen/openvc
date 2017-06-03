@@ -1412,6 +1412,15 @@ class DataSource(models.Model):
     def get_default(cls):
         return cls.objects.get(name='self')
 
+    @classmethod
+    def get_source(cls, source):
+        if source is None or source == 'self':
+            return cls.get_default()
+        elif type(source) is str:
+            return cls.objects.get(name=source)
+        else:
+            return source
+
     def get_api_format(self):
         data_source_options = (self.data_source_options.distinct('model')
                                                        .order_by('model'))
@@ -1620,7 +1629,8 @@ class CustomField(models.Model):
         request_json['table'] = { 'id': table.id }
 
         obj = create_from_api(cls, user.account, cls.API_FIELDS, request_json)
-        obj.update_sources(request_json['sources'])
+        (obj.update_sources(request_json['sources'])
+         if 'sources' in request_json else obj.update_sources())
         return obj
 
     def update_from_api(self, user, table, request_json):
@@ -1631,11 +1641,17 @@ class CustomField(models.Model):
         request_json['table'] = { 'id': table.id }
 
         obj = update_from_api(self, user.account, self.API_FIELDS, request_json)
-        obj.update_sources(request_json['sources'])
+        (obj.update_sources(request_json['sources'])
+         if 'sources' in request_json else obj.update_sources())
         return obj
 
-    def update_sources(self, sources):
-        sources = [s for s in sources if s['source'] != 'self']
+    def update_sources(self, sources=None):
+        sources = [] if sources is None else sources
+        sources = (
+            # Make sure the client can't pass in its own 'source' option
+            [s for s in sources if s['source'] != 'self']
+            + [{ 'source': 'self', 'model': 'self', 'field': 'self' }]
+        )
         for source in sources:
             try:
                 data_source = DataSource.objects.get(name=source['source'])
@@ -1652,7 +1668,8 @@ class CustomField(models.Model):
             except (DataSource.DoesNotExist, DataSourceOption.DoesNotExist) as e:
                 continue
         source_names = [s['source'] for s in sources] + ['self']
-        (CustomFieldSource.objects.exclude(source__name__in=source_names)
+        (self.custom_field_sources.filter(account=self.account, owner=self.owner)
+                                  .exclude(source__name__in=source_names)
                                   .delete())
 
 class CustomFieldSource(models.Model):
@@ -1709,7 +1726,7 @@ class CustomRecord(models.Model):
 
     def get_api_format(self, source=None):
         # TODO: Optimize
-        source = DataSource.get_default() if source is None else source
+        source = DataSource.get_source(source)
         record = { 'id': self.id }
         for custom_field in self.table.custom_fields.all():
             try:
@@ -1723,15 +1740,15 @@ class CustomRecord(models.Model):
 
     @classmethod
     def create_from_api(cls, user, table, request_json, source=None):
-        source = DataSource.get_default() if source is None else source
+        source = DataSource.get_source(source)
         record = CustomRecord.objects.create(account=user.account, owner=user,
                                              table=table)
         for field_name, value in request_json.iteritems():
             # TODO: Transform value based on type
             try:
                 field = CustomFieldSource.objects.get(
-                    custom_field__table=table,
-                    custom_field__api_name=field_name,
+                    field__table=table,
+                    field__api_name=field_name,
                     source=source
                 )
                 CustomData.objects.create(field=field, record=record,
@@ -1742,7 +1759,7 @@ class CustomRecord(models.Model):
         return record
 
     def update_from_api(self, user, table, request_json, source=None):
-        source = DataSource.get_default() if source is None else source
+        source = DataSource.get_source(source)
         for field_name, value in request_json.iteritems():
             # TODO: Transform value based on type
             try:

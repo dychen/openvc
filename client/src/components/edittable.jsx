@@ -229,6 +229,7 @@ class EditTable extends React.Component {
     .then(json => {
       // Success
       json = preprocessJSON(json);
+      console.log('Table data', json);
       this.setState({ data: json });
     })
     .catch(err => {

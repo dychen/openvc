@@ -1,6 +1,7 @@
 import React from 'react';
 import Immutable from 'immutable';
 import {DropdownButton, MenuItem, Nav, NavItem} from 'react-bootstrap';
+import CSSTransitionGroup from 'react-transition-group/CSSTransitionGroup';
 
 import './subnav.scss';
 
@@ -224,12 +225,61 @@ class SubnavFilters extends React.Component {
   }
 }
 
-const Subnav = (props) => {
-  return (
-    <div className="ovc-component-subnav">
-      {props.children}
-    </div>
-  );
+/*
+ * Props:
+ *   title [string]: (Optional) Subnav header title
+ *   icon [string]: (Optional) Icon classname
+ */
+class Subnav extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      visible: false
+    };
+
+    this.toggleVisible = this.toggleVisible.bind(this);
+  }
+
+  toggleVisible(e) {
+    this.setState({ visible: !this.state.visible });
+  }
+
+  render() {
+    const icon = this.props.icon || 'ion-ios-settings-strong';
+    const title = this.props.title || 'Menu';
+    let sideNav, toggleIcon;
+    if (this.state.visible) {
+      sideNav = (
+        <div className="ovc-component-subnav">
+          <div className="ovc-component-subnav-minimize"
+               onClick={this.toggleVisible}>
+            {title}
+            <i className="ion-chevron-right" />
+          </div>
+          {this.props.children}
+        </div>
+      );
+    }
+    else {
+      toggleIcon = (
+        <div className="ovc-component-subnav-hidden"
+             onClick={this.toggleVisible}>
+          <i className={icon} />
+        </div>
+      );
+    }
+    return (
+      <div>
+        <CSSTransitionGroup transitionName="ovc-toggle-sidenav"
+                            transitionEnterTimeout={500}
+                            transitionLeaveTimeout={500}>
+          {sideNav}
+        </CSSTransitionGroup>
+        {toggleIcon}
+      </div>
+    );
+  }
 };
 
 export {filterData, Subnav, SubnavButton, SubnavDropdown, SubnavFilters};

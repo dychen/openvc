@@ -175,7 +175,9 @@ class UserTablesPage extends React.Component {
 
     return (
       <div className="ovc-subnav-view-container">
-        <Subnav>
+        {tableSection}
+
+        <Subnav icon="ion-compose">
           <SubnavButton iconClass="ion-plus"
                         text="New Table"
                         onClick={this.showCreateModal} />
@@ -186,7 +188,6 @@ class UserTablesPage extends React.Component {
           <SubnavFilters filterList={filterList}
                          onUpdate={this.updateFilterTags} />
         </Subnav>
-        {tableSection}
 
         <TableModal table={{}}
                     tableFields={[]}

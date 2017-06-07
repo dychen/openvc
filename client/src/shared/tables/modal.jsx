@@ -151,7 +151,7 @@ const FieldPanelIntegrationsSection = (props) => {
                                  updateTableField={updateTableField}
                                  resetTableField={resetTableField}
                                  key={sourceOptions.key} />
-    )
+    );
   });
   return (
     <div className="field-panel-section integrations-list-section">

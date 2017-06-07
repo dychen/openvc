@@ -11,15 +11,11 @@
   overflow-x: hidden;
   overflow-y: hidden;
 
-  display: flex;
-
-  .ovc-component-subnav {
-    flex: 0 0 $SUBNAV_WIDTH;
-    height: 100%;
-    background-color: $OVC_SUBNAV_GRAY;
-    border-right: 1px solid $OVC_LIGHT_GRAY;
-
-    overflow-y: scroll;
+  position: relative;
+  .ovc-component-subnav-hidden {
+    position: absolute;
+    top: 40px;
+    right: 5px;
   }
 
   .ovc-subnav-main {
@@ -31,11 +27,69 @@
     padding-right: 25px;
     padding-bottom: 25px;
   }
+
+  .ovc-component-subnav {
+    position: absolute;
+    width: $SUBNAV_WIDTH;
+    top: 0;
+    right: 0;
+
+    // TODO: Consider making this a flex component so it moves with the main
+    //       container rather than overlaying it.
+    //flex: 0 0 $SUBNAV_WIDTH;
+    height: 100%;
+    background-color: $OVC_SUBNAV_GRAY;
+    // Old - new style uses box shadow
+    //border-left: 1px solid $OVC_LIGHT_GRAY;
+    box-shadow: -1px -1px 3px 0 $OVC_GRAY;
+
+    overflow-y: scroll;
+  }
+}
+
+/* Animation */
+.ovc-toggle-sidenav-enter.ovc-toggle-sidenav-enter-active {
+  @include animate-slide-in-left(500ms);
+}
+.ovc-toggle-sidenav-leave.ovc-toggle-sidenav-leave-active {
+  @include animate-slide-out-right(500ms);
+}
+
+.ovc-component-subnav-hidden {
+  width: 50px;
+  height: 50px;
+  z-index: 100;
+  background-color: $OVC_THEME_BLUE;
+  color: $OVC_WHITE;
+  font-size: 2.5em;
+  font-weight: 900;
+  border: 1px solid $OVC_BLACK;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 25px 0 rgba(0,0,0,0.5);
+  @include hvr-fade($OVC_WHITE, $OVC_THEME_LIGHT_BLUE);
 }
 
 .ovc-component-subnav {
   display: flex;
   flex-direction: column;
+
+  /* Component: Minimize */
+  .ovc-component-subnav-minimize {
+    position: relative;
+    margin-top: 5px;
+    width: 100%;
+    height: 40px;
+    text-align: center;
+    font-size: 2.0em;
+    @include hvr-color($OVC_LIGHT_GRAY);
+    > i {
+      position: absolute;
+      right: 10px;
+    }
+  }
 
   /* Component: SubnavButton */
   .ovc-component-subnav-button-container {

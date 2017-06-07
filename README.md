@@ -42,6 +42,11 @@ babel-preset-react
 node-sass
 ```
 
+Frontend package notes:
+* `react-addons-shallow-compare` is a dependency for `react-dates`
+
+Backend package notes:
+
 ###Frontend component API
 ```
 // TODO

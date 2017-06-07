@@ -1,4 +1,5 @@
 import 'whatwg-fetch';
+import moment from 'moment';
 import {getToken} from './auth.js';
 
 /*
@@ -15,6 +16,9 @@ const preprocessJSON = function(json) {
       newJSON[key] = preprocessJSON(json[key]);
     }
     return newJSON;
+  }
+  else if (moment(json, 'YYYY-MM-DD', true).isValid()) {
+    return moment(json, 'YYYY-MM-DD', true);
   }
   else {
     return (json === undefined || json === null) ? '' : json;

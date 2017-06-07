@@ -2,6 +2,8 @@ import React from 'react';
 import numeral from 'numeral';
 import moment from 'moment';
 import {DropdownButton, MenuItem} from 'react-bootstrap';
+import 'react-dates/lib/css/_datepicker.css';
+import {SingleDatePicker} from 'react-dates';
 
 import {truncateString} from '../utils/format.js';
 
@@ -84,14 +86,33 @@ const createReverseDisplayFilter = function(fieldType) {
  *   value [string]: Underlying data
  *
  *   onUpdate [function]: Action when the data is changed
- *     f([Object: Event]) => null
+ *     f([string: value]) => null
  *   onSave [function]: Action when the enter key is pressed
- *     f([Object: Event]) => null
+ *     f([string: value]) => null
  *   cancelEditMode [function]: Action when the input is blurred
  *     f([Object: Event]) => null
  */
 const InputField = (props) => {
   const filterInputValue = createInputFilter(props.fieldType);
+
+  const onUpdate = (e) => {
+    props.onUpdate(e.currentTarget.value);
+  };
+  const onSave = (e) => {
+    // Force-convert numbers so all inputs can be trimmed
+    const trimmedValue = e.currentTarget.value.toString().trim();
+    // Only submit if there is text; allow shift+enter to create a new line
+    if (e.key === 'Enter' && trimmedValue !== '' && !e.shiftKey) {
+      props.onSave(trimmedValue);
+    }
+  };
+  const datePickerOnSave = (dateObj) => {
+    props.onSave(dateObj);
+  };
+  const datePickerOnBlur = (focusedObj) => {
+    if (!focusedObj.focused)
+      props.cancelEditMode();
+  };
 
   switch (props.fieldType) {
     case 'text':
@@ -100,17 +121,28 @@ const InputField = (props) => {
         <textarea rows="8" className="ovc-edit-field" autoFocus
                   placeholder={props.placeholder}
                   value={filterInputValue(props.value)}
-                  onChange={props.onUpdate}
-                  onKeyPress={props.onSave}
+                  onChange={onUpdate}
+                  onKeyPress={onSave}
                   onBlur={props.cancelEditMode} />
+      );
+    case 'date':
+      return (
+        <SingleDatePicker date={props.value}
+                          onDateChange={datePickerOnSave}
+                          focused={true}
+                          onFocusChange={datePickerOnBlur}
+                          numberOfMonths={1}
+                          hideKeyboardShortcutsPanel={true}
+                          enableOutsideDays={true}
+                          isOutsideRange={() => false } />
       );
     default:
       return (
         <input className="ovc-edit-field" autoFocus
                placeholder={props.placeholder}
                value={filterInputValue(props.value)}
-               onChange={props.onUpdate}
-               onKeyPress={props.onSave}
+               onChange={onUpdate}
+               onKeyPress={onSave}
                onBlur={props.cancelEditMode} />
       );
   }
@@ -219,12 +251,14 @@ class BaseDropdownField extends React.Component {
   }
 
   enterEditMode(e) {
-    e.stopPropagation();
+    if (e && e.stopPropagation)
+      e.stopPropagation();
     this.setState({ editing: true });
   }
 
   cancelEditMode(e) {
-    e.stopPropagation();
+    if (e && e.stopPropagation)
+      e.stopPropagation();
     this.setState({ editing: false });
   }
 
@@ -371,17 +405,19 @@ class BaseEditField extends React.Component {
   }
 
   enterEditMode(e) {
-    e.stopPropagation();
+    if (e && e.stopPropagation)
+      e.stopPropagation();
     this.setState({ editing: true });
   }
 
   cancelEditMode(e) {
-    e.stopPropagation();
+    if (e && e.stopPropagation)
+      e.stopPropagation();
     this.setState({ editing: false });
   }
 
-  onUpdate(e) {
-    const unfilteredValue = this.unfilterInputValue(e.currentTarget.value);
+  onUpdate(value) {
+    const unfilteredValue = this.unfilterInputValue(value);
     this.setState({ value: unfilteredValue });
 
     // Propagate to parent
@@ -390,16 +426,10 @@ class BaseEditField extends React.Component {
     }
   }
 
-  onSave(e) {
-    // Force-convert numbers so all inputs can be trimmed
-    const trimmedValue = this.state.value.toString().trim();
-    // Only submit if there is text; allow shift+enter to create a new line
-    if (e.key === 'Enter' && trimmedValue !== '' && !e.shiftKey) {
-      this.cancelEditMode(e);
-
-      // Propagate to parent
-      this.props.onSave(this.unfilterDisplayValue(trimmedValue));
-    }
+  onSave(value) {
+    this.cancelEditMode();
+    // Propagate to parent
+    this.props.onSave(this.unfilterDisplayValue(value));
   }
 
   render() {

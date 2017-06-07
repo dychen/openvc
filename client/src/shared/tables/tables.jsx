@@ -142,8 +142,6 @@ class UserTablesPage extends React.Component {
    *     [{ field1: val1, field2: val2, ... }]
    */
   filterTableData(data) {
-    // TODO: THIS IS BUGGY. State updates after filterData is run.
-    console.log('filtering...', this.state.filterTags);
     return filterData(data, this.state.filterTags);
   }
 

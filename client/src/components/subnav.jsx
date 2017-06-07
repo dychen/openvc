@@ -165,11 +165,11 @@ class SubnavFilters extends React.Component {
       const newStateCleared = newState.updateIn(
         ['filterInputs', tag.key], value => ''
       );
-      this.setState(newStateCleared.toJS());
-
-      if (this.props.onUpdate) {
-        this.props.onUpdate(this.state.filterTags);
-      }
+      this.setState(newStateCleared.toJS(), () => {
+        if (this.props.onUpdate) {
+          this.props.onUpdate(this.state.filterTags);
+        }
+      });
     }
   }
 
@@ -181,11 +181,11 @@ class SubnavFilters extends React.Component {
 
     const newState = Immutable.fromJS(this.state)
       .update('filterTags', value => newTags);
-    this.setState(newState.toJS());
-
-    if (this.props.onUpdate) {
-      this.props.onUpdate(this.state.filterTags);
-    }
+    this.setState(newState.toJS(), () => {
+      if (this.props.onUpdate) {
+        this.props.onUpdate(this.state.filterTags);
+      }
+    });
   }
 
   render() {

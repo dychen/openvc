@@ -5,6 +5,55 @@ import {DropdownButton, MenuItem, Nav, NavItem} from 'react-bootstrap';
 import './subnav.scss';
 
 /*
+ * Filters with the following logic: For each element in a tag group, filter
+ * with a logical OR. For each tag group, filter with a logical AND. E.g., if
+ * the tags are:
+ *   [{ key: 'name', value: 'Co1' }, { key: 'name', value: 'Co2' },
+ *    { key: 'source', value: 'Source1' }, { key: 'source', value: 'Source2' }]
+ * The filtering logic is:
+ *   ((name === 'Co1' || name === 'Co2')
+ *    && (source === 'Source1' || source === 'Source2'))
+ */
+const filterData = (data, filterTags) => {
+  /*
+   * Args:
+   *   filterTags [Array]: [{ key: [string], value: [string] }, ...]
+   * Returns:
+   *   [Array]: [{ key: [string], values: [[string]] }, ...]
+   */
+  const getTagGroups = function(filterTags) {
+    let tagGroups = [];
+    filterTags.forEach(filterTag => {
+      const tagGroupIdx = tagGroups.findIndex(t => t.key === filterTag.key);
+      if (tagGroupIdx > -1) {
+        tagGroups[tagGroupIdx].values.push(filterTag.value);
+      }
+      else {
+        tagGroups.push({ key: filterTag.key, values: [filterTag.value] });
+      }
+    });
+    return tagGroups;
+  };
+
+  const matchGroup = function(obj, tagKey, tagValues) {
+    return tagValues.some(value =>
+      obj[tagKey].toLowerCase().indexOf(value.toLowerCase()) > -1
+    );
+  };
+
+  const tagGroups = getTagGroups(filterTags);
+  if (filterTags) {
+    console.log('[DEBUG] Performing an expensive filter in filterData()');
+    return data.filter(d => {
+      return tagGroups.every(tagGroup =>
+        matchGroup(d, tagGroup.key, tagGroup.values)
+      );
+    });
+  }
+  return data;
+};
+
+/*
  * text [string]: [Optional] Text to display on button.
  * iconClass [string]: [Optional] CSS class of the icon (e.g. 'ion-plus').
  *
@@ -68,7 +117,9 @@ class SubnavDropdown extends React.Component {
 }
 
 /*
- * filterList [Array]: List of filter fields.
+ * filterList [Array]: List of filter fields to show on the Sidenav. This is
+ *                     different from filterTags, which are objects with keys
+ *                     'key' and 'value' instead of 'key' and 'display'.
  *                     [{ key: [string], display: [string] }, ...]
  *
  * onUpdate: [function]: Function to call when filter tags get added or removed.
@@ -114,6 +165,10 @@ class SubnavFilters extends React.Component {
         ['filterInputs', tag.key], value => ''
       );
       this.setState(newStateCleared.toJS());
+
+      if (this.props.onUpdate) {
+        this.props.onUpdate(this.state.filterTags);
+      }
     }
   }
 
@@ -126,6 +181,10 @@ class SubnavFilters extends React.Component {
     const newState = Immutable.fromJS(this.state)
       .update('filterTags', value => newTags);
     this.setState(newState.toJS());
+
+    if (this.props.onUpdate) {
+      this.props.onUpdate(this.state.filterTags);
+    }
   }
 
   render() {
@@ -173,5 +232,5 @@ const Subnav = (props) => {
   );
 };
 
-export {Subnav, SubnavButton, SubnavDropdown, SubnavFilters};
+export {filterData, Subnav, SubnavButton, SubnavDropdown, SubnavFilters};
 

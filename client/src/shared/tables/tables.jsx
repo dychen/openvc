@@ -2,7 +2,7 @@ import React from 'react';
 
 import {getTableList, getFieldList, getSourceList} from './api.js';
 import EditTable from '../../components/edittable.jsx';
-import {Subnav, SubnavButton, SubnavDropdown,
+import {filterData, Subnav, SubnavButton, SubnavDropdown,
         SubnavFilters} from '../../components/subnav.jsx';
 import TableModal from './modal.jsx';
 
@@ -47,6 +47,7 @@ class UserTablesPage extends React.Component {
       tableFields: [],
       tables: [],
       SOURCES: [],
+      filterTags: [],
       createModalVisible: false,
       updateModalVisible: false
     };
@@ -57,6 +58,9 @@ class UserTablesPage extends React.Component {
     this.hideCreateModal = this.hideCreateModal.bind(this);
     this.hideUpdateModal = this.hideUpdateModal.bind(this);
     this.changeTable = this.changeTable.bind(this);
+
+    this.updateFilterTags = this.updateFilterTags.bind(this);
+    this.filterTableData = this.filterTableData.bind(this);
 
     this.loadTables();
   }
@@ -129,6 +133,20 @@ class UserTablesPage extends React.Component {
     });
   }
 
+  updateFilterTags(filterTags) {
+    this.setState({ filterTags: filterTags });
+  }
+  /*
+   * Args:
+   *   data [Array]: Array of objects:
+   *     [{ field1: val1, field2: val2, ... }]
+   */
+  filterTableData(data) {
+    // TODO: THIS IS BUGGY. State updates after filterData is run.
+    console.log('filtering...', this.state.filterTags);
+    return filterData(data, this.state.filterTags);
+  }
+
   render() {
     const selectedItem = {
       key: this.state.table.id,
@@ -150,6 +168,7 @@ class UserTablesPage extends React.Component {
       tableSection = (
         <TableSection tableId={this.state.table.id}
                       fields={this.state.tableFields}
+                      filterData={this.filterTableData}
                       onHeaderClick={this.showUpdateModal} />
       );
     }
@@ -164,7 +183,8 @@ class UserTablesPage extends React.Component {
                           selectedItem={selectedItem}
                           menuItems={menuItems}
                           onSelect={this.changeTable} />
-          <SubnavFilters filterList={filterList} />
+          <SubnavFilters filterList={filterList}
+                         onUpdate={this.updateFilterTags} />
         </Subnav>
         {tableSection}
 

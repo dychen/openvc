@@ -1,6 +1,7 @@
 import React from 'react';
 import Immutable from 'immutable';
 import {authFetch, preprocessJSON} from '../../utils/api.js';
+import {filterData} from '../../components/subnav.jsx';
 
 import SearchSection from './search.jsx';
 //import UserPortfolioSection from './user.jsx';
@@ -18,10 +19,11 @@ class InvestorDealsPage extends React.Component {
       groupBy: 'none',
       filterInputs: {
         name: '',
-        segment: '',
-        sector: '',
+        source: '',
+        stage: '',
         tag: ''
       },
+      // Tag format: { key: [string], value: [string] }
       filterTags: []
     };
 
@@ -31,6 +33,8 @@ class InvestorDealsPage extends React.Component {
     this.updateFilter = this.updateFilter.bind(this);
     this.addFilterTag = this.addFilterTag.bind(this);
     this.removeFilterTag = this.removeFilterTag.bind(this);
+
+    this.filterTableData = this.filterTableData.bind(this);
   }
 
   /*
@@ -55,7 +59,7 @@ class InvestorDealsPage extends React.Component {
     const newState = Immutable.fromJS(this.state)
       .update('filterTags', tags => tags.push(tag));
     const newStateCleared = newState.updateIn(
-      ['filterInputs', tag.type], value => ''
+      ['filterInputs', tag.key], value => ''
     );
     this.setState(newStateCleared.toJS());
   }
@@ -70,11 +74,22 @@ class InvestorDealsPage extends React.Component {
     this.setState(newState.toJS());
   }
 
+  /*
+   * Args:
+   *   data [Array]: Array of objects:
+   *     [{ field1: val1, field2: val2, ... }]
+   */
+  filterTableData(data) {
+    return filterData(data, this.state.filterTags);
+  }
+
   render() {
+    // TODO: filterData is an expensive function and should not get called on
+    //       every re-render. Refactor to only call when needed.
     let visibleSection;
     switch (this.state.section) {
       case 'table':
-        visibleSection = (<DealTableSection />);
+        visibleSection = (<DealTableSection filterData={this.filterTableData} />);
         break;
       case 'user':
       case 'default':

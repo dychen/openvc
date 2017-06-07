@@ -1,7 +1,7 @@
 const DATA_TYPE_MAP = {
   'string': 'Plain text',
   'text': 'Long text',
-  'choice': 'Choice text',
+  'choice': 'Choice field',
   'number': 'Number',
   'money': 'Money',
   'date': 'Date',
@@ -12,7 +12,7 @@ const DATA_TYPE_MAP = {
 const DATA_TYPE_LIST = [
   { key: 'string', display: 'Plain text' },
   { key: 'text', display: 'Long text' },
-  { key: 'choice', display: 'Choice text' },
+  { key: 'choice', display: 'Choice field' },
   { key: 'number', display: 'Number' },
   { key: 'money', display: 'Money' },
   { key: 'date', display: 'Date' },

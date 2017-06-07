@@ -1,27 +1,63 @@
 import React from 'react';
 import Immutable from 'immutable';
-import {authFetch, formatAPIJSON, preprocessJSON} from '../utils/api.js';
+import {authFetch, handleResponse} from '../utils/api.js';
 
 import {EditField} from './editfield.jsx';
 import {ModalField} from './modalfield.jsx';
+import {DATA_TYPE_MAP} from '../utils/constants.js';
 
 import './edittable.scss';
 
 /*
  * props:
- *   onHeaderClick [function]: Function that runs when a header cell is clicked.
+ *   FIELDS [Array]: List of API fields to show as table columns.
+ *   FIELD_MAP [Object]: Object that maps fields to their metadata:
+ *   {
+ *     [field name]: { display: [string], model: [string],
+ *                     modelField: [string], required: [boolean],
+ *                     type: [string] }
+ *   }
+ *
+ *   sortByField [function]: Function that sorts the data by field name.
+ *   onHeaderClick [function]: (Optional) Function that runs when a header cell
+ *                             is clicked.
  *     f([Event object]) => CustomField object { displayName: [string], ... }
  */
 class EditTableHeader extends React.Component {
   constructor(props) {
     super(props);
 
+    this.state = {
+      activeSort: {
+        field: '',
+        direction: ''
+      }
+    };
+
+    this.onSortAscClick = this.onSortAscClick.bind(this);
+    this.onSortDescClick = this.onSortDescClick.bind(this);
     this.onHeaderClick = this.onHeaderClick.bind(this);
+  }
+
+  onSortAscClick(e) {
+    e.stopPropagation();
+    const fieldName = e.currentTarget.id;
+
+    this.props.sortByField(fieldName, 'asc', this.props.FIELD_MAP[fieldName]);
+    this.setState({ activeSort: { field: fieldName, direction: 'asc' }});
+  }
+
+  onSortDescClick(e) {
+    e.stopPropagation();
+    const fieldName = e.currentTarget.id;
+
+    this.props.sortByField(fieldName, 'desc', this.props.FIELD_MAP[fieldName]);
+    this.setState({ activeSort: { field: fieldName, direction: 'desc' }});
   }
 
   onHeaderClick(e) {
     if (this.props.onHeaderClick) {
-      const activeField = this.props.FIELDS[e.currentTarget.value];
+      const activeField = this.props.FIELDS[e.currentTarget.id];
       // activeField is undefined in the remove-entity onClick handler
       this.props.onHeaderClick(activeField);
     }
@@ -29,11 +65,24 @@ class EditTableHeader extends React.Component {
 
   render() {
     const className = this.onHeaderClick ? 'clickable' : '';
-    const headers = this.props.FIELDS.map((field) => {
+    const headers = this.props.FIELDS.map(field => {
+      const sortAscClass = (this.state.activeSort.field === field
+                            && this.state.activeSort.direction === 'asc'
+                            ? 'active' : '');
+      const sortDescClass = (this.state.activeSort.field === field
+                             && this.state.activeSort.direction === 'desc'
+                             ? 'active' : '');
       return (
         <td key={field} id={field} className={className}
             onClick={this.onHeaderClick}>
           {this.props.FIELD_MAP[field].display}
+          <div className="subtext">
+            {DATA_TYPE_MAP[this.props.FIELD_MAP[field].type]}
+          </div>
+          <i className={`ion-arrow-up-b sort-table sort-asc ${sortAscClass}`}
+             id={field} onClick={this.onSortAscClick} />
+          <i className={`ion-arrow-down-b sort-table sort-desc ${sortDescClass}`}
+             id={field} onClick={this.onSortDescClick} />
         </td>
       );
     });
@@ -42,7 +91,7 @@ class EditTableHeader extends React.Component {
       <thead>
         <tr>
           {headers}
-          <td className={className} onClick={this.onHeaderClick}>
+          <td className={`remove-entity ${className}`} onClick={this.onHeaderClick}>
             <i className="ion-plus" />
           </td>
         </tr>
@@ -76,6 +125,12 @@ class EditTableHeader extends React.Component {
  *   }
  *
  *   Field type is one of: 'string', 'number', 'money', 'date', 'image', 'text'
+ *
+ *   filterData [function]: (Optional) Function that filters the table dataset.
+ *     f([Array]) => [Array]
+ *   onHeaderClick [function]: (Optional) Function that runs when a header cell
+ *                             is clicked.
+ *     f([Event object]) => CustomField object { displayName: [string], ... }
  */
 class EditTable extends React.Component {
   constructor(props) {
@@ -106,6 +161,9 @@ class EditTable extends React.Component {
     this.createEntity = this.createEntity.bind(this);
     this.updateEntity = this.updateEntity.bind(this);
     this.deleteEntity = this.deleteEntity.bind(this);
+
+    // Transform the data
+    this.sortByField = this.sortByField.bind(this);
 
     // Helpers
     this._generateModalFieldCell = this._generateModalFieldCell.bind(this);
@@ -216,98 +274,40 @@ class EditTable extends React.Component {
 
   getEntityList() {
     authFetch(this.props.API_URL)
-    .then(function(response) {
-      if (response.ok) {
-        return response.json();
-      }
-      else {
-        return response.json().then(json => {
-          throw new Error(json);
-        });
-      }
-    })
-    .then(json => {
-      // Success
-      json = preprocessJSON(json);
-      console.log('Table data', json);
-      this.setState({ data: json });
-    })
-    .catch(err => {
-      // Failure
-      console.log(err);
-      return err;
-    });
+      .then(handleResponse)
+      .then(json => {
+        // Success
+        console.log('Table data', json);
+        this.setState({ data: json });
+      });
   }
 
   createEntity(entity) {
     authFetch(this.props.API_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
       body: JSON.stringify(entity)
     })
-    .then(function(response) {
-      if (response.ok) {
-        return response.json();
-      }
-      else {
-        return response.json().then(json => {
-          throw new Error(json);
-        });
-      }
-    })
+    .then(handleResponse)
     .then(json => {
-      // Success
-      json = preprocessJSON(json);
       const newState = Immutable.fromJS(this.state)
         .update('data', data => data.push(json));
-
       this.setState(newState.toJS());
-    })
-    .catch(err => {
-      // Failure
-      console.log(err);
-      return err;
     });
   }
 
   updateEntity(entityId, entity) {
     authFetch(`${this.props.API_URL}/${entityId}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
       body: JSON.stringify(entity)
     })
-    .then(function(response) {
-      if (response.ok) {
-        return response.json();
-      }
-      else {
-        return response.json().then(json => {
-          // TODO: Handle error responses
-          throw new Error(json);
-        });
-      }
-    })
+    .then(handleResponse)
     .then(json => {
-      // Success
-      json = preprocessJSON(json);
       const entityIdx = this.state.data.findIndex(entity =>
         entity.id === json.id
       );
-
       const newState = Immutable.fromJS(this.state)
         .setIn(['data', entityIdx], json);
       this.setState(newState.toJS());
-    })
-    .catch(err => {
-      // Failure
-      console.log(err);
-      return err;
     });
   }
 
@@ -315,33 +315,50 @@ class EditTable extends React.Component {
     authFetch(`${this.props.API_URL}/${entityId}`, {
       method: 'DELETE'
     })
-    .then(function(response) {
-      if (response.ok) {
-        return response.json();
-      }
-      else {
-        return response.json().then(json => {
-          throw new Error(json);
-        });
-      }
-    })
+    .then(handleResponse)
     .then(json => {
       // Success
-      json = preprocessJSON(json);
       const deletedId = json.id;
       const newEntities = this.state.data.filter(entity =>
         entity.id !== deletedId
       );
-
       const newState = Immutable.fromJS(this.state)
         .set('data', newEntities);
       this.setState(newState.toJS());
-    })
-    .catch(err => {
-      // Failure
-      console.log(err);
-      return err;
     });
+  }
+
+  /*
+   * Args:
+   *   field [string/Array]: Field name (e.g. 'stage', 'date', 'name') or list
+   *                         of names for a nested lookup.
+   *   direction [string]: Either 'asc' or 'desc' - the sort direction.
+   *   fieldData [Object]: (Optional) Hash of field attributes, including model
+   *                                  and modelField.
+   */
+  sortByField(field, direction, fieldData) {
+    const getField = (obj, field) => {
+      if (fieldData && fieldData.model && fieldData.modelField) {
+        return obj.getIn([fieldData.model, fieldData.modelField]) || '';
+      }
+      return obj.get(field) || '';
+    }
+
+    direction = direction || 'asc'; // Default sort direction is ascending
+    // TODO: Different sorts by type
+    const oldState = Immutable.fromJS(this.state.data);
+    if (direction === 'desc') {
+      const newState = oldState.sort((a, b) =>
+        getField(b, field).localeCompare(getField(a, field))
+      );
+      this.setState({ data: newState.toJS() });
+    }
+    else {
+      const newState = oldState.sort((a, b) =>
+        getField(a, field).localeCompare(getField(b, field))
+      );
+      this.setState({ data: newState.toJS() });
+    }
   }
 
   /*
@@ -392,7 +409,10 @@ class EditTable extends React.Component {
    *   { owner: { id: 123, firstName: 'John', ... } }
    */
   render() {
-    const rows = this.state.data.map((row) => {
+    const filteredData = (this.props.filterData
+                          ? this.props.filterData(this.state.data)
+                          : this.state.data);
+    const rows = filteredData.map((row) => {
       const elements = this.props.FIELDS.map((field) => {
         const uniqueKey = `${row.id.toString()}-${field}`;
         if (this.props.FIELD_MAP[field].model
@@ -452,6 +472,7 @@ class EditTable extends React.Component {
       <table className="ovc-edit-table">
         <EditTableHeader FIELDS={this.props.FIELDS}
                          FIELD_MAP={this.props.FIELD_MAP}
+                         sortByField={this.sortByField}
                          onHeaderClick={this.props.onHeaderClick} />
         <tbody>
           {rows}

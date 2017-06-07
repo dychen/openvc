@@ -28,6 +28,7 @@ class ContactsPage extends React.Component {
         title: '',
         tag: ''
       },
+      // Tag format: { key: [string], value: [string] }
       filterTags: [],
       contacts: []
     };
@@ -84,7 +85,7 @@ class ContactsPage extends React.Component {
     const newState = Immutable.fromJS(this.state)
       .update('filterTags', tags => tags.push(tag));
     const newStateCleared = newState.updateIn(
-      ['filterInputs', tag.type], value => ''
+      ['filterInputs', tag.key], value => ''
     );
     this.setState(newStateCleared.toJS());
   }
@@ -410,12 +411,12 @@ class ContactsPage extends React.Component {
     const filterTags = function(contact) {
       if (this.state.filterTags.length > 0) {
         const matchedTags = this.state.filterTags.filter(tag => {
-          if (tag.type === 'tag') {
+          if (tag.key === 'tag') {
             return contact.tags.map(tag => tag.toLowerCase())
               .indexOf(tag.value.toLowerCase()) > -1;
           }
           else {
-            return contact[tag.type].toLowerCase()
+            return contact[tag.key].toLowerCase()
               .indexOf(tag.value.toLowerCase()) > -1;
           }
         });

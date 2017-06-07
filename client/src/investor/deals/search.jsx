@@ -44,10 +44,10 @@ class SearchSection extends React.Component {
 
   addFilterTag(e) {
     if (e.key === 'Enter') {
-      const tagType = e.target.name;
+      const tagKey = e.target.name;
       const tagValue = e.currentTarget.value.trim();
       this.props.addFilterTag({
-        type: tagType,
+        key: tagKey,
         value: tagValue
       });
     }
@@ -70,7 +70,7 @@ class SearchSection extends React.Component {
           <div className="filter-close">
             <i className="ion-ios-close-empty" />
           </div>
-          <span className="light">{tag.type}&nbsp;|&nbsp;</span> {tag.value}
+          <span className="light">{tag.key}&nbsp;|&nbsp;</span> {tag.value}
         </div>
       );
     });
@@ -108,19 +108,19 @@ class SearchSection extends React.Component {
           </DropdownButton>
         </div>
         <div className="ovc-component-subnav-filter-inputs">
-          <label>Search by company</label>
+          <label>Search by name</label>
           <input type="text" name="name"
                  value={this.props.filterInputs.name}
                  onChange={this.updateFilter}
                  onKeyPress={this.addFilterTag} />
-          <label>Search by segment</label>
-          <input type="text" name="segment"
-                 value={this.props.filterInputs.segment}
+          <label>Search by source</label>
+          <input type="text" name="source"
+                 value={this.props.filterInputs.source}
                  onChange={this.updateFilter}
                  onKeyPress={this.addFilterTag} />
-          <label>Search by sector</label>
-          <input type="text" name="sector"
-                 value={this.props.filterInputs.sector}
+          <label>Search by stage</label>
+          <input type="text" name="stage"
+                 value={this.props.filterInputs.stage}
                  onChange={this.updateFilter}
                  onKeyPress={this.addFilterTag} />
           <label>Add a tag</label>

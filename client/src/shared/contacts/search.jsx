@@ -56,10 +56,10 @@ class SearchSection extends React.Component {
 
   addFilterTag(e) {
     if (e.key === 'Enter') {
-      const tagType = e.target.name;
+      const tagKey = e.target.name;
       const tagValue = e.currentTarget.value.trim();
       this.props.addFilterTag({
-        type: tagType,
+        key: tagKey,
         value: tagValue
       });
     }
@@ -87,7 +87,7 @@ class SearchSection extends React.Component {
           <div className="filter-close">
             <i className="ion-ios-close-empty" />
           </div>
-          <span className="light">{tag.type}&nbsp;|&nbsp;</span> {tag.value}
+          <span className="light">{tag.key}&nbsp;|&nbsp;</span> {tag.value}
         </div>
       );
     });

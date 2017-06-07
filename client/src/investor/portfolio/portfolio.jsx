@@ -22,6 +22,7 @@ class InvestorPorfolioPage extends React.Component {
         sector: '',
         tag: ''
       },
+      // Tag format: { key: [string], value: [string] }
       filterTags: [],
       companies: []
     };
@@ -66,7 +67,7 @@ class InvestorPorfolioPage extends React.Component {
     const newState = Immutable.fromJS(this.state)
       .update('filterTags', tags => tags.push(tag));
     const newStateCleared = newState.updateIn(
-      ['filterInputs', tag.type], value => ''
+      ['filterInputs', tag.key], value => ''
     );
     this.setState(newStateCleared.toJS());
   }
@@ -217,12 +218,12 @@ class InvestorPorfolioPage extends React.Component {
     const filterTags = function(company) {
       if (this.state.filterTags.length > 0) {
         const matchedTags = this.state.filterTags.filter(tag => {
-          if (tag.type === 'tag') {
+          if (tag.key === 'tag') {
             return company.tags.map(tag => tag.toLowerCase())
               .indexOf(tag.value.toLowerCase()) > -1;
           }
           else {
-            return company[tag.type].toLowerCase()
+            return company[tag.key].toLowerCase()
               .indexOf(tag.value.toLowerCase()) > -1;
           }
         });

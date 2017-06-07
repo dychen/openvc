@@ -44,7 +44,7 @@ $SIDENAV_MINI_WIDTH: 55px;
 
     color: $OVC_WHITE;
     background-color: $OVC_THEME_BLUE;
-    border-bottom: 2px solid $OVC_THEME_GREEN;
+    border-bottom: 4px solid $OVC_THEME_GREEN;
 
     // Minimize sidenav
     @include hvr-color($OVC_GRAY);
@@ -63,6 +63,7 @@ $SIDENAV_MINI_WIDTH: 55px;
     justify-content: flex-start;
 
     @include hvr-color($OVC_GRAY);
+    @include hvr-underline($OVC_THEME_GREEN);
 
     i {
       font-size: 20px;

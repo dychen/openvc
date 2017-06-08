@@ -117,6 +117,34 @@ class SubnavDropdown extends React.Component {
   }
 }
 
+const FilterInput = (props) => {
+  return (
+    <div>
+      <label>{props.display}</label>
+      <input type="text"
+             name={props.name}
+             value={props.value}
+             onChange={props.onChange}
+             onKeyPress={props.onKeyPress} />
+    </div>
+  );
+}
+
+const FilterTag = (props) => {
+  return (
+    <div className="filter-tag" id={props.index}
+         onClick={props.onClick}>
+      <div className="filter-close">
+        <i className="ion-ios-close-empty" />
+      </div>
+      <div className="filter-content">
+        <span className="filter-tag-key">{props.tag.key}&nbsp;|&nbsp;</span>
+        <span>{props.tag.value}</span>
+      </div>
+    </div>
+  );
+}
+
 /*
  * filterList [Array]: List of filter fields to show on the Sidenav. This is
  *                     different from filterTags, which are objects with keys
@@ -189,28 +217,18 @@ class SubnavFilters extends React.Component {
   }
 
   render() {
-    const filterInputs = this.props.filterList.map((filterItem) => {
-      return (
-        <div key={filterItem.key}>
-          <label>{filterItem.display}</label>
-          <input type="text" name={filterItem.key}
-                 value={this.state.filterInputs[filterItem.key]}
-                 onChange={this.updateFilter}
-                 onKeyPress={this.addFilterTag} />
-        </div>
-      );
-    });
-    const tags = this.state.filterTags.map((tag, index) => {
-      return (
-        <div className="filter-tag" key={index} id={index}
-             onClick={this.removeFilterTag}>
-          <div className="filter-close">
-            <i className="ion-ios-close-empty" />
-          </div>
-          <span className="light">{tag.key}&nbsp;|&nbsp;</span> {tag.value}
-        </div>
-      );
-    });
+    const filterInputs = this.props.filterList.map((filterItem) =>
+      <FilterInput key={filterItem.key}
+                   name={filterItem.key}
+                   display={filterItem.display}
+                   value={this.state.filterInputs[filterItem.key]}
+                   onChange={this.updateFilter}
+                   onKeyPress={this.addFilterTag} />
+    );
+    const tags = this.state.filterTags.map((tag, index) =>
+      <FilterTag key={index} index={index} tag={tag}
+                 onClick={this.removeFilterTag} />
+    );
 
     return (
       <div>

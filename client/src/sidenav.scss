@@ -96,6 +96,9 @@ $SIDENAV_MINI_WIDTH: 55px;
   .minimized-sidenav-hidden {
     display: flex; // Inherit the flex row properties
   }
+
+  -webkit-transition: .3s ease all;
+  transition: .3s ease all;
 }
 // Hidden
 .ovc-sidenav.minimized {
@@ -103,4 +106,7 @@ $SIDENAV_MINI_WIDTH: 55px;
   .minimized-sidenav-hidden {
     display: none;
   }
+
+  -webkit-transition: .3s ease all;
+  transition: .3s ease all;
 }

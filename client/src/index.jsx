@@ -82,56 +82,48 @@ const appRoutes = [
   // Founder app
   {
     path: '/founder',
-    sidenav: FounderSidenav,
     main: FounderCompanyPage,
     container: FounderAppContainer,
     exact: true
   },
   {
     path: '/founder/company',
-    sidenav: FounderSidenav,
     main: FounderCompanyPage,
     container: FounderAppContainer,
     exact: true
   },
   {
     path: '/founder/apply',
-    sidenav: FounderSidenav,
     main: FounderApplyPage,
     container: FounderAppContainer,
     exact: true
   },
   {
     path: '/founder/fundraising',
-    sidenav: FounderSidenav,
     main: FounderFundraisingPage,
     container: FounderAppContainer,
     exact: true
   },
   {
     path: '/founder/contacts',
-    sidenav: FounderSidenav,
     main: ContactsPage,
     container: FounderAppContainer,
     exact: true
   },
   {
     path: '/founder/contacts/:contactId',
-    sidenav: FounderSidenav,
     main: ContactProfilePage,
     container: FounderAppContainer,
     exact: true
   },
   {
     path: '/founder/rooms',
-    sidenav: FounderSidenav,
     main: RoomsApp,
     container: FounderAppContainer,
     exact: true
   },
   {
     path: '/founder/profile',
-    sidenav: FounderSidenav,
     main: UserProfilePage,
     container: FounderAppContainer,
     exact: true
@@ -139,77 +131,66 @@ const appRoutes = [
   // Investor app
   {
     path: '/investor',
-    sidenav: InvestorSidenav,
     main: InvestorDealsPage,
     container: InvestorAppContainer,
     exact: true
   },
   {
     path: '/investor/tables',
-    sidenav: InvestorSidenav,
     main: UserTablesPage,
     container: InvestorAppContainer,
     exact: true
   },
   {
     path: '/investor/deals',
-    sidenav: InvestorSidenav,
     main: InvestorDealsPage,
     container: InvestorAppContainer,
     exact: true
   },
   {
     path: '/investor/landscape',
-    sidenav: InvestorSidenav,
     main: InvestorLandscapePage,
     container: InvestorAppContainer,
     exact: true
   },
   {
     path: '/investor/compare',
-    sidenav: InvestorSidenav,
     main: InvestorComparePage,
     container: InvestorAppContainer,
     exact: true
   },
   {
     path: '/investor/portfolio',
-    sidenav: InvestorSidenav,
     main: InvestorPorfolioPage,
     container: InvestorAppContainer,
     exact: true
   },
   {
     path: '/investor/portfolio/:companyId',
-    sidenav: InvestorSidenav,
     main: InvestorCompanyPage,
     container: InvestorAppContainer,
     exact: true
   },
   {
     path: '/investor/contacts',
-    sidenav: InvestorSidenav,
     main: ContactsPage,
     container: InvestorAppContainer,
     exact: true
   },
   {
     path: '/investor/contacts/:contactId',
-    sidenav: InvestorSidenav,
     main: ContactProfilePage,
     container: InvestorAppContainer,
     exact: true
   },
   {
     path: '/investor/rooms',
-    sidenav: InvestorSidenav,
     main: RoomsApp,
     container: InvestorAppContainer,
     exact: true
   },
   {
     path: '/investor/profile',
-    sidenav: InvestorSidenav,
     main: UserProfilePage,
     container: InvestorAppContainer,
     exact: true
@@ -224,16 +205,12 @@ const wrapRouteMainComponent = (Component, Container) => {
 };
 
 const App = (props) => {
-  const sidenavRoutes = appRoutes.map((route, index) => {
-    if (route.sidenav) {
-      return (
-        <Route key={index}
-               path={route.path}
-               component={route.sidenav}
-               exact={route.exact} />
-      );
-    }
-  }).filter(route => typeof route !== 'undefined');
+  // Took these out of appRoutes so they don't re-render on route change
+  // TODO: Do the same with topnav routes
+  const sidenavRoutes = [
+    <Route path='/investor' component={InvestorSidenav} exact={false} />,
+    <Route path='/founder' component={FounderSidenav} exact={false} />,
+  ];
   const topnavRoutes = appRoutes.map((route, index) => {
     if (route.topnav) {
       return (

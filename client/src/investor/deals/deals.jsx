@@ -37,7 +37,7 @@ class InvestorDealsPage extends React.Component {
     return (
       <div className="ovc-subnav-view-container">
         <DealTableSection filterData={this.filterTableData} />
-        <Subnav>
+        <Subnav title="Filters">
           <SubnavFilters filterList={filterList}
                          onUpdate={this.updateFilterTags} />
         </Subnav>

@@ -172,7 +172,7 @@
 
     .filter-tag {
       width: auto;
-      height: 30px;
+      min-height: 30px;
       border: 1px solid $OVC_LIGHT_GRAY;
       border-radius: 5px;
       padding-right: 10px;
@@ -184,9 +184,11 @@
 
       @include hvr-color($OVC_GRAY);
 
-      .filter-close {
-        width: 30px;
-        height: 30px;
+      display: flex;
+      > .filter-close {
+        flex: 0 0 30px;
+        height: 100%;
+
         margin-right: 5px;
         border-right: 1px solid $OVC_LIGHT_GRAY;
 
@@ -198,8 +200,14 @@
           font-size: 20px;
         }
       }
-      .light {
-        color: $OVC_GRAY;
+      > .filter-content {
+        flex: 1 1;
+        height: 100%;
+        width: 100%;
+
+        .filter-tag-key {
+          color: $OVC_GRAY;
+        }
       }
     }
   }

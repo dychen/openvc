@@ -206,3 +206,30 @@
   animation: slide-out-right $duration 1;
 }
 
+@mixin animate-fade-in($duration, $opacity) {
+  @keyframes fade-in {
+    from {
+      background: rgba(0,0,0,0);
+      visibility: visible;
+    }
+    to {
+      background: rgba(0,0,0,$opacity);
+    }
+  }
+  animation: fade-in $duration 1;
+}
+
+
+@mixin animate-fade-out($duration, $opacity) {
+  @keyframes fade-out {
+    from {
+      background: rgba(0,0,0,$opacity);
+    }
+    to {
+      background: rgba(0,0,0,0);
+      visibility: hidden;
+    }
+  }
+  animation: fade-out $duration 1;
+}
+

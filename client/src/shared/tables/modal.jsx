@@ -460,7 +460,8 @@ class TableModal extends React.Component {
   addTableField(e) {
     const field = {
       displayName: '',
-      type: 'string'
+      type: 'string',
+      sources: []
     };
     const newState = Immutable.fromJS(this.state)
       .update('tableFields', tableFields => tableFields.push(field));
@@ -580,7 +581,7 @@ class TableModal extends React.Component {
     const modalShowClass = (
       this.props.visible
       ? 'ovc-modal-background show'
-      : 'ovc-modal-background'
+      : 'ovc-modal-background hide'
     );
 
     return (

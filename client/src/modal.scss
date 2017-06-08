@@ -20,13 +20,16 @@
   margin: 5% auto;
   color: $OVC_DARK_GRAY;
 
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0px 0px 10px 0px;
+
   background-color: $OVC_WHITE;
-  border: 1px solid $OVC_GRAY;
 
   > .ovc-modal-header {
     flex: 0 0 60px;
     width: 100%;
-    border-bottom: 1px solid $OVC_LIGHT_GRAY;
+    //border-bottom: 1px solid $OVC_LIGHT_GRAY;
   }
 
   .ovc-modal-body {
@@ -44,7 +47,8 @@
 .ovc-modal > .ovc-modal-header {
   font-size: 1.5em;
   font-weight: 900;
-  background-color: $OVC_SUBNAV_GRAY;
+  background-color: $OVC_THEME_BLUE;
+  color: $OVC_WHITE;
 
   display: flex;
   justify-content: center;
@@ -65,11 +69,12 @@
     width: 170px;
     height: 40px;
     padding: 10px;
-    border: 1px solid $OVC_DARK_GRAY;
+    //border: 1px solid $OVC_THEME_DARK_GREEN;
     border-radius: 5px;
-    background-color: $OVC_WHITE;
+    background-color: $OVC_THEME_GREEN;
+    color: $OVC_WHITE;
 
-    @include hvr-fade($OVC_LIGHT_GRAY, $OVC_DARK_GRAY);
+    @include hvr-fade($OVC_WHITE, $OVC_THEME_LIGHT_GREEN);
 
     //position: absolute;
     display: flex;
@@ -85,5 +90,24 @@
 
 .ovc-modal-background.show {
   display: block;
+}
+
+.ovc-modal-background {
+  &.show {
+    @include animate-fade-in(1s, 0.4);
+    .ovc-modal {
+      @include animate-slide-in-down(500ms);
+    }
+  }
+}
+
+// TODO: This is not working due to animations not triggering on display:none
+.ovc-modal-background {
+  &.hide {
+    @include animate-fade-out(1s, 0.4);
+    .ovc-modal {
+      @include animate-slide-out-up(500ms);
+    }
+  }
 }
 

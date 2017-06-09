@@ -1426,7 +1426,9 @@ class DataSource(models.Model):
         data_source_options = (self.data_source_options.distinct('model')
                                                        .order_by('model'))
         return {
+            'id': self.id,
             'key': self.name,
+            'name': self.name,
             'display': self.display,
             'icon': self.icon,
             'models': [
@@ -1438,7 +1440,7 @@ class DataSource(models.Model):
     @classmethod
     def get_api_list_format(cls):
         return [source.get_api_format()
-                for source in cls.objects.exclude(name='self')]
+                for source in cls.objects.all()]
 
     @classmethod
     def get_api_format_by_source(cls, source_name):
@@ -1465,7 +1467,11 @@ class DataSource(models.Model):
             except KeyError:
                 return None
 
-        cls.objects.update_or_create(name='self')
+        cls.objects.update_or_create(name='self',
+                                     defaults={
+                                         'display': 'Default',
+                                         'icon': 'ion-person'
+                                     })
         for source in cls.SOURCE_MAPPING:
             data_source, _ = cls.objects.update_or_create(
                 name=source['key'],
@@ -1725,18 +1731,34 @@ class CustomRecord(models.Model):
     def __unicode__(self):
         return u'%s %s' % (unicode(self.table), self.id)
 
-    def get_api_format(self, source=None):
+
+    def get_api_format(self, source=None, fields=None):
+        """
+        Optionally pass in @fields for fewer database hits. Saves ~1.5s on a
+        500 record x 5 field query (densely populated) (from ~5.0s to ~3.5s).
+
+        Format:
+        {
+            'id': 12345
+            'Field_1': val1,
+            'Field_2': val2,
+            ...
+            'Field_N': valN,
+        }
+        """
         # TODO: Optimize
+        fields = fields if fields else self.table.custom_fields.all()
         source = DataSource.get_source(source)
         record = { 'id': self.id }
-        for custom_field in self.table.custom_fields.all():
-            try:
-                record[custom_field.api_name] = CustomData.objects.get(
-                    account=self.account, record=self,
-                    field__field=custom_field, field__source=source
-                ).value
-            except CustomData.DoesNotExist:
-                record[custom_field.api_name] = None
+
+        custom_data = CustomData.objects.filter(
+            account=self.account, record=self, field__source=source,
+            field__field__in=fields
+        ).values_list('field__field__api_name', 'value')
+        record.update({ field_name: value for field_name, value in custom_data })
+        record.update({ field.api_name: None for field in fields
+                        if field.api_name not in record })
+
         return record
 
     @classmethod

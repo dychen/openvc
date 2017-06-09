@@ -12,6 +12,7 @@ import TableModal from './modal.jsx';
  *   fields [Array]: List of CustomField objects:
  *     [{ displayName: [string], apiName: [string], type: [string],
  *        required: [boolean] }, ...]
+ *   source [Object]: Current source object, e.g. { key: 'crunchbase', ... }
  *   onHeaderClick [function]: Function that runs when a header cell is clicked.
  *     f([Event object]) => CustomField object { displayName: [string], ... }
  */
@@ -32,6 +33,7 @@ const TableSection = (props) => {
       <EditTable API_URL={apiUrl}
                  FIELDS={fields}
                  FIELD_MAP={fieldMap}
+                 source={props.source}
                  onHeaderClick={props.onHeaderClick}
                  {...props} />
     </div>
@@ -46,8 +48,13 @@ class UserTablesPage extends React.Component {
       table: {},
       tableFields: [],
       tables: [],
+
       SOURCES: [],
+      EXT_SOURCES: [], // Same as SOURCES but without the default source
+      source: {},
+
       filterTags: [],
+
       createModalVisible: false,
       updateModalVisible: false
     };
@@ -58,6 +65,7 @@ class UserTablesPage extends React.Component {
     this.hideCreateModal = this.hideCreateModal.bind(this);
     this.hideUpdateModal = this.hideUpdateModal.bind(this);
     this.changeTable = this.changeTable.bind(this);
+    this.changeSource = this.changeSource.bind(this);
 
     this.updateFilterTags = this.updateFilterTags.bind(this);
     this.filterTableData = this.filterTableData.bind(this);
@@ -68,7 +76,12 @@ class UserTablesPage extends React.Component {
   loadTables(table) {
     const getSources = () => {
       getSourceList().then((sources) => {
-        this.setState({ SOURCES: sources });
+        const defaultSourceIdx = sources.findIndex(source => source.key === 'self');
+        this.setState({
+          SOURCES: sources,
+          EXT_SOURCES: sources.filter(source => source.key !== 'self'),
+          source: sources[defaultSourceIdx]
+        });
       });
     };
     const getFields = (tableId) => {
@@ -133,6 +146,14 @@ class UserTablesPage extends React.Component {
     });
   }
 
+  changeSource(sourceKey) {
+    const sourceIdx = this.state.SOURCES.findIndex(source =>
+      source.key === sourceKey
+    );
+    const activeSource = this.state.SOURCES[sourceIdx];
+    this.setState({ source: activeSource });
+  }
+
   updateFilterTags(filterTags) {
     this.setState({ filterTags: filterTags });
   }
@@ -146,12 +167,20 @@ class UserTablesPage extends React.Component {
   }
 
   render() {
-    const selectedItem = {
+    const selectedTable = {
       key: this.state.table.id,
       display: this.state.table.displayName
     };
-    const menuItems = this.state.tables.map((table) => {
+    const tableItems = this.state.tables.map((table) => {
       return { key: table.id, display: table.displayName };
+    });
+
+    const selectedSource = {
+      key: this.state.source.key,
+      display: this.state.source.display
+    }
+    const sourceItems = this.state.SOURCES.map((source) => {
+      return { key: source.key, display: source.display };
     });
 
     const filterList = this.state.tableFields.map((tableField) => {
@@ -167,6 +196,7 @@ class UserTablesPage extends React.Component {
         <TableSection tableId={this.state.table.id}
                       fields={this.state.tableFields}
                       filterData={this.filterTableData}
+                      source={this.state.source.key}
                       onHeaderClick={this.showUpdateModal} />
       );
     }
@@ -180,22 +210,26 @@ class UserTablesPage extends React.Component {
                         text="New Table"
                         onClick={this.showCreateModal} />
           <SubnavDropdown title="Select a Table"
-                          selectedItem={selectedItem}
-                          menuItems={menuItems}
+                          selectedItem={selectedTable}
+                          menuItems={tableItems}
                           onSelect={this.changeTable} />
+          <SubnavDropdown title="View by Source"
+                          selectedItem={selectedSource}
+                          menuItems={sourceItems}
+                          onSelect={this.changeSource} />
           <SubnavFilters filterList={filterList}
                          onUpdate={this.updateFilterTags} />
         </Subnav>
 
         <TableModal table={{}}
                     tableFields={[]}
-                    SOURCES={this.state.SOURCES}
+                    SOURCES={this.state.EXT_SOURCES}
                     visible={this.state.createModalVisible}
                     hideModal={this.hideCreateModal}
                     onSave={this.loadTables} />
         <TableModal table={this.state.table}
                     tableFields={this.state.tableFields}
-                    SOURCES={this.state.SOURCES}
+                    SOURCES={this.state.EXT_SOURCES}
                     visible={this.state.updateModalVisible}
                     hideModal={this.hideUpdateModal}
                     onSave={this.loadTables}

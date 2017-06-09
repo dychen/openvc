@@ -30,8 +30,10 @@ import './edittable.scss';
  *       field: [string] // Field name in API data, e.g. 'firstName', 'sector'
  *     }
  *   }
- *
  *   Field type is one of: 'string', 'number', 'money', 'date', 'image', 'text'
+ *
+ *   source [string]: (Optional) Source key of the data (e.g. 'crunchbase' or
+ *                    'self')
  *
  *   filterData [function]: (Optional) Function that filters the table dataset.
  *     f([Array]) => [Array]
@@ -56,7 +58,7 @@ class EditTable extends React.Component {
        * }
        */
       data: [],
-      sourceData: {}
+      sources: {}
     };
 
     // Update existing row handlers
@@ -85,6 +87,14 @@ class EditTable extends React.Component {
       // Reload the table every time the API endpoint changes
       this.getEntityList();
     }
+    if (this.props.source && this.props.source !== prevProps.source) {
+      console.log('[DEBUG] Updating table source', this.props.source,
+                  this.state.sources[this.props.source]);
+      // Change data source
+      this.setState({
+        data: this.state.sources[this.props.source] || []
+      });
+    }
   }
 
   /*
@@ -95,37 +105,22 @@ class EditTable extends React.Component {
    * Args:
    *   field [string], value [string]: Field name and value
    *   entityId [string]: Id of the object to be updated
-   *   source [string]: (Optional) The source of the data (e.g. 'crunchbase')
-   *                    if using the alternate data format
    */
-  handleUpdateEntity(field, value, entityId, source) {
+  handleUpdateEntity(field, value, entityId) {
     // Optimistic update
     const entityIdx = this.state.data.findIndex(entity =>
       entity.id === entityId
     );
 
-    if (source) {
-      const newState = Immutable.fromJS(this.state)
-        .setIn(['data', entityIdx, '_sources', source, field], value);
+    const newState = Immutable.fromJS(this.state)
+      .setIn(['data', entityIdx, field], value);
 
-      // Write to the backend in callback
-      this.setState(newState.toJS(), () => {
-        let body = { _source: source };
-        body[field] = value;
-        this.updateEntity(entityId, body);
-      });
-    }
-    else {
-      const newState = Immutable.fromJS(this.state)
-        .setIn(['data', entityIdx, field], value);
-
-      // Write to the backend in callback
-      this.setState(newState.toJS(), () => {
-        let body = {};
-        body[field] = value;
-        this.updateEntity(entityId, body);
-      });
-    }
+    // Write to the backend in callback
+    this.setState(newState.toJS(), () => {
+      let body = {};
+      body[field] = value;
+      this.updateEntity(entityId, body);
+    });
   }
 
   /*
@@ -133,37 +128,22 @@ class EditTable extends React.Component {
    *   modelKey [string]: modelKey in the API response (e.g. 'company', 'owner')
    *   obj [Object]: Updated model object
    *   entityId [string]: Row id
-   *   source [string]: (Optional) The source of the data (e.g. 'crunchbase')
-   *                    if using the alternate data format
    */
-  handleUpdateModalEntity(modelKey, obj, entityId, source) {
+  handleUpdateModalEntity(modelKey, obj, entityId) {
     // Optimistic update, update all matching entities
     const entityIdx = this.state.data.findIndex(entity =>
       entity.id === entityId
     );
 
-    if (source) {
-      const newState = Immutable.fromJS(this.state)
-        .setIn(['data', entityIdx, '_sources', source, modelKey], obj);
-      const newRelatedState = newState.update('data', rows => {
-          return rows.map(row =>
-            ((row.getIn([modelKey, 'id']) === obj.id)
-             ? row.setIn(['_sources', source, modelKey], obj) : row)
-          );
-        });
-      this.setState(newRelatedState.toJS());
-    }
-    else {
-      const newState = Immutable.fromJS(this.state)
-        .setIn(['data', entityIdx, modelKey], obj);
-      const newRelatedState = newState.update('data', rows => {
-          return rows.map(row =>
-            ((row.getIn([modelKey, 'id']) === obj.id)
-             ? row.set(modelKey, obj) : row)
-          );
-        });
-      this.setState(newRelatedState.toJS());
-    }
+    const newState = Immutable.fromJS(this.state)
+      .setIn(['data', entityIdx, modelKey], obj);
+    const newRelatedState = newState.update('data', rows => {
+        return rows.map(row =>
+          ((row.getIn([modelKey, 'id']) === obj.id)
+           ? row.set(modelKey, obj) : row)
+        );
+      });
+    this.setState(newRelatedState.toJS());
   }
 
   handleDeleteEntity(e) {
@@ -175,6 +155,7 @@ class EditTable extends React.Component {
    */
 
   getEntityList() {
+    console.log('[DEBUG] Loading table data');
     authFetch(this.props.API_URL)
       .then(handleResponse)
       .then(json => {
@@ -193,19 +174,26 @@ class EditTable extends React.Component {
   }
 
   createEntity(entity) {
+    if (this.props.source)
+      entity._source = this.props.source;
     authFetch(this.props.API_URL, {
       method: 'POST',
       body: JSON.stringify(entity)
     })
     .then(handleResponse)
     .then(json => {
-      const newState = Immutable.fromJS(this.state)
+      let newState = Immutable.fromJS(this.state)
         .update('data', data => data.push(json));
+      if (this.props.source)
+        newState = newState.updateIn(['sources', this.props.source],
+                                     data => data.push(json));
       this.setState(newState.toJS());
     });
   }
 
   updateEntity(entityId, entity) {
+    if (this.props.source)
+      entity._source = this.props.source;
     authFetch(`${this.props.API_URL}/${entityId}`, {
       method: 'POST',
       body: JSON.stringify(entity)
@@ -215,13 +203,22 @@ class EditTable extends React.Component {
       const entityIdx = this.state.data.findIndex(entity =>
         entity.id === json.id
       );
-      const newState = Immutable.fromJS(this.state)
+      let newState = Immutable.fromJS(this.state)
         .setIn(['data', entityIdx], json);
+      if (this.props.source) {
+        const sourceEntityIdx = this.state.sources[this.props.source]
+          .findIndex(entity => entity.id === json.id);
+        newState = newState
+          .setIn(['sources', this.props.source, sourceEntityIdx], json);
+      }
       this.setState(newState.toJS());
     });
   }
 
   deleteEntity(entityId) {
+    // TODO: Delete by source
+    // if (this.props.source)
+    //   entity._source = this.props.source;
     authFetch(`${this.props.API_URL}/${entityId}`, {
       method: 'DELETE'
     })

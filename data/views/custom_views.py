@@ -236,15 +236,26 @@ class CustomRecordView(APIView):
             custom_table = CustomTable.objects.get(account=account, id=table_id)
             custom_records = CustomRecord.objects.filter(account=account,
                                                          table=custom_table)
-            return Response([
-                custom_record.get_api_format(source='crunchbase')
-                for custom_record in custom_records
-            ], status=status.HTTP_200_OK)
+            fields = custom_table.custom_fields.all()
+
+            # Pulling results out of the return Response line makes it easier
+            # to profile for performance.
+            results = {
+                '_sources': {
+                    source: [
+                        custom_record.get_api_format(source=source,
+                                                     fields=fields)
+                        for custom_record in custom_records
+                    ] for source in ['self', 'crunchbase']
+                }
+            }
+            return Response(results, status=status.HTTP_200_OK)
 
         except (Account.DoesNotExist, CustomTable.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
+    # UNUSED?
     # GET /tables/:table_id/records/:record_id
     def __get_one(self, request, table_id, record_id, format=None):
         try:
@@ -275,10 +286,13 @@ class CustomRecordView(APIView):
             account = user.account
             request_json = validate_request(json.loads(request.body),
                                             CustomRecord.REQUIRED_FIELDS)
+            source = (request_json['_source'] if '_source' in request_json
+                      else None)
+
             custom_table = CustomTable.objects.get(account=account, id=table_id)
             custom_record = CustomRecord.create_from_api(user, custom_table,
-                                                         request_json)
-            return Response(custom_record.get_api_format(),
+                                                         request_json, source)
+            return Response(custom_record.get_api_format(source),
                             status=status.HTTP_201_CREATED)
 
         except (TypeError, ValueError) as e:
@@ -294,13 +308,16 @@ class CustomRecordView(APIView):
             user = check_authentication(request)
             account = user.account
             request_json = json.loads(request.body)
+            source = (request_json['_source'] if '_source' in request_json
+                      else None)
+
             custom_table = CustomTable.objects.get(account=account, id=table_id)
             custom_record = CustomRecord.objects.get(account=account,
                                                      id=record_id,
                                                      table=custom_table)
             custom_record = custom_record.update_from_api(user, custom_table,
-                                                          request_json)
-            return Response(custom_record.get_api_format(),
+                                                          request_json, source)
+            return Response(custom_record.get_api_format(source),
                             status=status.HTTP_200_OK)
 
         except (TypeError, ValueError) as e:
@@ -328,6 +345,7 @@ class CustomRecordView(APIView):
 
             custom_table = CustomTable.objects.get(account=account, id=table_id,
                                                    owner=user)
+            # TODO: Delete by source
             CustomRecord.objects.get(account=account, id=record_id, owner=user,
                                      table=custom_table).delete()
             return Response({ 'id': record_id }, status=status.HTTP_200_OK)

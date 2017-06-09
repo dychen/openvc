@@ -4,6 +4,62 @@ import Immutable from 'immutable';
 import {EditField} from '../editfield.jsx';
 import {ModalField} from '../modalfield.jsx';
 
+const CellPopover = (props) => {
+  const sourceData = Object.keys(props.sourceData).map(source => (
+    <div key={source}>{source}: {props.sourceData[source]}</div>
+  ));
+  return (
+    <div className="ovc-cell-popover">
+      <div className="ovc-cell-popover-header">{props.field}</div>
+      <div className="ovc-cell-popover-body">{sourceData}</div>
+    </div>
+  );
+};
+
+class CellPopoverContainer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { visible: false };
+    this.showPopover = this.showPopover.bind(this);
+    this.hidePopover = this.hidePopover.bind(this);
+  }
+  showPopover(e) {
+    this.setState({ visible: true });
+  }
+  hidePopover(e) {
+    this.setState({ visible: false });
+  }
+  render() {
+    const popover = (
+      this.state.visible
+      ? <CellPopover field={this.props.field}
+                     data={this.props.data}
+                     sourceData={this.props.sourceData} />
+      : ''
+    );
+    return (
+      <div className="ovc-cell-popover-container"
+           onMouseEnter={this.showPopover}
+           onMouseLeave={this.hidePopover}>
+        {this.props.children}
+        {popover}
+      </div>
+    );
+  }
+}
+
+/*
+ * props:
+ *   API_URL, FIELDS, FIELD_MAP, MODEL_MAP: See documentation in EditTable
+ *                                          component.
+ *   row [Array]: List of objects to display: [{ field1: val1, ... }, ...]
+ *   sourceData [Object]: (Optional) Row/object mapping to values from
+ *                        different data sources.
+ *     { field1: { source1: val1, source2: val2, ... }, ... }
+ *
+ *   onUpdate, onModalUpdate, onDelete: See documentation in EditTable
+ *                                      component.
+ */
 const EditTableRow = (props) => {
   /*
    * Args:
@@ -44,6 +100,20 @@ const EditTableRow = (props) => {
     if (props.FIELD_MAP[field].model
         && props.MODEL_MAP[props.FIELD_MAP[field].model]) {
       return generateModalFieldCell(field, props.row, uniqueKey);
+    }
+    else if (props.sourceData) {
+      return (
+        <td key={uniqueKey}>
+          <CellPopoverContainer field={field}
+                                data={props.row[field]}
+                                sourceData={props.sourceData[field]}>
+            <EditField field={field} id={props.row.id}
+                       fieldType={props.FIELD_MAP[field].type}
+                       originalValue={props.row[field]}
+                       onSave={props.onUpdate} />
+          </CellPopoverContainer>
+        </td>
+      );
     }
     else {
       return (
@@ -95,6 +165,20 @@ const EditTableAddRow = (props) => {
   );
 };
 
+/*
+ * props:
+ *   API_URL, FIELDS, FIELD_MAP, MODEL_MAP: See documentation in EditTable
+ *                                          component.
+ *   data [Array]: List of objects to display: [{ field1: val1, ... }, ...]
+ *   dataSourceMap [Object]: (Optional) Row/object mapping to values from
+ *                           different data sources.
+ *     { objId: { field1: { source1: val1, source2: val2, ... }, ... }, }
+ *
+ *   onCreate, onUpdate, onModalUpdate, onDelete: See documentation in
+ *                                                EditTable component.
+ *   filterData [function]: (Optional) Function that filters the table dataset.
+ *     f([Array]) => [Array]
+ */
 class EditTableBody extends React.Component {
   constructor(props) {
     super(props);
@@ -166,17 +250,22 @@ class EditTableBody extends React.Component {
     const filteredData = (this.props.filterData
                           ? this.props.filterData(this.props.data)
                           : this.props.data);
-    const rows = filteredData.map(row =>
-      <EditTableRow key={row.id}
-                    FIELDS={this.props.FIELDS}
-                    FIELD_MAP={this.props.FIELD_MAP}
-                    MODEL_MAP={this.props.MODEL_MAP}
-                    API_URL={this.props.API_URL}
-                    row={row}
-                    onUpdate={this.props.onUpdate}
-                    onModalUpdate={this.props.onModalUpdate}
-                    onDelete={this.props.onDelete} />
-    );
+    const rows = filteredData.map(row => {
+      const sourceData = (this.props.dataSourceMap
+                          ? this.props.dataSourceMap[row.id] : undefined);
+      return (
+        <EditTableRow key={row.id}
+                      FIELDS={this.props.FIELDS}
+                      FIELD_MAP={this.props.FIELD_MAP}
+                      MODEL_MAP={this.props.MODEL_MAP}
+                      API_URL={this.props.API_URL}
+                      row={row}
+                      sourceData={sourceData}
+                      onUpdate={this.props.onUpdate}
+                      onModalUpdate={this.props.onModalUpdate}
+                      onDelete={this.props.onDelete} />
+      );
+    });
 
     const newRow = (
       this.state.addingRow

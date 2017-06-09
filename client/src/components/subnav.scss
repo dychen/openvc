@@ -78,6 +78,7 @@
 
   /* Component: Minimize */
   .ovc-component-subnav-minimize {
+    flex-shrink: 0;
     position: relative;
     margin-top: 5px;
     width: 100%;
@@ -93,6 +94,7 @@
 
   /* Component: SubnavButton */
   .ovc-component-subnav-button-container {
+    flex-shrink: 0;
     width: 100%;
     padding: 20px;
     padding-top: 10px;
@@ -125,6 +127,7 @@
 
   /* TODO: Component: SubnavTabs */
   .ovc-component-subnav-tabs {
+    flex-shrink: 0;
     display: flex;
     .ovc-subnav-tab {
       width: 100%;
@@ -140,6 +143,7 @@
 
   /* Component: SubnavDropdown */
   .ovc-component-subnav-dropdown {
+    flex-shrink: 0;
     padding: 20px;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -156,6 +160,7 @@
 
   /* Component: SubnavFilters */
   .ovc-component-subnav-filter-inputs {
+    flex-shrink: 0;
     padding: 20px;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -166,6 +171,7 @@
   }
   /* Component: SubnavFilters */
   .ovc-component-subnav-filter-tags {
+    flex-shrink: 0;
     padding: 20px;
     padding-top: 10px;
     padding-bottom: 10px;

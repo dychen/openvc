@@ -8,6 +8,35 @@ import {EditTableBody} from './body.jsx';
 import './edittable.scss';
 
 /*
+ * sourceData: {
+ *   source1: [{ field1: val1, field2: val2, ... }, ...],
+ *   source2: [{ field1: val1, field2: val2, ... }, ...],
+ *   ...
+ * }
+ */
+const _createDataSourceMap = (sourceData) => {
+  let sourceMap = {};
+  for (let source in sourceData) {
+    if (sourceData.hasOwnProperty(source)) {
+      sourceData[source].forEach(row => {
+        if (!sourceMap.hasOwnProperty(row.id))
+          sourceMap[row.id] = {};
+        for (let field in row) {
+          if (sourceMap[row.id].hasOwnProperty(field)) {
+            sourceMap[row.id][field][source] = row[field];
+          }
+          else {
+            sourceMap[row.id][field] = {};
+            sourceMap[row.id][field][source] = row[field];
+          }
+        }
+      });
+    }
+  }
+  return sourceMap;
+}
+
+/*
  * props:
  *   API_URL [string]: Backend API endpoint to hit.
  *   FIELDS [Array]: List of API fields to show as table columns.
@@ -56,9 +85,18 @@ class EditTable extends React.Component {
        *   source2: [{ field1: val1, field2: val2, ... }, ...],
        *   ...
        * }
+       * dataSourceMap: {
+       *   objId: {
+       *     field1: { source1: val1, source2: val2, ... },
+       *     field2: { source2: val1, source2: val2, ... },
+       *     ...
+       *   },
+       *   ...
+       * }
        */
       data: [],
-      sources: {}
+      sources: {},
+      dataSourceMap: {}
     };
 
     // Update existing row handlers
@@ -164,7 +202,8 @@ class EditTable extends React.Component {
         if (json.hasOwnProperty('_sources')) {
           this.setState({
             data: json._sources.self,
-            sources: json._sources
+            sources: json._sources,
+            dataSourceMap: _createDataSourceMap(json._sources)
           });
         }
         else {
@@ -280,6 +319,7 @@ class EditTable extends React.Component {
                        FIELD_MAP={this.props.FIELD_MAP}
                        MODEL_MAP={this.props.MODEL_MAP}
                        data={this.state.data}
+                       dataSourceMap={this.state.dataSourceMap}
                        onCreate={this.createEntity}
                        onUpdate={this.handleUpdateEntity}
                        onModalUpdate={this.handleUpdateModalEntity}

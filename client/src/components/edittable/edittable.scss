@@ -1,6 +1,9 @@
 @import '../../mixins';
 @import '../../constants.scss';
 
+$COLUMN_WIDTH: 140px;
+$ROW_HEIGHT: 40px;
+
 .ovc-edit-table-container {
   width: 100%;
   height: 100%;
@@ -17,7 +20,7 @@ table.ovc-edit-table {
     background-color: $OVC_SUBNAV_GRAY;
     cursor: default;
     td {
-      width: 140px;
+      width: $COLUMN_WIDTH;
       text-align: left;
       padding: 10px;
       position: relative;
@@ -58,66 +61,48 @@ table.ovc-edit-table {
       @include hvr-fade-table($OVC_DARK_GRAY, $OVC_SUBNAV_GRAY);
 
       td {
-        width: 100px;
-        height: 40px;
+        width: $COLUMN_WIDTH;
+        height: $ROW_HEIGHT;
         text-align: left;
 
         // Specify child element specifity in nesting so it doesn't cascade to
         // the component modals. Should be refactored if/when the modals are
         // moved to a separate component below the root element.
-        > .ovc-edit-field {
+        > .ovc-edit-field,
+        .ovc-cell-popover-container > .ovc-edit-field,
+        span.ovc-modal-field > .ovc-edit-field {
           padding: 0px 10px 0px 10px;
           width: 100%;
-          height: 40px;
+          height: $ROW_HEIGHT;
           overflow: hidden;
 
           display: flex;
           align-items: center;
         }
-        > input.ovc-edit-field {
+        > input.ovc-edit-field,
+        .ovc-cell-popover-container > input.ovc-edit-field,
+        span.ovc-modal-field > input.ovc-edit-field {
           padding-top: 0px;
           padding-bottom: 0px;
           border-radius: 0px;
           border: none;
         }
-        > textarea.ovc-edit-field {
+        > textarea.ovc-edit-field,
+        .ovc-cell-popover-container > textarea.ovc-edit-field,
+        span.ovc-modal-field > textarea.ovc-edit-field {
+          width: 100%;
           padding: 5px;
         }
-        > img.ovc-edit-field {
+        > img.ovc-edit-field,
+        .ovc-cell-popover-container > img.ovc-edit-field,
+        span.ovc-modal-field > img.ovc-edit-field {
           padding: 1px;
-          height: 40px;
-          width: 40px;
+          height: $ROW_HEIGHT;
+          width: $ROW_HEIGHT;
           border-radius: 20px;
           display: block;
           margin-left: auto;
           margin-right: auto;
-        }
-        span.ovc-modal-field {
-          > .ovc-edit-field {
-            padding: 0px 10px 0px 10px;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-          }
-          > input.ovc-edit-field {
-            padding-top: 0px;
-            padding-bottom: 0px;
-            border-radius: 0px;
-            border: none;
-          }
-          > textarea.ovc-edit-field {
-            padding: 5px;
-          }
-          > img.ovc-edit-field {
-            padding: 1px;
-            height: 40px;
-            width: 40px;
-            border-radius: 20px;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-          }
         }
       }
       td.add-entity {
@@ -136,5 +121,29 @@ table.ovc-edit-table {
 table.ovc-edit-table {
   th, td {
     border: 1px solid $OVC_LIGHT_GRAY;
+  }
+}
+
+/* Popover CSS */
+.ovc-cell-popover-container {
+  position: relative;
+  > .ovc-cell-popover {
+    position: absolute;
+    min-width: $COLUMN_WIDTH;
+    border: 1px solid $OVC_LIGHT_GRAY;
+    border-radius: 5px;
+    background: $OVC_SUBNAV_GRAY;
+    box-shadow: 0 0 10px 0 $OVC_GRAY;
+    z-index: 1;
+    > .ovc-cell-popover-header {
+      padding: 10px;
+      width: 100%;
+      background: $OVC_SUBNAV_GRAY;
+      border-bottom: 1px solid $OVC_LIGHT_GRAY;
+    }
+    > .ovc-cell-popover-body {
+      padding: 10px;
+      background: $OVC_WHITE;
+    }
   }
 }

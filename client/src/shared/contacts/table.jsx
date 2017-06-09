@@ -1,5 +1,5 @@
 import React from 'react';
-import EditTable from '../../components/edittable.jsx';
+import EditTable from '../../components/edittable/edittable.jsx';
 
 class ContactsTableSection extends React.Component {
   constructor(props) {

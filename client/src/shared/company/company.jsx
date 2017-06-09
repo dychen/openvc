@@ -6,7 +6,7 @@ import moment from 'moment';
 import LinkWrapper from '../../components/link.jsx';
 import {CreateTeamMemberModal,
         CreateBoardMemberModal} from '../../components/modals/person.jsx';
-import EditTable from '../../components/edittable.jsx';
+import EditTable from '../../components/edittable/edittable.jsx';
 
 import './company.scss';
 

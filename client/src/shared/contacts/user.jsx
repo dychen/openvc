@@ -4,7 +4,7 @@ import {getStartOfQuarter, getEndOfQuarter, getStartOfYear,
         getEndOfYear} from '../../utils/datetime.js';
 
 import LinkWrapper from '../../components/link.jsx';
-import EditTable from '../../components/edittable.jsx';
+import EditTable from '../../components/edittable/edittable.jsx';
 import {CreateContactModal} from '../../components/modals/person.jsx';
 
 import './user.scss';

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import {getTableList, getFieldList, getSourceList} from './api.js';
-import EditTable from '../../components/edittable.jsx';
+import EditTable from '../../components/edittable/edittable.jsx';
 import {filterData, Subnav, SubnavButton, SubnavDropdown,
         SubnavFilters} from '../../components/subnav.jsx';
 import TableModal from './modal.jsx';

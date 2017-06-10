@@ -8,11 +8,24 @@ $SIDENAV_MINI_WIDTH: 55px;
 .ovc-sidenav {
   height: 100%;
   flex: 0 0 $SIDENAV_WIDTH; // Don't grow or shrink, set to $SIDENAV_WIDTH
-  overflow-y: scroll;
+  overflow-y: hidden;
   z-index: 21;
   background: $OVC_SIDENAV_GRAY;
   font-size: 1.2em;
   box-shadow: 1px 1px 3px 0 $OVC_GRAY;
+
+  display: flex;
+  flex-direction: column;
+  .ovc-sidenav-top {
+    flex-shrink: 0;
+  }
+  .ovc-sidenav-mid {
+    height: 100%;
+    overflow-y: scroll;
+  }
+  .ovc-sidenav-bottom {
+    flex-shrink: 0;
+  }
 
   a {
     // Remove link formatting (underline and color)
@@ -20,7 +33,7 @@ $SIDENAV_MINI_WIDTH: 55px;
     color: inherit;
   }
   a.active {
-    div {
+    > div {
       color: $OVC_WHITE;
       background-color: $OVC_THEME_BLUE;
     }
@@ -58,8 +71,14 @@ $SIDENAV_MINI_WIDTH: 55px;
   }
 
   .ovc-sidenav-item.link {
-    height: $TOPNAV_HEIGHT - 5px;
+    // Old: Fixed height
+    //height: $TOPNAV_HEIGHT - 5px;
+    // New: Variable height with padding
+    padding-top: 10px;
+    padding-bottom: 10px;
     padding-left: 20px;
+    padding-right: 5px;
+
     justify-content: flex-start;
 
     @include hvr-color($OVC_GRAY);
@@ -70,21 +89,38 @@ $SIDENAV_MINI_WIDTH: 55px;
       margin-right: 10px;
       width: 20px;
     }
-    i.ovc-circle-alert {
-      height: 20px;
-      border-radius: 10px;
-      margin-left: 10px;
-      padding-top: 2px; // Not vertically centering well for some reason
-      font-style: normal;
-      font-size: 0.9em;
+  }
 
-      display: flex;
-      justify-content: center;
-      align-items: center;
+  .ovc-sidenav-item {
+    .ovc-sidenav-text {
+      .title {
+        font-size: 0.9em;
+      }
+      .subtext {
+        font-size: 0.8em;
+        font-weight: 100;
+        color: $OVC_GRAY;
+      }
+      .subtext.hover {
+        display: none;
+      }
     }
-    i.ovc-circle-alert.red {
-      background-color: red;
-      color: $OVC_WHITE;
+  }
+  .ovc-sidenav-item:hover {
+    .subtext.hover {
+      display: block
+    };
+  }
+
+  .ovc-sidenav-item.profile {
+    border-top: 1px solid $OVC_LIGHT_GRAY;
+    padding: 10px;
+    > img {
+      flex-shrink: 0;
+      height: 40px;
+      width: 40px;
+      border-radius: 20px;
+      margin-right: 10px;
     }
   }
 }

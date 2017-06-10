@@ -69,6 +69,7 @@ class ProfilePage extends React.Component {
         }
       })
       .then(json => {
+        console.log(json);
         this.setState({ profile: preprocessJSON(json) });
       })
       .catch(err => {

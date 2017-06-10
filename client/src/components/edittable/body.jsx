@@ -4,9 +4,51 @@ import Immutable from 'immutable';
 import {EditField} from '../editfield.jsx';
 import {ModalField} from '../modalfield.jsx';
 
+/*
+ * props:
+ *   sourceData [Array]: [
+ *     { sourceKey: [string], sourceDisplay: [string],
+ *       value: [string/Object/Number] }, ...
+ *   ]
+ *   source [string]: Source key of the currently selected source object (e.g.
+ *                    'crunchbase', 'self')
+ *   onPopoverClick [function]: (Optional) Function to execute when a popover
+ *                              element is clicked. Passes value to the parent
+ *                              function with the same name.
+ *     f([Event: e]) => null
+ */
 const CellPopover = (props) => {
-  const sourceData = Object.keys(props.sourceData).map(source => (
-    <div key={source}>{source}: {props.sourceData[source]}</div>
+  const updateData = (e) => {
+    if (props.onPopoverClick) {
+      const selectedIdx = props.sourceData.findIndex(d =>
+        d.sourceKey === e.currentTarget.id
+      );
+      if (selectedIdx > -1)
+        props.onPopoverClick(props.sourceData[selectedIdx].value);
+    }
+  };
+  const getSourceClassName = (sourceObj, sourceValue) => {
+    if (sourceObj.sourceKey === props.source)
+      return 'ovc-cell-popover-row selected';
+    else if (sourceObj.value === sourceValue)
+      return 'ovc-cell-popover-row valid';
+    else
+      return 'ovc-cell-popover-row invalid';
+  };
+
+  // Find the value of the currently selected source
+  const sourceValueIdx = props.sourceData.findIndex(d =>
+    d.sourceKey === props.source
+  );
+  const sourceValue = props.sourceData[sourceValueIdx].value;
+  const sourceData = props.sourceData.map(sourceObj => (
+    <div key={sourceObj.sourceKey}
+         className={getSourceClassName(sourceObj, sourceValue)}>
+      <span className="popover-source">{sourceObj.sourceDisplay}: &nbsp;</span>
+      <span className="popover-value"
+            id={sourceObj.sourceKey}
+            onClick={updateData}>{sourceObj.value}</span>
+    </div>
   ));
   return (
     <div className="ovc-cell-popover">
@@ -16,12 +58,26 @@ const CellPopover = (props) => {
   );
 };
 
+/*
+ * props:
+ *   sourceData [Array]: [
+ *     { sourceKey: [string], sourceDisplay: [string],
+ *       value: [string/Object/Number] }, ...
+ *   ]
+ *   source [string]: Source key of the currently selected source object (e.g.
+ *                    'crunchbase', 'self')
+ *   onPopoverClick [function]: (Optional) Function to execute when a popover
+ *                              element is clicked. Passes value to the parent
+ *                              function with the same name.
+ *     f([string: field], [???: value]) => null
+ */
 class CellPopoverContainer extends React.Component {
   constructor(props) {
     super(props);
     this.state = { visible: false };
     this.showPopover = this.showPopover.bind(this);
     this.hidePopover = this.hidePopover.bind(this);
+    this.onPopoverClick = this.onPopoverClick.bind(this);
   }
   showPopover(e) {
     this.setState({ visible: true });
@@ -29,12 +85,18 @@ class CellPopoverContainer extends React.Component {
   hidePopover(e) {
     this.setState({ visible: false });
   }
+  onPopoverClick(value) {
+    if (this.props.onPopoverClick)
+      this.props.onPopoverClick(this.props.field, value);
+  }
   render() {
     const popover = (
       this.state.visible
       ? <CellPopover field={this.props.field}
                      data={this.props.data}
-                     sourceData={this.props.sourceData} />
+                     sourceData={this.props.sourceData}
+                     source={this.props.source}
+                     onPopoverClick={this.onPopoverClick} />
       : ''
     );
     return (
@@ -53,14 +115,23 @@ class CellPopoverContainer extends React.Component {
  *   API_URL, FIELDS, FIELD_MAP, MODEL_MAP: See documentation in EditTable
  *                                          component.
  *   row [Array]: List of objects to display: [{ field1: val1, ... }, ...]
+ *
+ *   source [string]: (Optional) String of the currently selected source key
+ *                    (e.g. 'crunchbase', 'self')
  *   sourceData [Object]: (Optional) Row/object mapping to values from
  *                        different data sources.
- *     { field1: { source1: val1, source2: val2, ... }, ... }
+ *     { field1: [{ sourceKey: [string], sourceDisplay: [string],
+ *                  value: [string/Object/Number] }, ...], ... }
  *
  *   onUpdate, onModalUpdate, onDelete: See documentation in EditTable
  *                                      component.
  */
 const EditTableRow = (props) => {
+  const onPopoverClick = (field, value) => {
+    if (props.onUpdate)
+      props.onUpdate(field, value, props.row.id);
+  }
+
   /*
    * Args:
    *   field [string]: Field name (e.g. 'stage', 'date', 'name').
@@ -106,7 +177,9 @@ const EditTableRow = (props) => {
         <td key={uniqueKey}>
           <CellPopoverContainer field={field}
                                 data={props.row[field]}
-                                sourceData={props.sourceData[field]}>
+                                sourceData={props.sourceData[field]}
+                                source={props.source}
+                                onPopoverClick={onPopoverClick}>
             <EditField field={field} id={props.row.id}
                        fieldType={props.FIELD_MAP[field].type}
                        originalValue={props.row[field]}
@@ -170,9 +243,16 @@ const EditTableAddRow = (props) => {
  *   API_URL, FIELDS, FIELD_MAP, MODEL_MAP: See documentation in EditTable
  *                                          component.
  *   data [Array]: List of objects to display: [{ field1: val1, ... }, ...]
+ *
+ *   source [string]: (Optional) String of the currently selected source key
+ *                    (e.g. 'crunchbase', 'self')
  *   dataSourceMap [Object]: (Optional) Row/object mapping to values from
  *                           different data sources.
- *     { objId: { field1: { source1: val1, source2: val2, ... }, ... }, }
+ *     {
+ *       objId: { field1: [{ sourceKey: [string], sourceDisplay: [string],
+ *                           value: [string/Object/Number] }, ...], ... },
+ *       ...
+ *     }
  *
  *   onCreate, onUpdate, onModalUpdate, onDelete: See documentation in
  *                                                EditTable component.
@@ -260,6 +340,7 @@ class EditTableBody extends React.Component {
                       MODEL_MAP={this.props.MODEL_MAP}
                       API_URL={this.props.API_URL}
                       row={row}
+                      source={this.props.source}
                       sourceData={sourceData}
                       onUpdate={this.props.onUpdate}
                       onModalUpdate={this.props.onModalUpdate}

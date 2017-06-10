@@ -8,26 +8,41 @@ import {EditTableBody} from './body.jsx';
 import './edittable.scss';
 
 /*
- * sourceData: {
- *   source1: [{ field1: val1, field2: val2, ... }, ...],
- *   source2: [{ field1: val1, field2: val2, ... }, ...],
- *   ...
- * }
+ * Args:
+ *   sourceData: {
+ *     source1: {
+ *       key: [string],
+ *       display: [string],
+ *       icon: [string],
+ *       data: [{ field1: val1, field2: val2, ... }, ...]
+ *     },
+ *     ...
+ *   }
+ * Returns:
+ *   {
+ *     objId: { field1: [{ sourceKey: [string], sourceDisplay: [string],
+ *                         value: [string/Object/Number] }, ...], ... },
+ *     ...
+ *   }
  */
 const _createDataSourceMap = (sourceData) => {
   let sourceMap = {};
   for (let source in sourceData) {
     if (sourceData.hasOwnProperty(source)) {
-      sourceData[source].forEach(row => {
+      sourceData[source].data.forEach(row => {
         if (!sourceMap.hasOwnProperty(row.id))
           sourceMap[row.id] = {};
         for (let field in row) {
+          const mappedData = {
+            sourceKey: source,
+            sourceDisplay: sourceData[source].display,
+            value: row[field]
+          };
           if (sourceMap[row.id].hasOwnProperty(field)) {
-            sourceMap[row.id][field][source] = row[field];
+            sourceMap[row.id][field].push(mappedData);
           }
           else {
-            sourceMap[row.id][field] = {};
-            sourceMap[row.id][field][source] = row[field];
+            sourceMap[row.id][field] = [mappedData];
           }
         }
       });
@@ -80,15 +95,19 @@ class EditTable extends React.Component {
        *   { field1: val1, field2: val2, ... },
        *   ...
        * ]
-       * sourceData: {
-       *   source1: [{ field1: val1, field2: val2, ... }, ...],
-       *   source2: [{ field1: val1, field2: val2, ... }, ...],
+       * sources: (Optional) {
+       *   source1: {
+       *     key: [string],
+       *     display: [string],
+       *     icon: [string],
+       *     data: [{ field1: val1, field2: val2, ... }, ...]
+       *   },
        *   ...
        * }
-       * dataSourceMap: {
+       * dataSourceMap: (Optional) {
        *   objId: {
-       *     field1: { source1: val1, source2: val2, ... },
-       *     field2: { source2: val1, source2: val2, ... },
+       *     field1: [{ sourceKey: [string], sourceDisplay: [string],
+       *                value: [string/Object/Number] }, ...],
        *     ...
        *   },
        *   ...
@@ -125,12 +144,14 @@ class EditTable extends React.Component {
       // Reload the table every time the API endpoint changes
       this.getEntityList();
     }
-    if (this.props.source && this.props.source !== prevProps.source) {
+    if (this.props.source && this.props.source !== prevProps.source
+        && this.state.sources
+        && this.state.sources.hasOwnProperty(this.props.source)) {
       console.log('[DEBUG] Updating table source', this.props.source,
                   this.state.sources[this.props.source]);
       // Change data source
       this.setState({
-        data: this.state.sources[this.props.source] || []
+        data: this.state.sources[this.props.source].data || []
       });
     }
   }
@@ -201,7 +222,7 @@ class EditTable extends React.Component {
         console.log('Table data', json);
         if (json.hasOwnProperty('_sources')) {
           this.setState({
-            data: json._sources.self,
+            data: json._sources.self.data,
             sources: json._sources,
             dataSourceMap: _createDataSourceMap(json._sources)
           });
@@ -223,9 +244,11 @@ class EditTable extends React.Component {
     .then(json => {
       let newState = Immutable.fromJS(this.state)
         .update('data', data => data.push(json));
-      if (this.props.source)
-        newState = newState.updateIn(['sources', this.props.source],
+      if (this.props.source) {
+        newState = newState.updateIn(['sources', this.props.source, 'data'],
                                      data => data.push(json));
+        // TODO: Update dataSourceMap
+      }
       this.setState(newState.toJS());
     });
   }
@@ -245,10 +268,11 @@ class EditTable extends React.Component {
       let newState = Immutable.fromJS(this.state)
         .setIn(['data', entityIdx], json);
       if (this.props.source) {
-        const sourceEntityIdx = this.state.sources[this.props.source]
+        const sourceEntityIdx = this.state.sources[this.props.source].data
           .findIndex(entity => entity.id === json.id);
         newState = newState
-          .setIn(['sources', this.props.source, sourceEntityIdx], json);
+          .setIn(['sources', this.props.source, 'data', sourceEntityIdx], json);
+        // TODO: Update dataSourceMap
       }
       this.setState(newState.toJS());
     });
@@ -319,7 +343,10 @@ class EditTable extends React.Component {
                        FIELD_MAP={this.props.FIELD_MAP}
                        MODEL_MAP={this.props.MODEL_MAP}
                        data={this.state.data}
+
+                       source={this.props.source}
                        dataSourceMap={this.state.dataSourceMap}
+
                        onCreate={this.createEntity}
                        onUpdate={this.handleUpdateEntity}
                        onModalUpdate={this.handleUpdateModalEntity}

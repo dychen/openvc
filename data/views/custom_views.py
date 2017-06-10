@@ -230,6 +230,29 @@ class CustomRecordView(APIView):
 
     # GET /tables/:table_id/records
     def __get_list(self, request, table_id, format=None):
+        """
+        Format: {
+            '_sources': {
+                'self': {
+                    'key': 'self',
+                    'display': 'Default',
+                    'icon': '...',
+                    'data': [
+                        { id: 1, field1: ... }
+                    ]
+                },
+                'crunchbase': {
+                    'key': 'crunchbase',
+                    'display': 'Crunchbase',
+                    'icon': '...',
+                    'data': [
+                        { id: 1, field1: ... }
+                    ]
+                },
+                ...
+            }
+        }
+        """
         try:
             user = check_authentication(request)
             account = user.account
@@ -242,11 +265,16 @@ class CustomRecordView(APIView):
             # to profile for performance.
             results = {
                 '_sources': {
-                    source: [
-                        custom_record.get_api_format(source=source,
-                                                     fields=fields)
-                        for custom_record in custom_records
-                    ] for source in ['self', 'crunchbase']
+                    source.name: {
+                        'key': source.name,
+                        'display': source.display,
+                        'icon': source.icon,
+                        'data': [
+                            custom_record.get_api_format(source=source,
+                                                         fields=fields)
+                            for custom_record in custom_records
+                        ]
+                    } for source in DataSource.objects.all()
                 }
             }
             return Response(results, status=status.HTTP_200_OK)

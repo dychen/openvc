@@ -144,6 +144,27 @@ table.ovc-edit-table {
     > .ovc-cell-popover-body {
       padding: 10px;
       background: $OVC_WHITE;
+      > .ovc-cell-popover-row {
+        > .popover-source {
+          color: $OVC_GRAY;
+          font-style: italic;
+        }
+      }
+      > .ovc-cell-popover-row.selected {
+        font-weight: 900;
+        // Pulled this out of the .ovc-cell-popover-row selector to increase
+        // specificity and force it to overwrite the colors in .valid and
+        // .invalid
+        @include hvr-color($OVC_LIGHT_GRAY);
+      }
+      > .ovc-cell-popover-row.valid > .popover-value {
+        color: $OVC_GREEN;
+        @include hvr-color($OVC_LIGHT_GRAY);
+      }
+      > .ovc-cell-popover-row.invalid > .popover-value {
+        color: $OVC_RED;
+        @include hvr-color($OVC_LIGHT_GRAY);
+      }
     }
   }
 }

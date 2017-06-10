@@ -1417,10 +1417,10 @@ class DataSource(models.Model):
     def get_source(cls, source):
         if source is None or source == 'self':
             return cls.get_default()
-        elif type(source) is str:
-            return cls.objects.get(name=source)
-        else:
+        elif isinstance(source, cls):
             return source
+        else:
+            return cls.objects.get(name=source)
 
     def get_api_format(self):
         data_source_options = (self.data_source_options.distinct('model')
@@ -1748,11 +1748,11 @@ class CustomRecord(models.Model):
         """
         # TODO: Optimize
         fields = fields if fields else self.table.custom_fields.all()
-        source = DataSource.get_source(source)
+        data_source = DataSource.get_source(source)
         record = { 'id': self.id }
 
         custom_data = CustomData.objects.filter(
-            account=self.account, record=self, field__source=source,
+            account=self.account, record=self, field__source=data_source,
             field__field__in=fields
         ).values_list('field__field__api_name', 'value')
         record.update({ field_name: value for field_name, value in custom_data })
@@ -1763,7 +1763,7 @@ class CustomRecord(models.Model):
 
     @classmethod
     def create_from_api(cls, user, table, request_json, source=None):
-        source = DataSource.get_source(source)
+        data_source = DataSource.get_source(source)
         record = CustomRecord.objects.create(account=user.account, owner=user,
                                              table=table)
         for field_name, value in request_json.iteritems():
@@ -1772,7 +1772,7 @@ class CustomRecord(models.Model):
                 field = CustomFieldSource.objects.get(
                     field__table=table,
                     field__api_name=field_name,
-                    source=source
+                    source=data_source
                 )
                 CustomData.objects.create(field=field, record=record,
                                           owner=user, account=user.account,
@@ -1782,14 +1782,14 @@ class CustomRecord(models.Model):
         return record
 
     def update_from_api(self, user, table, request_json, source=None):
-        source = DataSource.get_source(source)
+        data_source = DataSource.get_source(source)
         for field_name, value in request_json.iteritems():
             # TODO: Transform value based on type
             try:
                 field = CustomFieldSource.objects.get(
                     field__table=table,
                     field__api_name=field_name,
-                    source=source
+                    source=data_source
                 )
                 CustomData.objects.update_or_create(field=field, record=self,
                                                     owner=user,
@@ -1802,20 +1802,20 @@ class CustomRecord(models.Model):
     @classmethod
     def update_or_create_from_source(cls, user, table, request_json, source,
                                      source_key):
-        source = DataSource.get_source(source)
+        data_source = DataSource.get_source(source)
         record_sources = CustomRecordSource.objects.filter(
-            account=user.account, owner=user, table=table, source=source,
+            account=user.account, owner=user, table=table, source=data_source,
             source_key=source_key
         )
         if record_sources:
             for record_source in record_sources:
                 record_source.record.update_from_api(user, table,
-                                                     request_json, source)
+                                                     request_json, data_source)
         else:
-            record = cls.create_from_api(user, table, request_json, source)
+            record = cls.create_from_api(user, table, request_json, data_source)
             CustomRecordSource.objects.create(
                 account=user.account, owner=user, table=table, record=record,
-                source=source, source_key=source_key
+                source=data_source, source_key=source_key
             )
 
 class CustomRecordSource(models.Model):

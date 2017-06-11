@@ -66,10 +66,14 @@ const TableModalHeader = (props) => {
 
 const FieldPanelFieldSection = (props) => {
   const dropdownFieldId = `ovc-table-modal-type-dropdown-${props.index}`;
+  const arrowIcon = (props.integrationsPanelVisible
+                     ? <i className="ion-chevron-up" />
+                     : <i className="ion-chevron-down" />);
 
   return (
     <div className="field-panel-section field-section">
-      <div className="field-panel-name">
+      <div className="field-panel-field-section field-panel-name">
+        <div className="title">Field name</div>
         <EditField id={props.index}
                    field="displayName"
                    fieldType="string"
@@ -77,7 +81,8 @@ const FieldPanelFieldSection = (props) => {
                    placeholder="Click to edit"
                    onSave={props.updateTableField} />
       </div>
-      <div className="field-panel-type">
+      <div className="field-panel-field-section field-panel-type">
+        <div className="title">Field type</div>
         <DropdownField id={props.index} className="field-panel-type"
                        field="type"
                        elementId={dropdownFieldId}
@@ -86,28 +91,19 @@ const FieldPanelFieldSection = (props) => {
                        options={DATA_TYPE_LIST}
                        onSelect={props.updateTableField} />
       </div>
+      <div className="field-panel-field-section filler" />
+      <div className="field-panel-field-section field-panel-toggle"
+           onClick={props.toggleIntegrationsPanel}>
+        <span className="edit-integrations-button">
+          <div><i className="ion-network" /></div>
+          <div>{arrowIcon}</div>
+        </span>
+        <span>See Existing Integrations</span>
+      </div>
+
       <i className="ion-android-close delete-field-button"
          id={props.index}
          onClick={props.removeTableField} />
-    </div>
-  );
-}
-
-const FieldPanelToggleSection = (props) => {
-  const upIcon = (props.integrationsPanelVisible
-                  ? <i className="ion-chevron-up" /> : '');
-  const downIcon = (!props.integrationsPanelVisible
-                    ? <i className="ion-chevron-down" /> : '');
-
-  return (
-    <div className="field-panel-section integrations-toggle-section"
-         onClick={props.toggleIntegrationsPanel}>
-      <div className="edit-integrations-button">
-        <i className="ion-network" />
-        {upIcon}
-        {downIcon}
-      </div>
-      See Existing Integrations
     </div>
   );
 }
@@ -309,11 +305,10 @@ class TableModalFieldPanel extends React.Component {
 
     return (
       <div className="ovc-table-modal-field-panel">
-        <FieldPanelFieldSection {...this.props} />
-
-        <FieldPanelToggleSection
+        <FieldPanelFieldSection
           integrationsPanelVisible={this.state.integrationsPanelVisible}
-          toggleIntegrationsPanel={this.toggleIntegrationsPanel} />
+          toggleIntegrationsPanel={this.toggleIntegrationsPanel}
+          {...this.props} />
 
         <CSSTransitionGroup transitionName="ovc-integrations-panel"
                             transitionEnterTimeout={500}

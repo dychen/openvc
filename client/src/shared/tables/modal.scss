@@ -66,15 +66,31 @@
 
     .field-panel-section.field-section {
       position: relative;
-      .field-panel-name {
-        position: absolute;
-        left: 10px;
-        top: 5px;
+      display: flex;
+      padding-left: 15px;
+      > .field-panel-field-section {
+        flex-shrink: 0;
+        margin-top: 5px;
+        margin-right: 30px;
+        > .title {
+          font-weight: 900;
+          color: $OVC_GRAY;
+        }
       }
-      .field-panel-type {
-        position: absolute;
-        right: 35px;
-        top: 5px;
+      > .field-panel-field-section.filler {
+        flex-shrink: 1;
+        width: 100%;
+      }
+      > .field-panel-field-section.field-panel-toggle {
+        @include hvr-color($OVC_GRAY);
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        span.edit-integrations-button {
+          font-size: 18px;
+          margin-right: 10px;
+        }
       }
       .delete-field-button {
         position: absolute;
@@ -92,35 +108,6 @@
         display: flex;
         align-items: center;
         justify-content: center;
-      }
-    }
-
-    .field-panel-section.integrations-toggle-section {
-      @include hvr-color($OVC_GRAY);
-
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      div.edit-integrations-button {
-        position: absolute;
-        overflow: visible; // Defaults to overflow: hidden for some reason
-        left: 20px;
-        top: 12px;
-        font-size: 1.2em;
-
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        i.ion-chevron-up {
-          position: absolute;
-          top: 17px;
-        }
-        i.ion-chevron-down {
-          position: absolute;
-          top: 17px;
-        }
       }
     }
 

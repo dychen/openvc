@@ -1391,10 +1391,12 @@ class DataSource(models.Model):
             'display': 'Account',
             'icon': 'ion-briefcase',
             'fields': [
-                { 'key': 'name', 'display': 'Name' },
-                { 'key': 'description', 'display': 'Description' },
-                { 'key': 'segment', 'display': 'Segment' },
-                { 'key': 'sector', 'display': 'Sector' },
+                { 'key': 'Id', 'display': 'SFDC Id' },
+                { 'key': 'Name', 'display': 'Name' },
+                { 'key': 'Description', 'display': 'Description' },
+                { 'key': 'Website', 'display': 'Website' },
+                { 'key': 'Segment', 'display': 'Segment' },
+                { 'key': 'Sector', 'display': 'Sector' },
             ]
         }]
     }]
@@ -1762,7 +1764,14 @@ class CustomRecord(models.Model):
         return record
 
     @classmethod
-    def create_from_api(cls, user, table, request_json, source=None):
+    def create_from_api(cls, user, table, request_json, source=None,
+                        source_key=None):
+        """
+        @source_key is an optional parameter that can be passed when the
+        record is first updated from a new source to create a new
+        CustomRecordSource object for that CustomRecord.
+        Currently only used in worker.py for data source/integration syncs.
+        """
         data_source = DataSource.get_source(source)
         record = CustomRecord.objects.create(account=user.account, owner=user,
                                              table=table)
@@ -1779,9 +1788,26 @@ class CustomRecord(models.Model):
                                           value=value)
             except CustomFieldSource.DoesNotExist:
                 continue
+
+        if source_key:
+            CustomRecordSource.objects.update_or_create(
+                account=user.account, record=self, source=data_source,
+                defaults={
+                    'owner': user,
+                    'table': table,
+                    'source_key': source_key
+                }
+            )
         return record
 
-    def update_from_api(self, user, table, request_json, source=None):
+    def update_from_api(self, user, table, request_json, source=None,
+                        source_key=None):
+        """
+        @source_key is an optional parameter that can be passed when the
+        record is first updated from a new source to create a new
+        CustomRecordSource object for that CustomRecord.
+        Currently only used in worker.py for data source/integration syncs.
+        """
         data_source = DataSource.get_source(source)
         for field_name, value in request_json.iteritems():
             # TODO: Transform value based on type
@@ -1797,6 +1823,16 @@ class CustomRecord(models.Model):
                                                     defaults={ 'value': value })
             except CustomFieldSource.DoesNotExist:
                 continue
+
+        if source_key:
+            CustomRecordSource.objects.update_or_create(
+                account=user.account, record=self, source=data_source,
+                defaults={
+                    'owner': user,
+                    'table': table,
+                    'source_key': source_key
+                }
+            )
         return self
 
     @classmethod

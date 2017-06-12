@@ -142,6 +142,7 @@ APIConfig
 
 ###SQL
 
+# Get data
 ```
 SELECT ct.api_name, cr.id, cf.api_name, cf.type, cd.value
     FROM data_customtable ct JOIN data_customfield cf ON ct.id=cf.table_id
@@ -151,6 +152,7 @@ SELECT ct.api_name, cr.id, cf.api_name, cf.type, cd.value
     WHERE ct.api_name='[NAME]';
 ```
 
+# Get table schema
 ```
 SELECT ct.api_name, cf.api_name, ds.name, dso.model, dso.field
     FROM data_customfieldsource cfs JOIN data_customfield cf ON cfs.field_id=cf.id
@@ -158,4 +160,15 @@ SELECT ct.api_name, cf.api_name, ds.name, dso.model, dso.field
     JOIN data_datasourceoption dso ON cfs.source_option_id=dso.id
     JOIN data_customtable ct ON cf.table_id=ct.id
     WHERE ct.api_name='[NAME]';
+```
+
+# Get data by source
+```
+SELECT ct.api_name, cr.id, cf.api_name, cf.type, cd.value
+    FROM data_customtable ct JOIN data_customfield cf ON ct.id=cf.table_id
+    JOIN data_customfieldsource cfs ON cf.id=cfs.field_id
+    JOIN data_customdata cd ON cd.field_id=cfs.id
+    JOIN data_customrecord cr ON cr.id=cd.record_id
+    JOIN data_datasource ds ON ds.id=cfs.source_id
+    WHERE ct.api_name='[NAME]' AND ds.name='[NAME]';
 ```

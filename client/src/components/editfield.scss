@@ -15,10 +15,12 @@ input.ovc-edit-field, textarea.ovc-edit-field {
   border-radius: 5px;
   padding: 5px;
   font-size: 0.9em;
+  color: $OVC_DARK_GRAY;
 }
 textarea.ovc-edit-field {
   min-height: 200px;
   min-width: 400px;
   resize: none;
+  color: $OVC_DARK_GRAY;
 }
 

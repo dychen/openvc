@@ -1,12 +1,13 @@
 import React from 'react';
 import Immutable from 'immutable';
+import async from 'async';
 import {DropdownButton, MenuItem, ButtonToolbar, Button} from 'react-bootstrap';
 import CSSTransitionGroup from 'react-transition-group/CSSTransitionGroup'
 import Scroll from 'react-scroll';
 const ScrollScroller = Scroll.animateScroll;
 
 import {createTable, updateTable, deleteTable,
-        createField, updateField, deleteField, syncTable} from './api.js';
+        createField, updateField, deleteField} from './api.js';
 import {EditField, DropdownField} from '../../components/editfield.jsx';
 import {DATA_TYPE_LIST, DATA_TYPE_MAP} from '../../utils/constants.js';
 
@@ -51,7 +52,7 @@ const TableModalHeader = (props) => {
   return (
     <div className="ovc-modal-header ovc-header-panel">
       <i className="ion-android-sync sync-table-button"
-         onClick={props.syncTable} />
+         onClick={props.onSync} />
       <EditField field="displayName"
                  fieldType="string"
                  originalValue={props.table.displayName}
@@ -94,11 +95,11 @@ const FieldPanelFieldSection = (props) => {
       <div className="field-panel-field-section filler" />
       <div className="field-panel-field-section field-panel-toggle"
            onClick={props.toggleIntegrationsPanel}>
+        <span>See Existing Integrations</span>
         <span className="edit-integrations-button">
           <div><i className="ion-network" /></div>
           <div>{arrowIcon}</div>
         </span>
-        <span>See Existing Integrations</span>
       </div>
 
       <i className="ion-android-close delete-field-button"
@@ -422,7 +423,6 @@ class TableModal extends React.Component {
 
     this.saveTable = this.saveTable.bind(this);
     this.deleteTable = this.deleteTable.bind(this);
-    this.syncTable = this.syncTable.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -487,12 +487,14 @@ class TableModal extends React.Component {
   }
 
   saveTable(e) {
-    const saveField = (tableId, field) => {
+    const saveField = (tableId, field, callback) => {
       if (field.id) {
-        return updateField(tableId, field.id, field);
+        return updateField(tableId, field.id, field)
+          .then(() => { if (callback) callback(); });
       }
       else {
-        return createField(tableId, field);
+        return createField(tableId, field)
+          .then(() => { if (callback) callback(); });
       }
     };
 
@@ -501,19 +503,20 @@ class TableModal extends React.Component {
       updateTable(this.state.table.id, this.state.table)
         .then((table) => {
           // Create/update existing fields
-          this.state.tableFields.forEach((field) => {
-            saveField(this.state.table.id, field);
+          async.eachSeries(this.state.tableFields, (field, callback) => {
+            saveField(this.state.table.id, field, callback);
+          }, () => {
+            // Delete removed fields
+            // TODO: Make this synchronous
+            this.state.fieldsToDelete.forEach((field) => {
+              deleteField(this.state.table.id, field.id);
+            });
+            this.setState({ fieldsToDelete: [] }); // Possible race condition?
+            // Update parent
+            if (this.props.onSave) {
+              this.props.onSave(table);
+            }
           });
-          // Delete removed fields
-          // TODO: Make this synchronous
-          this.state.fieldsToDelete.forEach((field) => {
-            deleteField(this.state.table.id, field.id);
-          });
-          this.setState({ fieldsToDelete: [] }); // Possible race condition?
-          // Update parent
-          if (this.props.onSave) {
-            this.props.onSave(table);
-          }
         })
         .catch((err) => {
           console.log('Error', err);
@@ -526,19 +529,20 @@ class TableModal extends React.Component {
       createTable(this.state.table)
         .then((table) => {
           // Create/update existing fields
-          this.state.tableFields.forEach((field) => {
-            saveField(table.id, field);
+          async.eachSeries(this.state.tableFields, (field, callback) => {
+            saveField(table.id, field, callback);
+          }, () => {
+            // Delete removed fields
+            // TODO: Make this synchronous
+            this.state.fieldsToDelete.forEach((field) => {
+              deleteField(table.id, field.id);
+            });
+            this.setState({ fieldsToDelete: [] }); // Possible race condition?
+            // Update parent
+            if (this.props.onSave) {
+              this.props.onSave(table);
+            }
           });
-          // Delete removed fields
-          // TODO: Make this synchronous
-          this.state.fieldsToDelete.forEach((field) => {
-            deleteField(this.state.table.id, field.id);
-          });
-          this.setState({ fieldsToDelete: [] }); // Possible race condition?
-          // Update parent
-          if (this.props.onSave) {
-            this.props.onSave(table);
-          }
         })
         .catch((err) => {
           console.log('Error', err);
@@ -564,14 +568,6 @@ class TableModal extends React.Component {
     }
   }
 
-  syncTable(e) {
-    if (this.state.table.id) {
-      syncTable(this.state.table.id).then((tableId) => {
-        this.props.hideModal();
-      });
-    }
-  }
-
   render() {
     const modalShowClass = (
       this.props.visible
@@ -586,7 +582,7 @@ class TableModal extends React.Component {
           <TableModalHeader table={this.state.table}
                             updateTable={this.updateTable}
                             deleteTable={this.deleteTable}
-                            syncTable={this.syncTable} />
+                            onSync={this.props.onSync} />
           <TableModalBody tableFields={this.state.tableFields}
                           SOURCES={this.props.SOURCES}
                           updateTableField={this.updateTableField}

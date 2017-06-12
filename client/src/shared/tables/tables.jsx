@@ -1,6 +1,6 @@
 import React from 'react';
 
-import {getTableList, getFieldList, getSourceList} from './api.js';
+import {getTableList, getFieldList, getSourceList, syncTable} from './api.js';
 import EditTable from '../../components/edittable/edittable.jsx';
 import {filterData, Subnav, SubnavButton, SubnavDropdown,
         SubnavFilters} from '../../components/subnav.jsx';
@@ -60,6 +60,7 @@ class UserTablesPage extends React.Component {
     };
 
     this.loadTables = this.loadTables.bind(this);
+    this.syncTable = this.syncTable.bind(this);
     this.showCreateModal = this.showCreateModal.bind(this);
     this.showUpdateModal = this.showUpdateModal.bind(this);
     this.hideCreateModal = this.hideCreateModal.bind(this);
@@ -105,6 +106,18 @@ class UserTablesPage extends React.Component {
           tables: tables
         }, () => { getFields(activeTable.id); });
       });
+  }
+
+  syncTable(e) {
+    if (this.state.table && this.state.table.id) {
+      syncTable(this.state.table.id).then((tableId) => {
+        // Should be okay since there should only be one modal visible at a
+        // time
+        this.hideCreateModal();
+        this.hideUpdateModal();
+        // TODO: Update table data
+      });
+    }
   }
 
   showCreateModal(e) {
@@ -226,14 +239,16 @@ class UserTablesPage extends React.Component {
                     SOURCES={this.state.EXT_SOURCES}
                     visible={this.state.createModalVisible}
                     hideModal={this.hideCreateModal}
-                    onSave={this.loadTables} />
+                    onSave={this.loadTables}
+                    onSync={this.syncTable} />
         <TableModal table={this.state.table}
                     tableFields={this.state.tableFields}
                     SOURCES={this.state.EXT_SOURCES}
                     visible={this.state.updateModalVisible}
                     hideModal={this.hideUpdateModal}
                     onSave={this.loadTables}
-                    onDelete={this.loadTables} />
+                    onDelete={this.loadTables}
+                    onSync={this.syncTable} />
       </div>
     );
   }

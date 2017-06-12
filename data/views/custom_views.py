@@ -252,6 +252,22 @@ class CustomRecordView(APIView):
                 ...
             }
         }
+        Alternate format: [
+            {
+                'id': 1,
+                'field1': {
+                    'self': value1,
+                    'crunchbase': value2,
+                    ...
+                },
+                'field2': {
+                    'self': value1,
+                    'crunchbase': value2,
+                    ...
+                },
+                ...
+            }
+        ]
         """
         try:
             user = check_authentication(request)

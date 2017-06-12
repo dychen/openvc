@@ -49,7 +49,20 @@ const _createDataSourceMap = (sourceData) => {
     }
   }
   return sourceMap;
-}
+};
+
+const _updateDataRowSourceMap = (rowSourceMap, entity, source) => {
+  let newRowMap = Immutable.fromJS(rowSourceMap).toJS();
+  for (let field in newRowMap) {
+    if (newRowMap.hasOwnProperty(field)) {
+      const sourceIdx = newRowMap[field].findIndex(d => d.sourceKey === source);
+      if (sourceIdx > -1) {
+        newRowMap[field][sourceIdx]['value'] = entity[field];
+      }
+    }
+  }
+  return newRowMap;
+};
 
 /*
  * props:
@@ -272,7 +285,12 @@ class EditTable extends React.Component {
           .findIndex(entity => entity.id === json.id);
         newState = newState
           .setIn(['sources', this.props.source, 'data', sourceEntityIdx], json);
-        // TODO: Update dataSourceMap
+        // TODO: Update dataSourceMap - DO THIS BETTER
+        const newRowSourceMap = _updateDataRowSourceMap(
+          this.state.dataSourceMap[json.id], json, this.props.source
+        );
+        newState = newState
+          .setIn(['dataSourceMap', json.id], newRowSourceMap);
       }
       this.setState(newState.toJS());
     });

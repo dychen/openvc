@@ -1,108 +1,28 @@
 import React from 'react';
-import {NavLink} from 'react-router-dom';
+import {Sidenav} from '../components/sidenav.jsx';
 
-import './sidenav.scss';
-
-class FounderSidenav extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      'minimized': false
-    };
-
-    this.toggleMinimized = this.toggleMinimized.bind(this);
-  }
-
-  toggleMinimized(e) {
-    this.setState({ 'minimized': !this.state.minimized });
-  }
-
-  render() {
-    const sidenavClass = (this.state.minimized
-                          ? 'ovc-sidenav minimized' : 'ovc-sidenav');
-
-    return (
-      <div className={sidenavClass}>
-        <div className="ovc-sidenav-top">
-          <div className="ovc-sidenav-item logo"
-               onClick={this.toggleMinimized}>
-            <i className="ion-navicon nav-hamburger" />
-            <span className="minimized-sidenav-hidden">OpenVC</span>
-          </div>
-          <NavLink to="/founder/company">
-            <div className="ovc-sidenav-item link">
-              <i className="ion-speedometer" />
-              <span className="minimized-sidenav-hidden">
-                Company
-              </span>
-            </div>
-          </NavLink>
-          <NavLink to="/founder/apply">
-            <div className="ovc-sidenav-item link">
-              <i className="ion-android-checkmark-circle" />
-              <span className="minimized-sidenav-hidden">
-                Apply
-              </span>
-            </div>
-          </NavLink>
-          <NavLink to="/founder/fundraising">
-            <div className="ovc-sidenav-item link">
-              <i className="ion-cash" />
-              <span className="minimized-sidenav-hidden">
-                Fundraising Status
-              </span>
-            </div>
-          </NavLink>
-          <div className="ovc-sidenav-item link">
-            <i className="ion-stats-bars" />
-            <span className="minimized-sidenav-hidden">
-              Benchmarking
-            </span>
-          </div>
-          <NavLink to="/founder/contacts">
-            <div className="ovc-sidenav-item link">
-              <i className="ion-ios-people" />
-              <span className="minimized-sidenav-hidden">
-                Contacts
-              </span>
-            </div>
-          </NavLink>
-          <NavLink to="/founder/rooms">
-            <div className="ovc-sidenav-item link">
-              <i className="ion-chatbubbles" />
-              <span className="minimized-sidenav-hidden">
-                Rooms
-              </span>
-            </div>
-          </NavLink>
-          <NavLink to="/founder/profile">
-            <div className="ovc-sidenav-item link">
-              <i className="ion-android-person" />
-              <span className="minimized-sidenav-hidden">
-                Profile
-              </span>
-            </div>
-          </NavLink>
-          <div className="ovc-sidenav-item link">
-            <i className="ion-key" />
-            <span className="minimized-sidenav-hidden">
-              User Access
-            </span>
-          </div>
-          <div className="ovc-sidenav-item link">
-            <i className="ion-lock-combination" />
-            <span className="minimized-sidenav-hidden">
-              Data Access
-            </span>
-          </div>
-        </div>
-
-        <div className="ovc-sidenav-bottom">
-        </div>
-      </div>
-    );
-  }
+const FounderSidenav = (props) => {
+  const ITEMS = [
+    { link: '/founder/company', icon: 'ion-speedometer',
+      title: 'Company', subtext: 'Your company data' },
+    { link: '/founder/apply', icon: 'ion-android-checkmark-circle',
+      title: 'Apply', subtext: 'Apply for funding' },
+    { link: '/founder/fundraising', icon: 'ion-cash',
+      title: 'Fundraising', subtext: 'Fundraising status' },
+    { link: '/founder/benchmarking', icon: 'ion-stats-bars',
+      title: 'Benchmarking', subtext: 'Compare your metrics' },
+    { link: '/founder/contacts', icon: 'ion-ios-people',
+      title: 'Contacts', subtext: 'Connect to your network' },
+    { link: '/founder/rooms', icon: 'ion-chatbubbles',
+      title: 'Rooms', subtext: 'Chat with your network' },
+    { link: '/founder/profile', icon: 'ion-android-person',
+      title: 'Profile', subtext: 'Your profile page' },
+    { link: '/founder/apis', icon: 'ion-network',
+      title: 'APIs', subtext: 'Manage data sources' },
+    { link: '/founder/access', icon: 'ion-lock-combination',
+      title: 'Access', subtext: 'Manage user access' },
+  ];
+  return <Sidenav ITEMS={ITEMS} />
 }
 
 export default FounderSidenav;

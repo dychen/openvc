@@ -85,7 +85,7 @@ class FounderApplyPage extends React.Component {
       <div className="ovc-founder-apply-container ovc-subnav-view-container">
         <Subnav title="Menu">
           <Link to="/founder/application">
-            <SubnavButton text="Update App"
+            <SubnavButton text="Edit Application"
                           iconClass="ion-compose" />
           </Link>
           <SubnavFilters filterList={filterList}

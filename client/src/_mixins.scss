@@ -103,8 +103,8 @@
   cursor: pointer;
 
   &:hover, &:focus, &:active {
-    -webkit-transform: scale(1.1);
-    transform: scale(1.1);
+    -webkit-transform: scale($scale);
+    transform: scale($scale);
   }
 }
 

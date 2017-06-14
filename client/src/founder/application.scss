@@ -1,0 +1,37 @@
+@import '../mixins';
+@import '../constants.scss';
+
+.ovc-founder-application {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  z-index: 100;
+  overflow: hidden;
+  overflow-y: scroll;
+  background-color: $OVC_WHITE;
+
+  > div.founder-application-cancel {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    font-size: 3.0em;
+    color: $OVC_GRAY;
+    height: 60px;
+    width: 60px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    @include hvr-fade($OVC_GRAY, $OVC_LIGHT_GRAY);
+  }
+  > .founder-application-header {
+    padding-top: 50px;
+    width: 100%;
+    font-size: 3.0em;
+    font-weight: 900;
+    text-align: center;
+  }
+}
+

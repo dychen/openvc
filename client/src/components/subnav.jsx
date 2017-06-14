@@ -14,13 +14,16 @@ import './subnav.scss';
  * The filtering logic is:
  *   ((name === 'Co1' || name === 'Co2')
  *    && (source === 'Source1' || source === 'Source2'))
+ * Args:
+ *   data [Array]: [{ field1: [val1], ...}, ...]
+ *   filterTags [Array]: [{ key: [field1], value: [val1] }, ...]
  */
 const filterData = (data, filterTags) => {
   /*
    * Args:
    *   filterTags [Array]: [{ key: [string], value: [string] }, ...]
    * Returns:
-   *   [Array]: [{ key: [string], values: [[string]] }, ...]
+   *   [Array]: [{ key: [string], values: [[string], ...] }, ...]
    */
   const getTagGroups = function(filterTags) {
     let tagGroups = [];

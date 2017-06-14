@@ -15,6 +15,7 @@ import FounderAppContainer from './founder/founder.jsx';
 import FounderSidenav from './founder/sidenav.jsx';
 import FounderTopnav from './founder/topnav.jsx';
 import FounderApplyPage from './founder/apply.jsx';
+import FounderApplication from './founder/application.jsx';
 import FounderFundraisingPage from './founder/fundraising.jsx';
 
 import InvestorAppContainer from './investor/investor.jsx';
@@ -95,6 +96,12 @@ const appRoutes = [
   {
     path: '/founder/apply',
     main: FounderApplyPage,
+    container: FounderAppContainer,
+    exact: true
+  },
+  {
+    path: '/founder/application',
+    main: FounderApplication,
     container: FounderAppContainer,
     exact: true
   },

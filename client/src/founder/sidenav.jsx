@@ -9,6 +9,8 @@ const FounderSidenav = (props) => {
       title: 'Apply', subtext: 'Apply for funding' },
     { link: '/founder/fundraising', icon: 'ion-cash',
       title: 'Fundraising', subtext: 'Fundraising status' },
+    { link: '/founder/network', icon: 'ion-ios-world',
+      title: 'Network', subtext: 'Look for talent/support' },
     { link: '/founder/benchmarking', icon: 'ion-stats-bars',
       title: 'Benchmarking', subtext: 'Compare your metrics' },
     { link: '/founder/contacts', icon: 'ion-ios-people',

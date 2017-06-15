@@ -1,0 +1,43 @@
+@import '../mixins';
+@import '../constants.scss';
+
+.ovc-form-container {
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative; // For react-scroll
+}
+
+.ovc-form-field-scroll-wrapper {
+  width: 100%;
+}
+
+.ovc-form-field-bg {
+  @include hvr-background($OVC_LIGHT_GRAY);
+  width: 100%;
+  border-radius: 5px;
+  padding: 10px;
+}
+.ovc-form-field-bg.active {
+  background-color: $OVC_LIGHT_GRAY;
+}
+
+.ovc-form-field {
+  margin: 20px;
+  width: 100%;
+  .form-field-header {
+    font-size: 1.8em;
+  }
+  .form-field-input {
+    font-size: 1.5em;
+    border: none;
+    border-bottom: 2px solid $OVC_THEME_BLUE;
+    outline: none;
+    color: $OVC_THEME_GREEN;
+    background-color: inherit;
+  }
+}

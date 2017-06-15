@@ -2,9 +2,8 @@ import React from 'react';
 import Immutable from 'immutable';
 import {Link} from 'react-router-dom';
 import {ProgressBar} from 'react-bootstrap';
-const Scroll = require('react-scroll');
-const ScrollElement = Scroll.Element;
-const ScrollScroller = Scroll.scroller;
+
+import {FormContainer} from '../components/form.jsx';
 
 import './application.scss';
 
@@ -40,174 +39,44 @@ class TeamApplication extends React.Component {
   }
 }
 
-class FormField extends React.Component {
-  constructor(props) {
-    super(props);
-    this.focusInput = this.focusInput.bind(this);
-    this.onSelect = this.onSelect.bind(this);
-  }
+const CompanyApplication = (props) => {
+  const FIELDS = [
+    { field: 'name', elementId: 'form-field-company-name',
+      title: 'What\'s your company\'s name?' },
+    { field: 'description', elementId: 'form-field-company-description',
+      title: 'Please describe your company' },
+    { field: 'sectors', elementId: 'form-field-company-sectors',
+      title: 'Choose the sectors that best fit your company' },
+    { field: 'businessModel', elementId: 'form-field-company-businessModel',
+      title: 'Describe your business model' },
+    { field: 'customers', elementId: 'form-field-company-customers',
+      title: 'Who are your current customers?' },
+    { field: 'competitors', elementId: 'form-field-company-competitors',
+      title: 'Who are your current competitors?' },
+    { field: 'stealth', elementId: 'form-field-company-stealth',
+      title: 'Are you in stealth?' },
+  ];
 
-  // This is called for the initial element focus
-  componentDidMount() {
-    if (this.props.active) {
-      this.focusInput();
-    }
-  }
-  // This is called to refocus when the active element changes
-  // Use componentDidUpdate instead of componentWillXXX because focusInput()
-  // needs to fire after the rerender.
-  componentDidUpdate(prevProps, prevState) {
-    if (this.props.active) {
-      this.focusInput();
-    }
-  }
-
-  focusInput(e) {
-    this.inputField.focus();
-  }
-
-  onSelect(e) {
-    this.focusInput();
-    this.props.setActiveField(this.props.field);
-  }
-
-  render() {
-    const containerClass = (
-      this.props.active ? 'ovc-form-field-bg active' : 'ovc-form-field-bg'
-    );
-    return (
-      <div className={containerClass}
-           onClick={this.onSelect}>
-        <div className="ovc-form-field">
-          <div className="form-field-header">
-            {this.props.title}
-          </div>
-          <input className="form-field-input"
-                 ref={input => this.inputField = input}
-                 name={this.props.field}
-                 value={this.props.value}
-                 onChange={this.props.onChange} />
-        </div>
+  return (
+    <div className="ovc-founder-application">
+      <div className="founder-application-cancel"
+           id="home"
+           onClick={props.changeSection}>
+        <i className="ion-android-arrow-back" />
       </div>
-    );
-  }
-};
-
-class CompanyApplication extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.FIELDS = [
-      { field: 'name', elementId: 'form-field-company-name',
-        title: 'What\'s your company\'s name?' },
-      { field: 'description', elementId: 'form-field-company-description',
-        title: 'Please describe your company' },
-      { field: 'sectors', elementId: 'form-field-company-sectors',
-        title: 'Choose the sectors that best fit your company' },
-      { field: 'businessModel', elementId: 'form-field-company-businessModel',
-        title: 'Describe your business model' },
-      { field: 'customers', elementId: 'form-field-company-customers',
-        title: 'Who are your current customers?' },
-      { field: 'competitors', elementId: 'form-field-company-competitors',
-        title: 'Who are your current competitors?' },
-      { field: 'stealth', elementId: 'form-field-company-stealth',
-        title: 'Are you in stealth?' },
-    ];
-
-    this.state = {
-      form: {
-        name: '',
-        description: '',
-        sectors: '',
-        businessModel: '',
-        customers: '',
-        competitors: '',
-        stealth: ''
-      },
-      activeField: 'name'
-    };
-
-    this.onChange = this.onChange.bind(this);
-    this.onKeyPress = this.onKeyPress.bind(this);
-    this.setActiveField = this.setActiveField.bind(this);
-  }
-
-  onChange(e) {
-    let newState = {};
-    newState[e.currentTarget.name] = e.currentTarget.value;
-    this.setState({ form: newState });
-  }
-
-  onKeyPress(e) {
-    if (e.key === 'Enter') {
-      const fieldIdx = this.FIELDS.findIndex(field =>
-        field.field === this.state.activeField
-      );
-      if (!e.shiftKey) {
-        if (fieldIdx === this.FIELDS.length - 1) {
-          // TODO
-        }
-        else if (fieldIdx < this.FIELDS.length - 1) {
-          this.setState({ activeField: this.FIELDS[fieldIdx+1].field });
-          ScrollScroller.scrollTo(this.FIELDS[fieldIdx+1].elementId, {
-            duration: 500,
-            smooth: true,
-            containerId: 'founder-application-company-container'
-          });
-        }
-      }
-      else {
-        if (fieldIdx > 0) {
-          this.setState({ activeField: this.FIELDS[fieldIdx-1].field });
-          ScrollScroller.scrollTo(this.FIELDS[fieldIdx-1].elementId, {
-            duration: 500,
-            smooth: true,
-            containerId: 'founder-application-company-container'
-          });
-        }
-      }
-    }
-  }
-
-  setActiveField(field) {
-    this.setState({ activeField: field });
-  }
-
-  render() {
-    const formFields = this.FIELDS.map(field => (
-      <ScrollElement name={field.elementId} key={field.elementId}
-                     className="ovc-form-field-scroll-wrapper">
-        <FormField title={field.title}
-                   field={field.field}
-                   value={this.state.form[field.field]}
-                   active={this.state.activeField === field.field}
-                   setActiveField={this.setActiveField}
-                   onChange={this.onChange} />
-      </ScrollElement>
-    ));
-    return (
-      <div className="ovc-founder-application">
-        <div className="founder-application-cancel"
-             id="home"
-             onClick={this.props.changeSection}>
-          <i className="ion-android-arrow-back" />
-        </div>
-        <div className="founder-application-header">
-          Tell us about your company
-        </div>
-        <div id="founder-application-company-container"
-             className="founder-application-company-container"
-             onKeyPress={this.onKeyPress} >
-          {formFields}
-        </div>
-        <div className="founder-application-save"
-             id="home"
-             onClick={this.props.changeSection}>
-          Save&nbsp;<i className="ion-checkmark" />
-        </div>
+      <div className="founder-application-header">
+        Tell us about your company
       </div>
-    );
-  }
+      <div className="founder-application-company-container">
+        <FormContainer FIELDS={FIELDS} />
+      </div>
+      <div className="founder-application-save"
+           id="home"
+           onClick={props.changeSection}>
+        Save&nbsp;<i className="ion-checkmark" />
+      </div>
+    </div>
+  );
 }
 
 const SectionTile = (props) => {

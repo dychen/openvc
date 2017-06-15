@@ -26,17 +26,35 @@ import './application.scss';
  * - raised to date
  * - amount raising
  * - investors
+ * - board
  * - cash/burn/runway
  * - business-specific KPIs
  * Personal notes + attachments to specific investors
  */
 
-class TeamApplication extends React.Component {
-  render() {
-    return (
-      <div />
-    );
-  }
+const TeamApplication = (props) => {
+  const FIELDS = [
+    { field: 'names', elementId: 'form-field-team-names',
+      title: 'What are the names of the founders?' },
+  ];
+
+  const onSave = (data) => {
+    props.onSave('team', data);
+  };
+
+  return (
+    <div className="ovc-founder-application">
+      <div className="founder-application-cancel"
+           onClick={props.onCancel}>
+        <i className="ion-android-arrow-back" />
+      </div>
+      <div className="founder-application-header">
+        Tell us about your team
+      </div>
+      <FormContainer FIELDS={FIELDS} data={props.data} onSave={onSave}
+                     containerClass="founder-application-company-container" />
+    </div>
+  );
 }
 
 const CompanyApplication = (props) => {
@@ -57,29 +75,68 @@ const CompanyApplication = (props) => {
       title: 'Are you in stealth?' },
   ];
 
+  const onSave = (data) => {
+    props.onSave('company', data);
+  };
+
   return (
     <div className="ovc-founder-application">
       <div className="founder-application-cancel"
-           id="home"
-           onClick={props.changeSection}>
+           onClick={props.onCancel}>
         <i className="ion-android-arrow-back" />
       </div>
       <div className="founder-application-header">
         Tell us about your company
       </div>
-      <div className="founder-application-company-container">
-        <FormContainer FIELDS={FIELDS} />
-      </div>
-      <div className="founder-application-save"
+      <FormContainer FIELDS={FIELDS} data={props.data} onSave={onSave}
+                     containerClass="founder-application-company-container" />
+    </div>
+  );
+}
+
+const FundraiseApplication = (props) => {
+  const FIELDS = [
+    { field: 'amount', elementId: 'form-field-fundraise-amount',
+      title: 'How much money are you raising?' },
+    { field: 'raised', elementId: 'form-field-fundraise-raised',
+      title: 'Home much money have you raised to date?' },
+    { field: 'investors', elementId: 'form-field-fundraise-investors',
+      title: 'Who are your current investors?' },
+    { field: 'board', elementId: 'form-field-fundraise-board',
+      title: 'Who are your board members?' },
+    { field: 'cash', elementId: 'form-field-fundraise-cash',
+      title: 'How much cash do you have?' },
+    { field: 'rml', elementId: 'form-field-fundraise-rml',
+      title: 'What\'s your estimated runway (RML)?' },
+    { field: 'revenue', elementId: 'form-field-fundraise-revenue',
+      title: 'What\'s your current net revenue?' },
+  ];
+
+  const onSave = (data) => {
+    props.onSave('fundraise', data);
+  };
+
+  return (
+    <div className="ovc-founder-application">
+      <div className="founder-application-cancel"
            id="home"
-           onClick={props.changeSection}>
-        Save&nbsp;<i className="ion-checkmark" />
+           onClick={props.onCancel}>
+        <i className="ion-android-arrow-back" />
       </div>
+      <div className="founder-application-header">
+        Tell us about your fundraise
+      </div>
+      <FormContainer FIELDS={FIELDS} data={props.data} onSave={onSave}
+                     containerClass="founder-application-fundraise-container" />
     </div>
   );
 }
 
 const SectionTile = (props) => {
+  const onClick = (e) =>  {
+    props.onClick(props.linkTo);
+  }
+
   let progressBarStyle = 'danger';
   if (props.progress === 100)
     progressBarStyle = 'success';
@@ -89,8 +146,7 @@ const SectionTile = (props) => {
   return (
     <div className="founder-application-section-tile-bg">
       <div className="founder-application-section-tile"
-           id={props.linkTo}
-           onClick={props.onClick}>
+           onClick={onClick}>
         <div className="section-tile-header">
           <i className={props.icon} />
           <span>{props.title}</span>
@@ -108,6 +164,11 @@ const SectionTile = (props) => {
   );
 };
 
+/*
+ * props:
+ *   progress [Object]: { [string: section]: [Number: progress] }
+ *   changeSection [function]: Function called on SectionTile click
+ */
 class HomeApplication extends React.Component {
   render() {
     const teamLongText = (
@@ -143,19 +204,23 @@ class HomeApplication extends React.Component {
                        icon="ion-android-person"
                        shortText="Tell us about your team."
                        longText={teamLongText}
-                       progress={10} />
+                       progress={this.props.progress.team}
+                       linkTo="team"
+                       onClick={this.props.changeSection} />
           <SectionTile title="Company"
                        icon="ion-home"
                        shortText="Tell us about your company."
                        longText={companyLongText}
-                       progress={30}
+                       progress={this.props.progress.company}
                        linkTo="company"
                        onClick={this.props.changeSection} />
           <SectionTile title="Fundraise"
                        icon="ion-cash"
                        shortText="What's your fundraising/cash status?"
                        longText={fundraiseLongText}
-                       progress={60} />
+                       progress={this.props.progress.fundraise}
+                       linkTo="fundraise"
+                       onClick={this.props.changeSection} />
           <SectionTile title="Other"
                        icon="ion-lightbulb"
                        shortText="A few other questions."
@@ -172,25 +237,62 @@ class FounderApplication extends React.Component {
     super(props);
 
     this.state = {
+      team: {},
+      company: {},
+      fundraise: {},
       currentSection: 'home'
     };
 
     this.changeSection = this.changeSection.bind(this);
+    this.onFormSave = this.onFormSave.bind(this);
+    this.onFormCancel = this.onFormCancel.bind(this);
   }
 
-  changeSection(e) {
-    this.setState({ currentSection: e.currentTarget.id });
+  changeSection(section) {
+    this.setState({ currentSection: section });
+  }
+
+  onFormSave(section, data) {
+    const newState = Immutable.fromJS(this.state)
+      .set('currentSection', 'home')
+      .set(section, data);
+    this.setState(newState.toJS());
+  }
+
+  onFormCancel() {
+    this.setState({ currentSection: 'home' });
   }
 
   render() {
     let currentSection;
     switch (this.state.currentSection) {
+      case 'team':
+        currentSection = <TeamApplication data={this.state.team}
+                                          onSave={this.onFormSave}
+                                          onCancel={this.onFormCancel} />;
+        break;
       case 'company':
-        currentSection = <CompanyApplication changeSection={this.changeSection} />;
+        currentSection = <CompanyApplication data={this.state.company}
+                                             onSave={this.onFormSave}
+                                             onCancel={this.onFormCancel} />;
+        break;
+      case 'fundraise':
+        currentSection = <FundraiseApplication data={this.state.fundraise}
+                                               onSave={this.onFormSave}
+                                               onCancel={this.onFormCancel} />;
         break;
       case 'home':
       default:
-        currentSection = <HomeApplication changeSection={this.changeSection} />;
+        let progressMap = {};
+        ['team', 'company', 'fundraise'].forEach(section => {
+          const completed = Object.keys(this.state[section]).filter(key =>
+            this.state[section][key]
+          ).length;
+          const length = Object.keys(this.state[section]).length;
+          progressMap[section] = Math.ceil(completed * 100 / length) || 0;
+        });
+        currentSection = <HomeApplication changeSection={this.changeSection}
+                                          progress={progressMap} />;
         break;
     }
 

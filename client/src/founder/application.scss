@@ -11,6 +11,8 @@
   overflow: hidden;
   background-color: $OVC_WHITE;
 
+  // Not sure why we need this, but the form gets cut off at the bottom
+  // otherwise
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -60,7 +62,19 @@
     justify-content: center;
   }
 
-  > .founder-application-company-container {
+  .founder-application-company-container {
+    max-width: 800px;
+    height: 100%;
+    margin-top: 70px;
+    padding: 30px;
+    border: 1px solid $OVC_LIGHT_GRAY;
+    border-bottom: none;
+    border-radius: 5px;
+    display: flex; // Not sure why we need this, but the form gets cut off at
+                   // the bottom otherwise
+  }
+
+  .founder-application-fundraise-container {
     max-width: 800px;
     height: 100%;
     margin-top: 70px;
@@ -157,6 +171,4 @@
     display: block;
   };
 }
-
-/* Company */
 

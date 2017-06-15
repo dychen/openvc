@@ -4,12 +4,20 @@
 .ovc-form-container {
   width: 100%;
   height: 100%;
-  overflow-y: scroll;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  position: relative; // For react-scroll
+
+  .ovc-form-field-container {
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative; // For react-scroll
+  }
 }
 
 .ovc-form-field-scroll-wrapper {
@@ -40,4 +48,19 @@
     color: $OVC_THEME_GREEN;
     background-color: inherit;
   }
+}
+
+.ovc-form-save {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  padding: 15px;
+  font-size: 3.0em;
+  color: $OVC_GRAY;
+  border-radius: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  @include hvr-fade($OVC_GRAY, $OVC_LIGHT_GRAY);
+  @include hvr-color($OVC_GREEN);
 }

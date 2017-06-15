@@ -2,7 +2,7 @@ import React from 'react';
 import Immutable from 'immutable';
 import async from 'async';
 import {DropdownButton, MenuItem, ButtonToolbar, Button} from 'react-bootstrap';
-import CSSTransitionGroup from 'react-transition-group/CSSTransitionGroup'
+import {CSSTransitionGroup} from 'react-transition-group';
 import Scroll from 'react-scroll';
 const ScrollScroller = Scroll.animateScroll;
 

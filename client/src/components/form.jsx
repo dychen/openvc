@@ -63,8 +63,15 @@ class FormField extends React.Component {
 
 /*
  * props:
- *   FIELDS
- *   containerId [string]: (Optional)
+ *   FIELDS [Array]: A list of fields to render in the following format:
+ *     [{ field: [string], title: [string], elementId: [string],
+ *        type: [string] }, ...]
+ *   data [Object]: (Optional) Form data synced to/from the parent component
+ *   containerId [string]: (Optional) A unique DOM id for the scroll container
+ *   containerClass [string]: (Optional) Additional classes to pass to the
+ *                            scroll container
+ *   onSave [function]: Function that does something with the form data
+ *     f([Object: data]) => null
  */
 class FormContainer extends React.Component {
   constructor(props) {
@@ -73,20 +80,28 @@ class FormContainer extends React.Component {
     this.INITIAL_FORM_STATE = {};
     props.FIELDS.forEach(field => this.INITIAL_FORM_STATE[field.field] = '');
 
+    const formData = (props.data && Object.keys(props.data).length > 0
+                      ? props.data : this.INITIAL_FORM_STATE);
     this.state = {
-      form: this.INITIAL_FORM_STATE,
+      form: formData,
       activeField: props.FIELDS[0].field
     };
 
     this.onChange = this.onChange.bind(this);
     this.onKeyPress = this.onKeyPress.bind(this);
     this.setActiveField = this.setActiveField.bind(this);
+    this.onSave = this.onSave.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.data && Object.keys(nextProps.data).length > 0)
+      this.setState({ form: nextProps.data });
   }
 
   onChange(e) {
-    let newState = {};
-    newState[e.currentTarget.name] = e.currentTarget.value;
-    this.setState({ form: newState });
+    const newState = Immutable.fromJS(this.state)
+      .setIn(['form', e.currentTarget.name], e.currentTarget.value);
+    this.setState(newState.toJS());
   }
 
   onKeyPress(e) {
@@ -96,14 +111,14 @@ class FormContainer extends React.Component {
       );
       if (!e.shiftKey) {
         if (fieldIdx === this.props.FIELDS.length - 1) {
-          // TODO
+          this.onSave();
         }
         else if (fieldIdx < this.props.FIELDS.length - 1) {
           this.setState({ activeField: this.props.FIELDS[fieldIdx+1].field });
           ScrollScroller.scrollTo(this.props.FIELDS[fieldIdx+1].elementId, {
             duration: 500,
             smooth: true,
-            containerId: this.props.containerId || 'ovc-form-container'
+            containerId: this.props.containerId || 'ovc-form-field-container'
           });
         }
       }
@@ -113,7 +128,7 @@ class FormContainer extends React.Component {
           ScrollScroller.scrollTo(this.props.FIELDS[fieldIdx-1].elementId, {
             duration: 500,
             smooth: true,
-            containerId: this.props.containerId || 'ovc-form-container'
+            containerId: this.props.containerId || 'ovc-form-field-container'
           });
         }
       }
@@ -122,6 +137,10 @@ class FormContainer extends React.Component {
 
   setActiveField(field) {
     this.setState({ activeField: field });
+  }
+
+  onSave() {
+    this.props.onSave(this.state.form);
   }
 
   render() {
@@ -137,10 +156,16 @@ class FormContainer extends React.Component {
       </ScrollElement>
     ));
     return (
-      <div id={this.props.containerId || 'ovc-form-container'}
-           className="ovc-form-container"
-           onKeyPress={this.onKeyPress} >
-        {formFields}
+      <div className="ovc-form-container">
+        <div id={this.props.containerId || 'ovc-form-field-container'}
+             className={`ovc-form-field-container ${this.props.containerClass}`}
+             onKeyPress={this.onKeyPress} >
+          {formFields}
+        </div>
+        <div className="ovc-form-save"
+             onClick={this.onSave}>
+          Save&nbsp;<i className="ion-checkmark" />
+        </div>
       </div>
     );
   }

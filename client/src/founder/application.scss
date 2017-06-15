@@ -9,8 +9,11 @@
   top: 0;
   z-index: 100;
   overflow: hidden;
-  overflow-y: scroll;
   background-color: $OVC_WHITE;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
   > div.founder-application-cancel {
     position: absolute;
@@ -25,6 +28,20 @@
     align-items: center;
     justify-content: center;
     @include hvr-fade($OVC_GRAY, $OVC_LIGHT_GRAY);
+  }
+  > div.founder-application-save {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    padding: 15px;
+    font-size: 3.0em;
+    color: $OVC_GRAY;
+    border-radius: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    @include hvr-fade($OVC_GRAY, $OVC_LIGHT_GRAY);
+    @include hvr-color($OVC_GREEN);
   }
   > .founder-application-header {
     padding-top: 50px;
@@ -42,14 +59,41 @@
     align-items: center;
     justify-content: center;
   }
+
+  > .founder-application-company-container {
+    max-width: 800px;
+    height: 100%;
+    margin-top: 70px;
+    padding: 30px;
+    border: 1px solid $OVC_LIGHT_GRAY;
+    border-bottom: none;
+    border-radius: 5px;
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative; // For react-scroll
+  }
 }
 
-.founder-application-section-tile-container > .founder-application-section-tile {
+/* Home */
+
+.founder-application-section-tile-container > .founder-application-section-tile-bg {
+  @include hvr-background($OVC_LIGHT_GRAY);
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.founder-application-section-tile-container
+> .founder-application-section-tile-bg
+> .founder-application-section-tile {
   margin: 10px;
   width: 180px;
   height: 250px;
   border: 1px solid $OVC_LIGHT_GRAY;
   box-shadow: 0px 0px 10px 0px $OVC_LIGHT_GRAY;
+  background-color: $OVC_WHITE;
 
   border-radius: 5px;
   overflow: hidden;
@@ -116,5 +160,39 @@
   .subtext-long {
     display: block;
   };
+}
+
+/* Company */
+
+/* Forms */
+
+.ovc-form-field-scroll-wrapper {
+  width: 100%;
+}
+
+.ovc-form-field-bg {
+  @include hvr-background($OVC_LIGHT_GRAY);
+  width: 100%;
+  border-radius: 5px;
+  padding: 10px;
+}
+.ovc-form-field-bg.active {
+  background-color: $OVC_LIGHT_GRAY;
+}
+
+.ovc-form-field {
+  margin: 20px;
+  width: 100%;
+  .form-field-header {
+    font-size: 1.8em;
+  }
+  .form-field-input {
+    font-size: 1.5em;
+    border: none;
+    border-bottom: 2px solid $OVC_THEME_BLUE;
+    outline: none;
+    color: $OVC_THEME_GREEN;
+    background-color: inherit;
+  }
 }
 

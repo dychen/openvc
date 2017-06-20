@@ -42,6 +42,10 @@ class Account(models.Model):
     def get_portfolio_company(self, company_id):
         return self.account_portfolio.get(company__id=company_id).company
 
+    def get_leads(self, **kwargs):
+        args = { 'account': self }
+        return Company.objects.filter(**args).order_by('name')
+
     def get_deals(self, **kwargs):
         args = { 'account': self }
         return Deal.objects.filter(**args).order_by('name')
@@ -50,6 +54,12 @@ class Account(models.Model):
         args = { 'account_portfolio__account': self }
         args.update(kwargs)
         return Company.objects.filter(**args).order_by('name')
+
+    def get_api_leads(self):
+        if self.company.is_investor():
+            return [lead.get_api_format() for lead in self.get_leads()[:100]]
+        else:
+            return []
 
     def get_api_deals(self):
         if self.company.is_investor():

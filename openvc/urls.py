@@ -95,6 +95,9 @@ urlpatterns = [
     url(r'^api/v1/users/deals$', investor_views.InvestorDeals.as_view()),
     url(r'^api/v1/users/deals/(?P<deal_id>[0-9]+)$',
         investor_views.InvestorDeals.as_view()),
+    url(r'^api/v1/users/leads$', investor_views.InvestorLeads.as_view()),
+    url(r'^api/v1/users/leads/(?P<lead_id>[0-9]+)$',
+        investor_views.InvestorLeads.as_view()),
 
     # Contacts API
     url(r'^api/v1/contacts/self$', contact_views.UserContacts.as_view()),

@@ -22,7 +22,8 @@ import InvestorAppContainer from './investor/investor.jsx';
 import InvestorSidenav from './investor/sidenav.jsx';
 import InvestorTopnav from './investor/topnav.jsx';
 //import InvestorDealPage from './investor/deals.jsx';
-import InvestorLandscapePage from './investor/landscape.jsx';
+//import InvestorLandscapePage from './investor/landscape.jsx';
+import InvestorDiscoveryPage from './investor/discovery/discovery.jsx';
 import InvestorComparePage from './investor/compare.jsx';
 import InvestorPorfolioPage from './investor/portfolio/portfolio.jsx';
 import InvestorDealsPage from './investor/deals/deals.jsx';
@@ -149,14 +150,14 @@ const appRoutes = [
     exact: true
   },
   {
-    path: '/investor/deals',
-    main: InvestorDealsPage,
+    path: '/investor/discovery',
+    main: InvestorDiscoveryPage,
     container: InvestorAppContainer,
     exact: true
   },
   {
-    path: '/investor/landscape',
-    main: InvestorLandscapePage,
+    path: '/investor/deals',
+    main: InvestorDealsPage,
     container: InvestorAppContainer,
     exact: true
   },
@@ -212,12 +213,9 @@ const wrapRouteMainComponent = (Component, Container) => {
 };
 
 const App = (props) => {
-  // Took these out of appRoutes so they don't re-render on route change
+  // Took sidenav routes out of appRoutes so they don't re-render on route
+  // change
   // TODO: Do the same with topnav routes
-  const sidenavRoutes = [
-    <Route path='/investor' component={InvestorSidenav} exact={false} />,
-    <Route path='/founder' component={FounderSidenav} exact={false} />,
-  ];
   const topnavRoutes = appRoutes.map((route, index) => {
     if (route.topnav) {
       return (
@@ -242,7 +240,8 @@ const App = (props) => {
   return (
     <HashRouter>
       <div className="ovc-app-container">
-        {sidenavRoutes}
+        <Route path='/investor' component={InvestorSidenav} exact={false} />
+        <Route path='/founder' component={FounderSidenav} exact={false} />
         <div className="ovc-right-container">
           {topnavRoutes}
           {mainRoutes}

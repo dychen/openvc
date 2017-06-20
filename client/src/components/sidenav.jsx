@@ -67,7 +67,8 @@ class Sidenav extends React.Component {
                           ? 'ovc-sidenav minimized' : 'ovc-sidenav');
 
     const subnavItems = this.props.ITEMS.map(item => (
-      <SidenavItem link={item.link}
+      <SidenavItem key={item.title}
+                   link={item.link}
                    icon={item.icon}
                    title={item.title}
                    subtext={item.subtext} />

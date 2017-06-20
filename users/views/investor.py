@@ -778,3 +778,19 @@ class InvestorDeals(APIView):
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 
+class InvestorLeads(APIView):
+
+    authentication_classes = (TokenAuthentication,)
+
+    # GET /users/leads
+    def get(self, request, format=None):
+        try:
+            # TODO: Coordinate this with the frontend
+            user = check_authentication(request)
+            return Response(user.account.get_api_leads(),
+                            status=status.HTTP_200_OK)
+
+        except Account.DoesNotExist as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+

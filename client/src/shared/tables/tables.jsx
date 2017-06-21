@@ -38,7 +38,7 @@ const TableSection = (props) => {
                  {...props} />
     </div>
   );
-}
+};
 
 class UserTablesPage extends React.Component {
   constructor(props) {

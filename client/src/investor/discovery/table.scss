@@ -1,0 +1,44 @@
+@import '../../mixins';
+@import '../../constants.scss';
+
+table.ovc-edit-table {
+  thead {
+    td {
+      i.edit-source {
+        top: 15px;
+        right: 35px;
+      }
+      i.edit-field {
+        top: 15px;
+        right: 60px;
+      }
+    }
+  }
+}
+
+.ovc-header-popover {
+  position: absolute;
+  width: 140px;
+  color: $OVC_GRAY;
+  font-size: 0.7em;
+  border: 1px solid $OVC_LIGHT_GRAY;
+  border-radius: 5px;
+  background: $OVC_SUBNAV_GRAY;
+  box-shadow: 0 0 10px 0 $OVC_GRAY;
+  z-index: 1;
+  > .ovc-header-popover-header {
+    padding: 10px;
+    background: $OVC_SUBNAV_GRAY;
+    border-bottom: 1px solid $OVC_LIGHT_GRAY;
+  }
+  > .ovc-header-popover-body {
+    padding: 10px;
+    background: $OVC_WHITE;
+    > .ovc-cell-popover-row {
+      > .popover-source {
+        color: $OVC_GRAY;
+        font-style: italic;
+      }
+    }
+  }
+}

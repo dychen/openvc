@@ -72,9 +72,9 @@ class EditTableHeader extends React.Component {
           <div className="subtext">
             {DATA_TYPE_MAP[this.props.FIELD_MAP[field].type]}
           </div>
-          <i className={`ion-arrow-up-b sort-table sort-asc ${sortAscClass}`}
+          <i className={`ion-arrow-up-b header-icon sort-table sort-asc ${sortAscClass}`}
              id={field} onClick={this.onSortAscClick} />
-          <i className={`ion-arrow-down-b sort-table sort-desc ${sortDescClass}`}
+          <i className={`ion-arrow-down-b header-icon sort-table sort-desc ${sortDescClass}`}
              id={field} onClick={this.onSortDescClick} />
         </td>
       );

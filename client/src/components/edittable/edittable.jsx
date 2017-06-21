@@ -146,6 +146,10 @@ class EditTable extends React.Component {
     this.sortByField = this.sortByField.bind(this);
 
     this.getEntityList();
+
+    this.WrappedHeaderComponent = (this.props.HeaderComponent
+                                   ? this.props.HeaderComponent
+                                   : EditTableHeader);
   }
 
   // React docs suggest this is a good place to do network requests:
@@ -352,10 +356,10 @@ class EditTable extends React.Component {
   render() {
     return (
       <table className="ovc-edit-table">
-        <EditTableHeader FIELDS={this.props.FIELDS}
-                         FIELD_MAP={this.props.FIELD_MAP}
-                         sortByField={this.sortByField}
-                         onHeaderClick={this.props.onHeaderClick} />
+        <this.WrappedHeaderComponent FIELDS={this.props.FIELDS}
+                                     FIELD_MAP={this.props.FIELD_MAP}
+                                     sortByField={this.sortByField}
+                                     onHeaderClick={this.props.onHeaderClick} />
         <EditTableBody API_URL={this.props.API_URL}
                        FIELDS={this.props.FIELDS}
                        FIELD_MAP={this.props.FIELD_MAP}

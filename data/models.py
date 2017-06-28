@@ -1515,6 +1515,27 @@ class DataSourceOption(models.Model):
     def __unicode__(self):
         return u'%s %s %s' % (unicode(self.source), self.model, self.field)
 
+    def get_api_format(self):
+        return {
+            'id': self.id,
+            'source': {
+                'id': self.source.id,
+                'name': self.source.name,
+                'display': self.source.display,
+                'icon': self.source.icon
+            },
+            'model': {
+                'name': self.model,
+                'display': self.model_display,
+                'icon': self.model_icon
+            },
+            'field': {
+                'name': self.field,
+                'display': self.field_display,
+                'icon': self.field_icon
+            }
+        }
+
     def get_api_format_by_model(self):
         matches = (DataSourceOption.objects.filter(source=self.source,
                                                    model=self.model)
@@ -1536,12 +1557,65 @@ class DataSourceOption(models.Model):
         return {}
 
 #################
-# Custom models #
+# Custom fields #
 #################
 
 def generate_api_name(display_name):
+    # TODO: This is a hack to enforce uniqueness, but there is a minimal chance
+    #       it fails - replace this with auto-increment id field value to
+    #       ensure uniqueness.
+    suffix = os.urandom(6).encode('hex')
     return (''.join([c for c in display_name if c.isalnum() or c == ' '])
-              .replace(' ', '_'))
+              .replace(' ', '_')) + suffix
+
+class CompanyCustomField(models.Model):
+    DATA_TYPE_CHOICES = [(v, k) for k, v in DATA_TYPES.iteritems()]
+
+    account    = models.ForeignKey('users.Account',
+                                   related_name='company_custom_fields',
+                                   default=DEFAULT_ACCOUNT_ID)
+    owner      = models.ForeignKey('users.User',
+                                   related_name='company_custom_fields')
+
+    display_name = models.TextField()
+    api_name   = models.TextField(unique=True)
+    type       = models.TextField(choices=DATA_TYPE_CHOICES)
+    required   = models.BooleanField(default=False)
+    source_option = models.ForeignKey(DataSourceOption,
+                                      related_name='company_custom_fields')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return u'Company %s' % self.display_name
+
+class CompanyCustomData(models.Model):
+    account    = models.ForeignKey('users.Account',
+                                   related_name='company_custom_data',
+                                   default=DEFAULT_ACCOUNT_ID)
+    owner      = models.ForeignKey('users.User',
+                                   related_name='company_custom_data')
+
+    company    = models.ForeignKey(Company,
+                                   related_name='company_custom_data')
+    field      = models.ForeignKey(CompanyCustomField,
+                                   related_name='company_custom_data')
+    value      = models.TextField()
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return (u'%s %s %s' % (unicode(self.company), unicode(self.field),
+                               self.value))
+
+    class Meta:
+        unique_together = ('company', 'field')
+
+#################
+# Custom models #
+#################
 
 class CustomTable(models.Model):
     API_FIELDS = [

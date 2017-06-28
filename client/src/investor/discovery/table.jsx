@@ -1,18 +1,90 @@
 import React from 'react';
 import Immutable from 'immutable';
+import onClickOutside from 'react-onclickoutside';
+
 import EditTable from '../../components/edittable/edittable.jsx';
-import {DATA_TYPE_MAP} from '../../utils/constants.js';
+import {DATA_TYPE_MAP, DATA_TYPE_LIST} from '../../utils/constants.js';
+import {EditField, DropdownField} from '../../components/editfield.jsx';
 
 import './table.scss';
 
-const CellPopover = (props) => {
-  return (
-    <div className="ovc-header-popover">
-      <div className="ovc-header-popover-header">Update {props.field.display}</div>
-      <div className="ovc-header-popover-body">Body</div>
-    </div>
-  );
-};
+const CellPopover = onClickOutside(
+  class extends React.Component {
+    handleClickOutside(e) {
+      if (this.props.onCancel)
+        this.props.onCancel(e);
+    }
+    render() {
+      return (
+        <div className="ovc-header-popover">
+          <div className="ovc-header-popover-header">
+            Update {this.props.field.display}
+          </div>
+          <div className="ovc-header-popover-body">
+            <div className="ovc-header-popover-group">
+              <div className="row-title">Field Name</div>
+              <div className="row-input">
+                <EditField field="display"
+                           fieldType="string"
+                           originalValue={this.props.field.display}
+                           placeholder="Click to edit"
+                           onSave={this.props.updateField} />
+              </div>
+            </div>
+            <div className="ovc-header-popover-group">
+              <div className="row-title">Field Type</div>
+              <div className="row-input">
+                <DropdownField id={this.props.field.name}
+                               field="type"
+                               elementId={`ovc-header-popover-${this.props.field.name}-type`}
+                               originalValue={DATA_TYPE_MAP[this.props.field.type]}
+                               placeholder="Click to edit"
+                               options={DATA_TYPE_LIST}
+                               onSelect={this.props.updateTableField} />
+              </div>
+            </div>
+            <div className="ovc-header-popover-group">
+              <div className="row-title">Field Source</div>
+              <div className="row-input">
+                <DropdownField id={this.props.field.name}
+                               field="type"
+                               elementId={`ovc-header-popover-${this.props.field.name}-type`}
+                               originalValue={DATA_TYPE_MAP[this.props.field.type]}
+                               placeholder="Click to edit"
+                               options={DATA_TYPE_LIST}
+                               onSelect={this.props.updateTableField} />
+              </div>
+            </div>
+            <div className="ovc-header-popover-group">
+              <div className="row-title">Source Model</div>
+              <div className="row-input">
+                <DropdownField id={this.props.field.name}
+                               field="type"
+                               elementId={`ovc-header-popover-${this.props.field.name}-type`}
+                               originalValue={DATA_TYPE_MAP[this.props.field.type]}
+                               placeholder="Click to edit"
+                               options={DATA_TYPE_LIST}
+                               onSelect={this.props.updateTableField} />
+              </div>
+            </div>
+            <div className="ovc-header-popover-group">
+              <div className="row-title">Source Field</div>
+              <div className="row-input">
+                <DropdownField id={this.props.field.name}
+                               field="type"
+                               elementId={`ovc-header-popover-${this.props.field.name}-type`}
+                               originalValue={DATA_TYPE_MAP[this.props.field.type]}
+                               placeholder="Click to edit"
+                               options={DATA_TYPE_LIST}
+                               onSelect={this.props.updateTableField} />
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
+);
 
 /*
  * props:
@@ -70,10 +142,12 @@ class DiscoveryTableHeaderCell extends React.Component {
                            && this.props.activeSort.direction === 'desc'
                            ? 'active' : '');
     const editPopover = (this.state.editPopover.visible
-                         ? <CellPopover field={this.props.field} />
+                         ? <CellPopover field={this.props.field}
+                                        onCancel={this.hideEditPopover} />
                          : '');
     const sourcePopover = (this.state.sourcePopover.visible
-                           ? <CellPopover field={this.props.field} />
+                           ? <CellPopover field={this.props.field}
+                                          onCancel={this.hideSourcePopover} />
                            : '');
     // See SO discussion for handling outside clicks:
     // https://stackoverflow.com/questions/32553158/

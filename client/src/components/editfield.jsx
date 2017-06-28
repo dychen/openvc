@@ -4,6 +4,7 @@ import moment from 'moment';
 import {DropdownButton, MenuItem} from 'react-bootstrap';
 import 'react-dates/lib/css/_datepicker.css';
 import {SingleDatePicker} from 'react-dates';
+import onClickOutside from 'react-onclickoutside';
 
 import {truncateString} from '../utils/format.js';
 
@@ -214,6 +215,52 @@ class StaticField extends React.Component {
  */
 
 /*
+ * buttonId [string]: Id of the dropdown button (most of the time, should be
+ *                    the field id.
+ * title [string]: Default dropdown display.
+ * options [Array]: List of [{ key: [string], display: [string] }, ...] options
+ *                  to choose from.
+ * onSelect [function]: Function to call when an option is selected.
+ * onCancel [function]: [Optional] Function to call when the menu is exited.
+ */
+const WrappedDropdownButton = onClickOutside(
+  class extends React.Component {
+    handleClickOutside(e) {
+      if (this.props.onCancel)
+        this.props.onCancel(e);
+    }
+    render() {
+      const menuItems = this.props.options.map(option => {
+        // Check type rather than checking object keys b/c key values can be
+        // falsy (e.g. empty string).
+        if (typeof option === 'object') {
+          return (
+            <MenuItem key={option.key} eventKey={option.key}
+                      onSelect={this.props.onSelect}>
+              {option.display}
+            </MenuItem>
+          );
+        }
+        else {
+          return (
+            <MenuItem key={option} eventKey={option}
+                      onSelect={this.props.onSelect}>
+              {option}
+            </MenuItem>
+          );
+        }
+      });
+      return (
+        <DropdownButton id={this.props.buttonId}
+                        title={this.props.title}>
+          {menuItems}
+        </DropdownButton>
+      );
+    }
+  }
+);
+
+/*
  * props:
  *   elementId [string]: HTML DOM id attribute.
  *   originalValue [string]: Initial value of the field.
@@ -271,31 +318,13 @@ class BaseDropdownField extends React.Component {
     let editComponent;
 
     if (this.state.editing) {
-      const menuItems = this.props.options.map(option => {
-        // Check type rather than checking object keys b/c key values can be
-        // falsy (e.g. empty string).
-        if (typeof option === 'object') {
-          return (
-            <MenuItem key={option.key} eventKey={option.key}
-                      onSelect={this.onSelect}>
-              {option.display}
-            </MenuItem>
-          );
-        }
-        else {
-          return (
-            <MenuItem key={option} eventKey={option} onSelect={this.onSelect}>
-              {option}
-            </MenuItem>
-          );
-        }
-      });
       editComponent = (
         <div className="ovc-edit-field-dropdown">
-          <DropdownButton id={this.props.elementId}
-                          title={this.props.originalValue}>
-            {menuItems}
-          </DropdownButton>
+          <WrappedDropdownButton options={this.props.options}
+                                 buttonId={this.props.elementId}
+                                 title={this.props.originalValue}
+                                 onSelect={this.onSelect}
+                                 onCancel={this.cancelEditMode} />
         </div>
       );
     }

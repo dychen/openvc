@@ -19,8 +19,9 @@ table.ovc-edit-table {
 .ovc-header-popover {
   position: absolute;
   width: 140px;
-  color: $OVC_GRAY;
-  font-size: 0.7em;
+  color: $OVC_DARK_GRAY;
+  font-size: 0.65em;
+  font-style: normal;
   border: 1px solid $OVC_LIGHT_GRAY;
   border-radius: 5px;
   background: $OVC_SUBNAV_GRAY;
@@ -34,10 +35,13 @@ table.ovc-edit-table {
   > .ovc-header-popover-body {
     padding: 10px;
     background: $OVC_WHITE;
-    > .ovc-cell-popover-row {
-      > .popover-source {
-        color: $OVC_GRAY;
+    > .ovc-header-popover-group {
+      width: 100%;
+      > .row-title {
         font-style: italic;
+      }
+      > .row-input {
+        color: $OVC_GRAY;
       }
     }
   }

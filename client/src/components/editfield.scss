@@ -17,6 +17,12 @@ input.ovc-edit-field, textarea.ovc-edit-field {
   font-size: 0.9em;
   color: $OVC_DARK_GRAY;
 }
+input.ovc-edit-field {
+  // Set to 100% to fill table cells and popover components
+  // Set a max width of 150px so inline inputs don't span the entire row
+  width: 100%;
+  max-width: 150px;
+}
 textarea.ovc-edit-field {
   min-height: 200px;
   min-width: 400px;

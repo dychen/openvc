@@ -779,6 +779,10 @@ class InvestorDeals(APIView):
                             status=status.HTTP_400_BAD_REQUEST)
 
 class InvestorLeads(APIView):
+    """
+    DEPRECATED: Migrating away from this to CustomCompanySchema and
+                CustomCompanyData
+    """
 
     authentication_classes = (TokenAuthentication,)
 

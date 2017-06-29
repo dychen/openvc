@@ -21,6 +21,7 @@ Models:
 
 import datetime
 import json
+import os
 from decimal import Decimal
 from django.db import models
 from shared.utils import parse_date
@@ -1497,6 +1498,8 @@ class DataSource(models.Model):
                     )
 
 class DataSourceOption(models.Model):
+    DEFAULT_ID = 1
+
     source         = models.ForeignKey(DataSource,
                                        related_name='data_source_options')
     model          = models.TextField()
@@ -1514,6 +1517,10 @@ class DataSourceOption(models.Model):
 
     def __unicode__(self):
         return u'%s %s %s' % (unicode(self.source), self.model, self.field)
+
+    @classmethod
+    def get_default(cls):
+        return cls.objects.get(source__name='self')
 
     def get_api_format(self):
         return {
@@ -1566,9 +1573,19 @@ def generate_api_name(display_name):
     #       ensure uniqueness.
     suffix = os.urandom(6).encode('hex')
     return (''.join([c for c in display_name if c.isalnum() or c == ' '])
-              .replace(' ', '_')) + suffix
+              .replace(' ', '_')) + '-' + suffix
 
 class CompanyCustomField(models.Model):
+    # NOTE: This is not used in get_api_format - is only used in
+    #       create_from_api and update_from_api because of custom formatting
+    #       for DataSourceOption
+    API_FIELDS = [
+        'display_name', 'api_name', 'type', 'required',
+        { 'field': 'owner', 'model': 'users.User',
+          'related_fields': ['email'] },
+    ]
+
+    REQUIRED_FIELDS = ['display_name']
     DATA_TYPE_CHOICES = [(v, k) for k, v in DATA_TYPES.iteritems()]
 
     account    = models.ForeignKey('users.Account',
@@ -1581,14 +1598,64 @@ class CompanyCustomField(models.Model):
     api_name   = models.TextField(unique=True)
     type       = models.TextField(choices=DATA_TYPE_CHOICES)
     required   = models.BooleanField(default=False)
-    source_option = models.ForeignKey(DataSourceOption,
-                                      related_name='company_custom_fields')
+    source     = models.ForeignKey(DataSourceOption,
+                                   default=DataSourceOption.DEFAULT_ID,
+                                   related_name='company_custom_fields')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return u'Company %s' % self.display_name
+
+    def get_api_format(self):
+        return {
+            'id': self.id,
+            'display': self.display_name, # For legacy frontend API format
+            'displayName': self.display_name,
+            'apiName': self.api_name,
+            'type': self.type,
+            'required': self.required,
+            'source': {
+                'id': self.source.id,
+                'sourceName': self.source.source.name,
+                'sourceDisplay': self.source.source.display,
+                'sourceIcon': self.source.source.icon,
+                'modelName': self.source.model,
+                'modelDisplay': self.source.model_display,
+                'modelIcon': self.source.model_icon,
+                'fieldName': self.source.field,
+                'fieldDisplay': self.source.field_display,
+                'fieldIcon': self.source.field_icon,
+            }
+        }
+
+    @classmethod
+    def create_from_api(cls, user, request_json):
+        if 'displayName' in request_json and 'apiName' not in request_json:
+            request_json['apiName'] = generate_api_name(
+                request_json['displayName']
+            )
+        source = (DataSourceOption.objects.get(id=request_json['source'])
+                  if 'source' in request_json
+                  else DataSourceOption.get_default())
+        request_json['owner'] = { 'id': user.id }
+
+        obj = create_from_api(cls, user.account, cls.API_FIELDS, request_json,
+                              source=source)
+        return obj
+
+    def update_from_api(self, user, table, request_json):
+        if 'displayName' in request_json and 'apiName' not in request_json:
+            request_json['apiName'] = generate_api_name(
+                request_json['displayName']
+            )
+        if 'source' not in request_json:
+            request_json['source'] = { 'id': DataSourceOption.get_default().id }
+        request_json['owner'] = { 'id': user.id }
+
+        obj = update_from_api(self, user.account, self.API_FIELDS, request_json)
+        return obj
 
 class CompanyCustomData(models.Model):
     account    = models.ForeignKey('users.Account',
@@ -1647,7 +1714,7 @@ class CustomTable(models.Model):
 
     @classmethod
     def create_from_api(cls, user, request_json):
-        if 'displayName' in request_json:
+        if 'displayName' in request_json and 'apiName' not in request_json:
             request_json['apiName'] = generate_api_name(
                 request_json['displayName']
             )
@@ -1655,7 +1722,7 @@ class CustomTable(models.Model):
         return create_from_api(cls, user.account, cls.API_FIELDS, request_json)
 
     def update_from_api(self, user, request_json):
-        if 'displayName' in request_json:
+        if 'displayName' in request_json and 'apiName' not in request_json:
             request_json['apiName'] = generate_api_name(
                 request_json['displayName']
             )
@@ -1704,7 +1771,7 @@ class CustomField(models.Model):
 
     @classmethod
     def create_from_api(cls, user, table, request_json):
-        if 'displayName' in request_json:
+        if 'displayName' in request_json and 'apiName' not in request_json:
             request_json['apiName'] = generate_api_name(
                 request_json['displayName']
             )
@@ -1717,7 +1784,7 @@ class CustomField(models.Model):
         return obj
 
     def update_from_api(self, user, table, request_json):
-        if 'displayName' in request_json:
+        if 'displayName' in request_json and 'apiName' not in request_json:
             request_json['apiName'] = generate_api_name(
                 request_json['displayName']
             )

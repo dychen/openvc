@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from users.models import Account
 from data.api import validate_request
 from data.models import CustomTable, CustomField, CustomRecord, CustomData,\
-    DataSource
+    DataSource, CompanyCustomField, CompanyCustomData
 from data.integrations.worker import sync_table
 from shared.auth import check_authentication
 
@@ -427,6 +427,80 @@ class CustomTableSyncView(APIView):
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
         except (Account.DoesNotExist, CustomTable.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+class CustomCompanySchemaView(APIView):
+
+    authentication_classes = (TokenAuthentication,)
+
+    # GET /custom/company/schema
+    def get(self, request, format=None):
+        try:
+            user = check_authentication(request)
+            account = user.account
+            custom_fields = (CompanyCustomField.objects.filter(account=account)
+                                                       .order_by('created_at'))
+            return Response([
+                custom_field.get_api_format()
+                for custom_field in custom_fields
+            ], status=status.HTTP_200_OK)
+
+        except (Account.DoesNotExist, CustomTable.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # POST /custom/company/schema
+    def __post_create(self, request, format=None):
+            user = check_authentication(request)
+            account = user.account
+            request_json = validate_request(json.loads(request.body),
+                                            CompanyCustomField.REQUIRED_FIELDS)
+            custom_field = CompanyCustomField.create_from_api(
+                user, request_json
+            )
+            return Response(custom_field.get_api_format(),
+                            status=status.HTTP_201_CREATED)
+
+
+    # POST /custom/company/schema/:field_id
+    def __post_update(self, request, field_id, format=None):
+        try:
+            user = check_authentication(request)
+            account = user.account
+            request_json = json.loads(request.body)
+            custom_field = CompanyCustomField.objects.get(account=account,
+                                                          id=field_id)
+            custom_field = custom_field.update_from_api(user, request_json)
+            return Response(custom_field.get_api_format(),
+                            status=status.HTTP_200_OK)
+
+        except (TypeError, ValueError) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+        except (Account.DoesNotExist, CompanyCustomField.DoesNotExist) as e:
+            return Response({ 'error': str(e) },
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, field_id=None, format=None):
+        if field_id:
+            return self.__post_update(request, field_id, format=format)
+        else:
+            return self.__post_create(request, format=format)
+
+    # DELETE /custom/company/schema/:field_id
+    def delete(self, request, field_id=None, format=None):
+        try:
+            user = check_authentication(request)
+            account = user.account
+            field_id = int(field_id)
+
+            CompanyCustomField.objects.get(
+                account=account, id=field_id, owner=user
+            ).delete()
+            return Response({ 'id': field_id }, status=status.HTTP_200_OK)
+
+        except (Account.DoesNotExist, CompanyCustomField.DoesNotExist) as e:
             return Response({ 'error': str(e) },
                             status=status.HTTP_400_BAD_REQUEST)
 

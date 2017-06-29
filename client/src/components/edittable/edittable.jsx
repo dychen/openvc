@@ -359,7 +359,8 @@ class EditTable extends React.Component {
         <this.WrappedHeaderComponent FIELDS={this.props.FIELDS}
                                      FIELD_MAP={this.props.FIELD_MAP}
                                      sortByField={this.sortByField}
-                                     onHeaderClick={this.props.onHeaderClick} />
+                                     onHeaderClick={this.props.onHeaderClick}
+                                     {...this.props} />
         <EditTableBody API_URL={this.props.API_URL}
                        FIELDS={this.props.FIELDS}
                        FIELD_MAP={this.props.FIELD_MAP}

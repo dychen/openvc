@@ -126,6 +126,10 @@ urlpatterns = [
          '(?P<employment_id>[0-9]+)$',
         entity_views.PersonEmployment.as_view()),
 
+    # Custom Data API
+    url(r'^api/v1/custom/company/schema$',
+        custom_views.CustomCompanySchemaView.as_view()),
+
     # Custom Tables API
     url(r'^api/v1/tables$',
         custom_views.CustomTableView.as_view()),

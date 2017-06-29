@@ -2,6 +2,8 @@ import React from 'react';
 import Immutable from 'immutable';
 import onClickOutside from 'react-onclickoutside';
 
+import {getFieldList, createField, updateField, deleteField,
+        getSourceList} from './api.js';
 import EditTable from '../../components/edittable/edittable.jsx';
 import {DATA_TYPE_MAP, DATA_TYPE_LIST} from '../../utils/constants.js';
 import {EditField, DropdownField} from '../../components/editfield.jsx';
@@ -28,7 +30,7 @@ const CellPopover = onClickOutside(
                            fieldType="string"
                            originalValue={this.props.field.display}
                            placeholder="Click to edit"
-                           onSave={this.props.updateField} />
+                           onSave={this.props.onSave} />
               </div>
             </div>
             <div className="ovc-header-popover-group">
@@ -40,7 +42,7 @@ const CellPopover = onClickOutside(
                                originalValue={DATA_TYPE_MAP[this.props.field.type]}
                                placeholder="Click to edit"
                                options={DATA_TYPE_LIST}
-                               onSelect={this.props.updateTableField} />
+                               onSelect={this.props.onSave} />
               </div>
             </div>
             <div className="ovc-header-popover-group">
@@ -52,7 +54,7 @@ const CellPopover = onClickOutside(
                                originalValue={DATA_TYPE_MAP[this.props.field.type]}
                                placeholder="Click to edit"
                                options={DATA_TYPE_LIST}
-                               onSelect={this.props.updateTableField} />
+                               onSelect={this.props.onSave} />
               </div>
             </div>
             <div className="ovc-header-popover-group">
@@ -64,7 +66,7 @@ const CellPopover = onClickOutside(
                                originalValue={DATA_TYPE_MAP[this.props.field.type]}
                                placeholder="Click to edit"
                                options={DATA_TYPE_LIST}
-                               onSelect={this.props.updateTableField} />
+                               onSelect={this.props.onSave} />
               </div>
             </div>
             <div className="ovc-header-popover-group">
@@ -76,7 +78,7 @@ const CellPopover = onClickOutside(
                                originalValue={DATA_TYPE_MAP[this.props.field.type]}
                                placeholder="Click to edit"
                                options={DATA_TYPE_LIST}
-                               onSelect={this.props.updateTableField} />
+                               onSelect={this.props.onSave} />
               </div>
             </div>
           </div>
@@ -97,6 +99,8 @@ const CellPopover = onClickOutside(
  *
  *   onHeaderClick [function]: Function to call when the cell is clicked
  *   onSortAscClick, onSortDescClick [function]: Sorts the table
+ *   onCellUpdate [function]: Function to call when the cell data is updated
+ *                            (makes an API call to backend)
  */
 class DiscoveryTableHeaderCell extends React.Component {
   constructor(props) {
@@ -104,13 +108,11 @@ class DiscoveryTableHeaderCell extends React.Component {
 
     this.state = {
       editPopover: { visible: false },
-      sourcePopover: { visible: false }
     };
 
     this.showEditPopover = this.showEditPopover.bind(this);
     this.hideEditPopover = this.hideEditPopover.bind(this);
-    this.showSourcePopover = this.showSourcePopover.bind(this);
-    this.hideSourcePopover = this.hideSourcePopover.bind(this);
+    this.onPopoverSave = this.onPopoverSave.bind(this);
   }
 
   showEditPopover(e) {
@@ -123,15 +125,18 @@ class DiscoveryTableHeaderCell extends React.Component {
       .setIn(['editPopover', 'visible'], false);
     this.setState(newState.toJS());
   }
-  showSourcePopover(e) {
-    const newState = Immutable.fromJS(this.state)
-      .setIn(['sourcePopover', 'visible'], true);
-    this.setState(newState.toJS());
-  }
-  hideSourcePopover(e) {
-    const newState = Immutable.fromJS(this.state)
-      .setIn(['sourcePopover', 'visible'], false);
-    this.setState(newState.toJS());
+  onPopoverSave(fieldName, fieldValue) {
+    const newField = Immutable.fromJS(this.props.field)
+      .set(fieldName, fieldValue)
+      .toJS();
+    // Update
+    if (newField.id) {
+      this.props.onCellUpdate(newField.id, newField);
+    }
+    // Create
+    else {
+      this.props.onCellUpdate(newField);
+    }
   }
 
   render() {
@@ -143,12 +148,9 @@ class DiscoveryTableHeaderCell extends React.Component {
                            ? 'active' : '');
     const editPopover = (this.state.editPopover.visible
                          ? <CellPopover field={this.props.field}
+                                        onSave={this.onPopoverSave}
                                         onCancel={this.hideEditPopover} />
                          : '');
-    const sourcePopover = (this.state.sourcePopover.visible
-                           ? <CellPopover field={this.props.field}
-                                          onCancel={this.hideSourcePopover} />
-                           : '');
     // See SO discussion for handling outside clicks:
     // https://stackoverflow.com/questions/32553158/
     //   detect-click-outside-react-component
@@ -159,15 +161,12 @@ class DiscoveryTableHeaderCell extends React.Component {
         <div className="subtext">
           {DATA_TYPE_MAP[this.props.field.type]}
         </div>
-        <i className={`header-icon edit-source
-                       ${this.props.field.icon || 'ion-network'}`}
-           onClick={this.showSourcePopover}>
-          {sourcePopover}
-        </i>
         <i className="header-icon edit-field ion-compose"
            onClick={this.showEditPopover}>
           {editPopover}
         </i>
+        <i className={`header-icon edit-source
+                       ${this.props.field.icon || 'ion-network'}`} />
         <i className={`ion-arrow-up-b header-icon sort-table sort-asc ${sortAscClass}`}
            id={this.props.fieldName} onClick={this.props.onSortAscClick} />
         <i className={`ion-arrow-down-b header-icon sort-table sort-desc ${sortDescClass}`}
@@ -191,6 +190,9 @@ class DiscoveryTableHeaderCell extends React.Component {
  *   onHeaderClick [function]: (Optional) Function that runs when a header cell
  *                             is clicked.
  *     f([Event object]) => CustomField object { displayName: [string], ... }
+ *
+ *   createField [function]
+ *   updateField [function]
  */
 class DiscoveryTableHeader extends React.Component {
   constructor(props) {
@@ -201,17 +203,23 @@ class DiscoveryTableHeader extends React.Component {
         field: '',
         direction: ''
       },
-      editPopover: {
-        visible: false
-      },
-      sourcePopover: {
-        visible: false
+      addingField: false,
+      newField: {
+        display: 'New Field',
+        type: 'string',
+        required: false,
+        icon: 'ion-arrow-graph-up-right'
       }
     };
 
     this.onSortAscClick = this.onSortAscClick.bind(this);
     this.onSortDescClick = this.onSortDescClick.bind(this);
     this.onHeaderClick = this.onHeaderClick.bind(this);
+
+    this.createField = this.createField.bind(this);
+    this.updateField = this.updateField.bind(this);
+
+    this.toggleAddField = this.toggleAddField.bind(this);
   }
 
   onSortAscClick(e) {
@@ -238,8 +246,20 @@ class DiscoveryTableHeader extends React.Component {
     }
   }
 
+  toggleAddField(e) {
+    this.setState({ addingField: !this.state.addingField });
+  }
+
+  createField(field) {
+    this.props.createField(field);
+    this.setState({ addingField: false }); // No longer creating a new field
+  }
+  // For symmetry with createField
+  updateField(field) {
+    this.props.updateField(fieldId, field);
+  }
+
   render() {
-    console.log(this.state.editPopover.visible);
     const clickableClass = this.onHeaderClick ? 'clickable' : '';
     const headers = this.props.FIELDS.map(fieldName =>
       <DiscoveryTableHeaderCell
@@ -250,15 +270,33 @@ class DiscoveryTableHeader extends React.Component {
         activeSort={this.state.activeSort}
         onHeaderClick={this.onHeaderClick}
         onSortAscClick={this.onSortAscClick}
-        onSortDescClick={this.onSortDescClick} />
+        onSortDescClick={this.onSortDescClick}
+        onCellUpdate={this.updateField} />
+    );
+
+    const newColumn = (
+      this.state.addingField
+      ? (
+        <DiscoveryTableHeaderCell
+          key="newField"
+          clickableClass={clickableClass}
+          fieldName="newField"
+          field={this.state.newField}
+          activeSort={this.state.activeSort}
+          onHeaderClick={this.onHeaderClick}
+          onSortAscClick={this.onSortAscClick}
+          onSortDescClick={this.onSortDescClick}
+          onCellUpdate={this.createField} />
+      ) : ''
     );
 
     return (
       <thead>
         <tr>
           {headers}
+          {newColumn}
           <td className={`remove-entity ${clickableClass}`}
-              onClick={this.onHeaderClick}>
+              onClick={this.toggleAddField}>
             <i className="ion-plus" />
           </td>
         </tr>
@@ -312,6 +350,56 @@ class DiscoveryTableSection extends React.Component {
         icon: 'ion-cloud'
       },
     };
+
+    this.state = {
+      fieldList: [],
+      fieldMap: {}
+    };
+
+    this.getFields = this.getFields.bind(this);
+    this.createField = this.createField.bind(this);
+    this.updateField = this.updateField.bind(this);
+
+
+    this.getFields();
+  }
+
+  getFields() {
+    getFieldList().then(fields => {
+      const fieldList = fields.map(field => field.apiName);
+      let fieldMap = {};
+      fields.forEach(field => {
+        fieldMap[field.apiName] = field;
+      });
+      const newState = Immutable.fromJS(this.state)
+        .set('fieldList', fieldList)
+        .set('fieldMap', fieldMap)
+        .toJS();
+      this.setState(newState);
+    });
+  }
+
+  createField(field) {
+    field.displayName = field.display;
+    createField(field)
+      .then(field => {
+        const newState = Immutable.fromJS(this.state)
+          .update('fieldList', fieldList => fieldList.push(field.apiName))
+          .update('fieldMap', fieldMap => fieldMap.set(field.apiName, field))
+          .toJS();
+        this.setState(newState);
+      });
+  }
+
+  updateField(fieldId, field) {
+    field.displayName = field.display;
+    /*
+    updateField(fieldId, field)
+      .then(fields => {
+        const newState = this._getNewFieldState(fields);
+        this.setState(newState);
+      });
+    */
   }
 
   render() {
@@ -319,8 +407,10 @@ class DiscoveryTableSection extends React.Component {
       <div className="ovc-edit-table-container">
         <EditTable API_URL={`${SERVER_URL}/api/v1/users/leads`}
                    HeaderComponent={DiscoveryTableHeader}
-                   FIELDS={this.FIELDS}
-                   FIELD_MAP={this.FIELD_MAP}
+                   FIELDS={this.state.fieldList}
+                   FIELD_MAP={this.state.fieldMap}
+                   createField={this.createField}
+                   updateField={this.updateField}
                    {...this.props} />
       </div>
     );

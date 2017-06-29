@@ -47,7 +47,7 @@ def get_api_format(obj, fields):
                 result[snake_to_camel(field)] = getattr(obj, field)
     return result
 
-def create_from_api(model, account, fields, request_json):
+def create_from_api(model, account, fields, request_json, **kwargs):
     obj_dict = {}
     for field in fields:
         if type(field) is dict:
@@ -72,6 +72,8 @@ def create_from_api(model, account, fields, request_json):
             api_field = __get_api_field_format(field)
             if api_field in request_json and __hasfield(model, field):
                 obj_dict[field] = request_json.get(api_field)
+    # Update with any additional data
+    obj_dict.update(kwargs)
     return model.objects.create(account=account, **obj_dict)
 
 def update_from_api(obj, account, fields, request_json):
